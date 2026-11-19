@@ -68,7 +68,7 @@ extern void __stkinit(void);
 void (*const warphub_stackSwap)(void) = __stkinit;
 
 #define CATALOG_URL \
-  "https://raw.githubusercontent.com/cizar-szymon/WarpHub/main/catalog/catalog.txt"
+  "https://raw.githubusercontent.com/cizar-szymon/Amiga_WarpHub/main/catalog/catalog.txt"
 #define PREFS_FILE "PROGDIR:WarpHub.prefs"
 #define CACHE_DIR "PROGDIR:cache"
 
@@ -1687,6 +1687,12 @@ int main(void)
   }
 
 out:
+  /* the language (and the rest) once more at the end: it is also saved at
+   * every change, this keeps it even if that write did not go through */
+  if (win_obj != NULL) {
+    strcpy(prefs.language, lang == HUB_PL ? "pl" : lang == HUB_DE ? "de" : "en");
+    hub_prefs_save(&prefs, PREFS_FILE);
+  }
   hub_worker_quit(&work);
   if (win_obj != NULL) DisposeObject(win_obj);
   free_tiles();

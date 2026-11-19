@@ -35,7 +35,7 @@
 #define BUILD_UNIX 1795046400UL   /* 2026-11-19 */
 #endif
 #define CATALOG_URL \
-  "https://raw.githubusercontent.com/cizar-szymon/WarpHub/main/catalog/catalog.txt"
+  "https://raw.githubusercontent.com/cizar-szymon/Amiga_WarpHub/main/catalog/catalog.txt"
 #define PREFS "PROGDIR:WarpHub.prefs"
 
 const char version_tag[] = "$VER: WarpHubCLI " WARPHUB_VERSION " (19.11.2026)";

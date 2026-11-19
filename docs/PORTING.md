@@ -443,6 +443,14 @@ Wymagania, Zainstaluj / Aktualizuj / Sprawdź pliki, Przerwij, Katalog gier, Od�
   z `$VER`, m.in. Xain'd Sleena 0.9.17, AmiXcom 0.106, ZOD 0.12. Gra zainstalowana w dwóch
   miejscach ma w ustawieniach tylko jedno: to, które sprawdzono jako ostatnie.
 
+### Język zapamiętany przy zamknięciu (19.11.2026, prośba użytkownika)
+- Język był już zapisywany przy każdej zmianie w liście wyboru. Teraz `WarpHub.prefs` jest
+  zapisywany jeszcze raz przy zamknięciu programu (Esc, gadżet zamknięcia, Ctrl-C), razem
+  z bieżącym językiem.
+- Test na Amidze 2: kopia w `RAM:WarpHub-lang`, ustawienia bez linii `LANGUAGE`, start
+  `LANG=de`, zamknięcie przez Ctrl-C → w pliku `LANGUAGE de`. Zmiany w liście wyboru języka
+  nie da się sprawdzić bez myszy.
+
 ## Bez paska stanu (19.11.2026)
 
 Uwaga użytkownika: ramka z liczbą gier jest niepotrzebna, więc ją usunąłem. Stan pokazuje
