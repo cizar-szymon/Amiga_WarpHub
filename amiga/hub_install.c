@@ -1,7 +1,6 @@
 /* hub_install.c - install / update a game (see hub_install.h).
  *
- * After reference/amiga_update_download.c (Settlers, tested in WinUAE), with
- * SHA-256 from the catalog instead of FNV-1a and the files from
+ * Every file checked with the SHA-256 of the catalog, the files from
  * https://raw.githubusercontent.com/<repo>/<branch>/releases/amiga/<path>. */
 
 #include <exec/types.h>
