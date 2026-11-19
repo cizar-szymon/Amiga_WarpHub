@@ -436,8 +436,12 @@ def main(argv=None):
             g['req'] = game.get('req', {})
             if game.get('flat'):
                 g['flat'] = True
+                # drawers inside <Root>/ (doc/...) are not installed: neither
+                # their files nor their icons (<Root>/doc.info), nor <Root>.info
+                subdirs = {r.split('/')[1] for r, _, _, _ in g['files'] if r.count('/') >= 2}
                 for i, (rel, size, sha, flag) in enumerate(g['files']):
-                    if rel.count('/') != 1:          # the drawer icon, doc/...
+                    name = rel.split('/')[-1]
+                    if rel.count('/') != 1 or (name.endswith('.info') and name[:-5] in subdirs):
                         g['files'][i] = (rel, size, sha, 'X')
             for lang, data in g.get('local_notes', {}).items():
                 # the Amiga cannot get them from GitHub: notes/<key>_<lang>.txt
