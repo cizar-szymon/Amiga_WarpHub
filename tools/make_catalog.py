@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Build catalog/catalog.txt: the games WARP HUB on the Amiga can install.
 
-    python tools/make_catalog.py [--games catalog/games.json] [--out catalog/catalog.txt]
+    python tools/make_catalog.py [--games catalog/games] [--out catalog/catalog.txt]
 
-For every game in games.json it asks GitHub (the API, only here on the PC,
+For every game in catalog/games/<key>.txt (format: tools/game_files.py) it asks GitHub (the API, only here on the PC,
 never on the Amiga) for the newest releases/amiga/<Name>-<version>.zip on the
-default branch (or "branch" from games.json), downloads that ZIP once and
+default branch (or BRANCH of the game file), downloads that ZIP once and
 writes every file of the game drawer with its size and SHA-256. Every file is
 also checked against the git tree of the same branch (the git blob SHA-1), so
 the files the Amiga later downloads one by one from
@@ -59,6 +59,9 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import zipfile
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import game_files  # noqa: E402
 
 API = 'https://api.github.com'
 RAW = 'https://raw.githubusercontent.com'
@@ -339,7 +342,7 @@ def one_line(text):
 
 def write_catalog(games):
     out = ['WARPHUB-CATALOG %d' % FORMAT,
-           '# made %s by tools/make_catalog.py' % time.strftime('%Y-%m-%d %H:%M', time.gmtime())]
+           '# made by tools/make_catalog.py from catalog/games/ (do not edit)']
     for g in games:
         if 'block' in g:                      # copied from catalog.txt
             lines = [l for l in g['block'] if not l.startswith(('IMAGE ', 'TAGS ', 'REQ '))]
@@ -385,7 +388,7 @@ def write_catalog(games):
 def main(argv=None):
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-    ap.add_argument('--games', default=os.path.join(here, 'catalog', 'games.json'))
+    ap.add_argument('--games', default=os.path.join(here, 'catalog', 'games'))
     ap.add_argument('--out', default=os.path.join(here, 'catalog', 'catalog.txt'))
     ap.add_argument('--only', help='comma separated keys (for tests)')
     ap.add_argument('--simulate', action='store_true',
@@ -394,8 +397,7 @@ def main(argv=None):
     args = ap.parse_args(argv)
     if args.simulate and args.out == os.path.join(here, 'catalog', 'catalog.txt'):
         args.out = os.path.join(here, 'catalog', 'catalog-test.txt')
-    with open(args.games, encoding='utf-8') as f:
-        cfg = json.load(f)
+    cfg = {'games': game_files.load_games(args.games)}
     gh = GitHub(os.environ.get('GITHUB_TOKEN'))
     public = {}
     if args.simulate:

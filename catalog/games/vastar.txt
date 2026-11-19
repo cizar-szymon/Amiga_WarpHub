@@ -1,0 +1,19 @@
+# WARP HUB: Vastar (format: tools/game_files.py)
+NAME en Vastar
+DESC en The 1983 Orca arcade shooter, emulated from the original ROMs.
+DESC pl Strzelanka z automatu Orca z 1983 roku, emulowana z oryginalnych ROM-ów.
+DESC de Der Arcade-Shooter von Orca aus dem Jahr 1983, emuliert aus den Original-ROMs.
+TAGS arcade
+REQ en 68060
+REQ en 100 MHz recommended
+REQ en AmigaOS 3.1+, RTG
+REQ pl 68060
+REQ pl 100 MHz (zalecane)
+REQ pl AmigaOS 3.1+, RTG
+REQ de 68060
+REQ de 100 MHz empfohlen
+REQ de AmigaOS 3.1+, RTG
+REPO cizar-szymon/Amiga_Game_VASTAR
+ORDER 60
+LOCAL Wastar
+IMAGE-SOURCE Wastar/build/shots/lives.png 0 140 458 426

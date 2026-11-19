@@ -1,0 +1,25 @@
+# WARP HUB: Wizard of Wor (format: tools/game_files.py)
+NAME en Wizard of Wor
+DESC en The 1980 arcade maze shooter by Midway, rewritten from the C64 version for one or two players.
+DESC pl Labiryntowa strzelanka z automatu Midway z 1980 roku, przepisana z wersji na C64, dla jednego lub dwóch graczy.
+DESC de Das Labyrinth-Ballerspiel von Midway aus dem Jahr 1980, aus der C64-Version neu geschrieben, für ein oder zwei Spieler.
+TAGS arcade
+REQ en 68020 or better
+REQ en tested on 060 / 50 MHz
+REQ en 1 MB
+REQ en AmigaOS 3.1+
+REQ en No data needed
+REQ pl 68020 lub lepszy
+REQ pl testowane na 060 / 50 MHz
+REQ pl 1 MB
+REQ pl AmigaOS 3.1+
+REQ pl Bez dodatkowych danych
+REQ de 68020 oder besser
+REQ de getestet mit 060 / 50 MHz
+REQ de 1 MB
+REQ de AmigaOS 3.1+
+REQ de Keine Daten nötig
+REPO cizar-szymon/Amiga_Game_Wizard_of_Wor
+ORDER 80
+LOCAL Wizard of Wor/wizardofwor-master
+IMAGE-SOURCE Wizard of Wor/wizardofwor-master/build/remote_shot.png 10 45 600 420

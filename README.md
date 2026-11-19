@@ -64,15 +64,23 @@ release (`releases/amiga/<Game>/` in the game's repository) with its size and SH
 reads it from `raw.githubusercontent.com` (no GitHub API, so no request limit), compares the
 files with the ones on your disk and downloads only what is missing or changed.
 
-After a release of a game the catalog is made again on the PC:
+Every game or program is one small text file, `catalog/games/<key>.txt` (name, description,
+groups and requirements in three languages, the repository; format in `tools/game_files.py`),
+with its picture `catalog/images/<key>.png`. They can be edited in the browser:
+
+**https://cizar-szymon.github.io/Amiga_WarpHub/** - the editor (`editor/`) writes one commit with
+the game file and the picture (a fine-grained token with *Contents: Read and write* on this
+repository is needed to save).
+
+GitHub Actions (`.github/workflows/catalog.yml`) then builds `catalog/catalog.txt` from the
+game files and the newest releases in the games' repositories, and brings the pictures to
+224x140 / 256 colours - after every change and once a day. The same on the PC:
 
 ```
-python tools/make_catalog.py          # needs the GitHub API; GITHUB_TOKEN raises the limit
+python tools/make_catalog.py          # GITHUB_TOKEN raises the GitHub API limit
+python tools/make_images.py           # pictures from IMAGE-SOURCE (PC only)
 python -m unittest discover -s tools/tests
 ```
-
-The game list, descriptions, groups and requirements are in `catalog/games.json`; the pictures
-(`catalog/images/`, 224x140, 256 colours) are made by `tools/make_images.py`.
 
 ## Building
 

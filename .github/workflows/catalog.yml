@@ -1,0 +1,57 @@
+# Builds catalog/catalog.txt (the file WARP HUB on the Amiga reads) from
+# catalog/games/*.txt and the releases in the games' GitHub repos, and brings
+# the pictures of catalog/images/ to 224x140 / 256 colours.
+# Runs after every change of a game file or picture (also from the web
+# editor), once a day (new releases of the games) and by hand.
+name: catalog
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'catalog/games/**'
+      - 'catalog/images/**'
+      - 'tools/make_catalog.py'
+      - 'tools/make_images.py'
+      - 'tools/game_files.py'
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: catalog
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5.3.0
+        with:
+          python-version: '3.12'
+      - name: Pillow
+        run: pip install pillow==10.4.0
+      - name: Tests
+        run: python -m unittest discover -s tools/tests
+      - name: Pictures
+        run: python tools/make_images.py --normalize
+      - name: Catalog
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python tools/make_catalog.py
+      - name: Commit when something changed
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add catalog/catalog.txt catalog/images
+          if git diff --cached --quiet; then
+            echo 'catalog unchanged'
+            exit 0
+          fi
+          git commit -m 'catalog: built by GitHub Actions'
+          git pull --rebase origin main
+          git push origin HEAD:main

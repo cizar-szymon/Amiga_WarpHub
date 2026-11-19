@@ -1,0 +1,22 @@
+# WARP HUB: Miner 2049er (format: tools/game_files.py)
+NAME en Miner 2049er
+DESC en Bounty Bob claims every floor of the mine: the 1982 platform game.
+DESC pl Bounty Bob zajmuje każde piętro kopalni: gra platformowa z 1982 roku.
+DESC de Bounty Bob erobert jede Etage der Mine: das Jump'n'Run von 1982.
+TAGS other
+REQ en 68020 or better
+REQ en tested on 060 / 50 MHz
+REQ en AmigaOS 3.1+
+REQ en No data needed
+REQ pl 68020 lub lepszy
+REQ pl testowane na 060 / 50 MHz
+REQ pl AmigaOS 3.1+
+REQ pl Bez dodatkowych danych
+REQ de 68020 oder besser
+REQ de getestet mit 060 / 50 MHz
+REQ de AmigaOS 3.1+
+REQ de Keine Daten nötig
+REPO cizar-szymon/Amiga_Game_Miner-2049er
+ORDER 40
+LOCAL Miner 2049er
+IMAGE-SOURCE Miner 2049er/build/port/lv/levels.png 0 0 400 250 pixel

@@ -10,7 +10,8 @@
 | 4. Zegar Amigi a certyfikaty: SNTP tylko do sprawdzenia certyfikatu (zrobione, do potwierdzenia przez użytkownika) | ✅ / decyzja |
 | 5. GUI `WarpHub` 0.2 (ReAction + kafelki, PL/EN/DE, instalacja w oknie) | ✅ pierwsza wersja 19.11.2026, Amiga 2 |
 | 6. Instalacja / aktualizacja w GUI, aktualizacja samego WARP HUB | ⏳ |
-| 7. Repo WarpHub na GitHubie (katalog musi być publiczny), wydanie | ⏳ za zgodą |
+| 7. Repo `cizar-szymon/Amiga_WarpHub` na GitHubie, publiczne (katalog z `raw` działa na Amidze 2) | ✅ 19.11.2026 |
+| 8. Wydanie WARP HUB (numer, ZIP, opisy PL/EN/DE, aktualizacja samego siebie) | ⏳ |
 
 ## Decyzja: pobieranie wprost z GitHuba (19.11.2026)
 
@@ -464,3 +465,39 @@ i pod galerią. `LAYOUT_DeferLayout` też usunięty, więc okno układa się od 
 
 Sprawdzone na Amidze 2 (640×480): układ bez przerw, postęp w tytule przy instalacji
 Settlers z okna.
+
+## Repo publiczne (19.11.2026)
+
+- Użytkownik upublicznił `cizar-szymon/Amiga_WarpHub`. Przed tym: `CLAUDE.md` (adresy sieci
+  domowej) tylko na dysku, historia przepisana bez niego, opisy bez dawnego serwera.
+- PC bez logowania: `catalog/catalog.txt` (37 289 B, końce linii LF) i obrazki z `raw` – 200.
+- Amiga 2, `WarpHubCLI LIST` z domyślnym adresem: 3 gry (Settlers 0.139, OpenDUNE 0.54,
+  Diablo 0.48), katalog w 980 ms, TLS 1.3 AES-128-GCM, czas z NTP (zegar Amigi 1978).
+
+## Pliki gier, automat i edytor w przeglądarce (19.11.2026, prośba użytkownika)
+
+- `catalog/games.json` zastąpiony plikami `catalog/games/<klucz>.txt`, po jednym na grę
+  (format w `tools/game_files.py`; `ORDER` = miejsce w galerii, `LOCAL` i `IMAGE-SOURCE`
+  tylko dla PC). `make_catalog.py` i `make_images.py` czytają katalog. Po przejściu
+  `catalog.txt` i `catalog-test.txt` identyczne jak wcześniej, poza nagłówkiem (bez daty,
+  żeby automat nie robił commitu codziennie). Testy: 13 (4 nowe dla plików gier).
+- Amiga nadal czyta jeden `catalog.txt`. Odczyt katalogu z wielu plików odrzucony, bo
+  `raw.githubusercontent.com` nie pokazuje listy katalogu (trzeba by API z limitem 60/h na IP),
+  każdy plik to osobne pobranie, a listy plików z sumami i tak robi program.
+- `.github/workflows/catalog.yml`: po zmianie w `catalog/games/`, `catalog/images/` albo
+  narzędziach, codziennie o 4:17 UTC i ręcznie. Kroki: testy, `make_images.py --normalize`
+  (każdy PNG do 224×140 / 256 kolorów, poprawne zostają), `make_catalog.py`
+  z `GITHUB_TOKEN`, commit bota tylko przy zmianie. Akcje przypięte do SHA.
+- `.github/workflows/pages.yml`: `editor/` na GitHub Pages.
+- Edytor `editor/index.html` + `editor.js` (PL, bez bibliotek):
+  - lista gier z API, formularz: klucz, miejsce, nazwa / opis / wymagania PL/EN/DE, grupy,
+    repo i gałąź („Sprawdź repo”: publiczne? jest `releases/amiga/<Gra>-<v>.zip`?), obrazek
+    z pliku (wypełnij / zmieść / piksele) na płótnie 224×140;
+  - zapis: jeden commit przez Git Data API (plik gry + obrazek), usuwanie tak samo;
+  - token fine-grained tylko do tego repo (Contents: Read and write), w `sessionStorage`
+    albo, po zaznaczeniu, w `localStorage`; CSP pozwala łączyć się tylko z `api.github.com`.
+- Test edytora (Edge bez okna, bez sieci): odczyt i zapis w JavaScripcie dają te same
+  10 plików co Python. Formularz zmienia 4 pliki nieszkodliwie: pomija `NAME pl` równe
+  angielskiej, grupy w stałej kolejności. Złe dane dają komunikaty. Zapis na GitHub
+  sprawdzony dopiero po wdrożeniu (niżej).
+
