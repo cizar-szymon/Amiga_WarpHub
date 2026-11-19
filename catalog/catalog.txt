@@ -384,3 +384,36 @@ FILE 26082 bbbc8b4dd2ac7f2a76855e087c70639b17aea1282efc7f7a410d8dcbae4f98c9 N Di
 FILE 237573 f12980a91c94931342bd111da00b4adabe8061264cb8ecbdb7fb3a82895c1514 N DiabloWarp/mods/hf/ui_art/supportw.clx
 FILE 84 3e58d8ec63d245ace37079c6800169b992cf1965217e9cf369ca307f477157e0 N DiabloWarp/save/ReadMe.txt
 END
+GAME xainsleena
+NAME en Xain'd Sleena
+DESC en The 1986 Technos arcade game: on foot on the planets, in flight between them.
+DESC pl Gra z automatu Technosu z 1986 roku: na piechotę na planetach, w locie między nimi.
+DESC de Das Technos-Arcadespiel von 1986: zu Fuß auf den Planeten, im Flug dazwischen.
+TAGS warp1260,warp1240,warp1260x,warp7060,other
+REQ en 4 MB Fast RAM
+REQ en AmigaOS 3.1+, RTG
+REQ pl 4 MB Fast RAM
+REQ pl AmigaOS 3.1+, RTG
+REQ de 4 MB Fast RAM
+REQ de AmigaOS 3.1+, RTG
+REPO cizar-szymon/Amiga_game_Xain-d_Sleena
+BRANCH main
+VERSION 0.9.17
+ZIP XainSleena-0.9.17.zip 145680
+SIZE 357552
+IMAGE 3957 70eab4e659429184751874d189dd72f510e1796f6e07b9d1c7635f202858eb42 images/xainsleena.png
+NOTES en XainSleena/doc/XainSleena_release_en.txt
+NOTES pl XainSleena/doc/XainSleena_release.txt
+README XainSleena/rom/ReadMe.txt
+FILE 2444 cf0bdbb9e6eed68de2a893bb1d8106e3a85847b40ca12c78af2d0f4e7d326d15 K XainSleena.info
+FILE 295928 4ef705be5cb7aee82815c24ff8594edf58b59135ecc6895b75198f519af8472d N XainSleena/XainSleena
+FILE 3044 c5034c7b4ac7105b5ae74da8a380dad8d034d811d79044d2512186a4babf543c K XainSleena/XainSleena.info
+FILE 2514 3d62bf4eabd384b483b1808b6f6ee2d431eddc3e0c0a2857b9dfb10273019ffd N XainSleena/doc.info
+FILE 6076 1d0b478a66e24326fd6c8cccf4c64e24e33bf2c25ebb8947416485cf4146d9d9 N XainSleena/doc/XainSleena.txt
+FILE 11197 7349042c8f3fbd6dba5cd2ad58395ed0313f1ae459e0576fbb767648814fe1cf N XainSleena/doc/XainSleena_dev.txt
+FILE 11643 9f3f1362c7699e8e1683239fa6c1d000991661f3660e26dfe9a0ff2de5fe13d4 N XainSleena/doc/XainSleena_dev_en.txt
+FILE 6099 74e29dcc411270dfdff1834429435a8093512ec61b2782323ba374ff0da92335 N XainSleena/doc/XainSleena_en.txt
+FILE 8752 1a1ac413b3568c672c83ebdfa25459db551fee4ed5575169b147dfbaea489312 N XainSleena/doc/XainSleena_release.txt
+FILE 8959 6ee682d1b08ba3701c359a258d672e3e689f14dbcbcd521020cdcda54c6cf1e1 N XainSleena/doc/XainSleena_release_en.txt
+FILE 896 40e1af037c7f44adbb8542dac246210a92ed8b705348ab30c4e8c8dc861beea4 N XainSleena/rom/ReadMe.txt
+END
