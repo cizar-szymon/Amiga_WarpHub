@@ -1,5 +1,49 @@
 WARPHUB-CATALOG 1
 # made by tools/make_catalog.py from catalog/games/ (do not edit)
+GAME warphub
+NAME en WARP HUB
+DESC en This program: the games and programs for Warp cards in one window - install, update, how to start. Updates itself.
+DESC pl Ten program: gry i programy dla kart Warp w jednym oknie - instalacja, aktualizacja, instrukcja uruchomienia. Aktualizuje sam siebie.
+DESC de Dieses Programm: Spiele und Programme fuer Warp-Karten in einem Fenster - Installation, Update, Startanleitung. Aktualisiert sich selbst.
+TAGS apps,warp1260,warp1240,warp1260x,warp7060
+REQ en 68040 / 68060
+REQ en AmigaOS 3.2, RTG
+REQ en AmiSSL 5 (WarpSSL)
+REQ en TCP/IP, internet
+REQ pl 68040 / 68060
+REQ pl AmigaOS 3.2, RTG
+REQ pl AmiSSL 5 (WarpSSL)
+REQ pl TCP/IP, internet
+REQ de 68040 / 68060
+REQ de AmigaOS 3.2, RTG
+REQ de AmiSSL 5 (WarpSSL)
+REQ de TCP/IP, Internet
+REPO cizar-szymon/Amiga_WarpHub
+BRANCH main
+VERSION 0.3
+ZIP WarpHub-0.3.zip 65752
+SIZE 110710
+IMAGE 2485 e4c6fcc78037abd22d90858afbae99e98f8ac59fe96be8cd324f5c6d7de4cf86 images/warphub.png
+NOTES en WarpHub/doc/WarpHub_release_en.txt
+NOTES pl WarpHub/doc/WarpHub_release.txt
+NOTES de WarpHub/doc/WarpHub_release_de.txt
+FILE 6862 ea64fde17ae4daeac0823985da76ba69e9dd13132b8a7c1eb13c57cd533b5b74 K WarpHub.info
+FILE 66780 3deb3f6d41a3b65bb0d399cd867e18488f9c0ade07ed67984d91d19e916e3cfa N WarpHub/WarpHub
+FILE 3320 ec8027ba82761c6c5ee4058c742bea0f7b7a44f393d1a2beb5ca325df12211f8 K WarpHub/WarpHub.info
+FILE 2514 40a9f307f7de340bd324734098f4edb73e61c0dd1f1fc355554de827049f812b N WarpHub/doc.info
+FILE 2745 661554b061c9d6d5b829717e72480057a287e89b8584ed66e17f3c9d6c966ae3 N WarpHub/doc/WarpHub.txt
+FILE 3308 f6ca3a09267f0c9baa2abf16f3de2d17a5f179720c777543c34a3558b69f26eb N WarpHub/doc/WarpHub.txt.info
+FILE 3002 7101a2c796677e9299201dc2ed7ad05e37c094e45117d10302148f36410d381b N WarpHub/doc/WarpHub_de.txt
+FILE 3218 659bf5badbbfbd9f045a97fdeaddc68fa6d6e4b39c935d70b9f69388e1f6dcdb N WarpHub/doc/WarpHub_de.txt.info
+FILE 2870 f91b709a02c12a2947c75c47e809d5c0808ac685698f5930dc525beb44e8f0c9 N WarpHub/doc/WarpHub_en.txt
+FILE 3354 f5d26b5dd3e1a7f7ac3872afe846b7298ed9203498da702caec9468fa7bb3832 N WarpHub/doc/WarpHub_en.txt.info
+FILE 866 6047430ccee72fccda6e846be8ec3765f9e98603c5797b008b2ac4dc407c5efd N WarpHub/doc/WarpHub_release.txt
+FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e N WarpHub/doc/WarpHub_release.txt.info
+FILE 977 7035ee556d9c6a06e3112a47d8866d3f19d8da8747e7cfc3ff189de1e71bd363 N WarpHub/doc/WarpHub_release_de.txt
+FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e N WarpHub/doc/WarpHub_release_de.txt.info
+FILE 924 36ba1f932c02acbafb2c58bb180cbae1e13a0a1632d3c6d2fd8652a8c96494a0 N WarpHub/doc/WarpHub_release_en.txt
+FILE 3354 b476e8587b9ec2cb2764412450168cc1473eb08f4c3bc1dffd7001589c51deb7 N WarpHub/doc/WarpHub_release_en.txt.info
+END
 GAME settlers
 NAME en The Settlers
 NAME de Die Siedler
