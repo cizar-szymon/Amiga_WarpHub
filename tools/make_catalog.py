@@ -26,7 +26,7 @@ space, the last field of a line may contain spaces):
     NAME <lang> <text>            en always, pl / de when they differ
     DESC <lang> <text>
     REPO <owner>/<repo>
-    BRANCH <branch>
+    BRANCH <branch>               or the commit of an APPROVED release
     VERSION <version>
     ZIP <name> <size>
     REQ <lang> <text>             one line of the requirements (several lines)
@@ -161,6 +161,11 @@ def build_game(gh, game, log=print):
         log('%s: private, left out' % repo)
         return None
     branch = game.get('branch') or info['default_branch']
+    approved = game.get('approved')
+    if approved:
+        # only the approved release: everything from that commit (the Amiga
+        # then downloads from raw.githubusercontent.com/<repo>/<commit>/...)
+        branch = approved['commit']
     q = '?ref=' + urllib.parse.quote(branch)
     try:
         listing = gh.api('/repos/%s/contents/%s%s' % (repo, BASE, q))
@@ -173,6 +178,10 @@ def build_game(gh, game, log=print):
         log('%s: no release ZIP on %s, left out' % (repo, branch))
         return None
     zip_name, root, version = found
+    if approved and version != approved['version']:
+        log('%s: APPROVED %s, but commit %s has %s - left out' %
+            (repo, approved['version'], branch[:7], version))
+        return None
     data = gh.raw(repo, branch, BASE + '/' + zip_name)
     root = zip_root(data) or root
 

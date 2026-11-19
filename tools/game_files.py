@@ -12,6 +12,11 @@ UTF-8 text, one item per line, "#" starts a comment:
     REQ <lang> <text>         one line of the requirements (several lines)
     REPO <owner>/<repo>       the GitHub repo with releases/amiga
     BRANCH <branch>           when the release is not on the default branch
+    APPROVED <version> <commit>
+                              only this release goes to the players: the
+                              files are taken from that commit of the repo,
+                              a newer release of the author waits until it
+                              is approved (without the line: always the newest)
     ORDER <number>            place in the gallery (smaller first)
     LOCAL <drawer>            PC only: the project drawer (test catalog)
     IMAGE-SOURCE <path> [x0 y0 x1 y1] [pixel]
@@ -49,6 +54,11 @@ def parse(key, text):
             g['repo'] = rest or None
         elif word == 'BRANCH':
             g['branch'] = rest
+        elif word == 'APPROVED':
+            parts = rest.split()
+            if len(parts) != 2 or not re.match(r'^[0-9a-f]{40}$', parts[1]):
+                raise ValueError('%s: APPROVED <version> <40 hex commit>: %s' % (key, line))
+            g['approved'] = {'version': parts[0], 'commit': parts[1]}
         elif word == 'ORDER':
             g['order'] = int(rest)
         elif word == 'LOCAL':
@@ -106,6 +116,8 @@ def write(g):
         out.append('REPO ' + g['repo'])
     if g.get('branch'):
         out.append('BRANCH ' + g['branch'])
+    if g.get('approved'):
+        out.append('APPROVED %s %s' % (g['approved']['version'], g['approved']['commit']))
     out.append('ORDER %d' % g.get('order', 1000))
     if g.get('local'):
         out.append('LOCAL ' + g['local'])

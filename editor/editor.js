@@ -27,6 +27,7 @@ let games = [];          // [{key, sha, game}]
 let current = null;      // {key, sha, game, isNew}
 let newPicture = null;   // base64 PNG of a picked picture
 let pickedImage = null;  // the picked picture (Image)
+let formApproved = null; // {version, commit} of the form, or null
 
 /* --- the token ------------------------------------------------------------ */
 
@@ -98,6 +99,10 @@ function parse(key, text) {
       g.repo = rest;
     } else if (word === 'BRANCH') {
       g.branch = rest;
+    } else if (word === 'APPROVED') {
+      const p = rest.split(/\s+/);
+      if (p.length !== 2 || !/^[0-9a-f]{40}$/.test(p[1])) throw new Error(`${key}: zła linia: ${line}`);
+      g.approved = { version: p[0], commit: p[1] };
     } else if (word === 'ORDER') {
       g.order = parseInt(rest, 10);
     } else if (word === 'LOCAL' || word === 'IMAGE-SOURCE') {
@@ -117,6 +122,7 @@ function write(g) {
   for (const l of LANGS) for (const r of g.req[l] || []) out.push(`REQ ${l} ${r}`);
   if (g.repo) out.push('REPO ' + g.repo);
   if (g.branch) out.push('BRANCH ' + g.branch);
+  if (g.approved) out.push(`APPROVED ${g.approved.version} ${g.approved.commit}`);
   out.push('ORDER ' + g.order);
   const local = g.fixed.filter((l) => l.startsWith('LOCAL '));
   const src = g.fixed.filter((l) => l.startsWith('IMAGE-SOURCE '));
@@ -133,6 +139,7 @@ function fromForm() {
               order: parseInt($('order').value || '1000', 10),
               repo: $('repo').value.trim(), branch: $('branch').value.trim(),
               fixed: current ? current.game.fixed : [] };
+  if (formApproved) g.approved = formApproved;
   for (const l of LANGS) {
     const n = oneLine($('name_' + l).value);
     if (n && (l === 'en' || n !== oneLine($('name_en').value))) g.name[l] = n;
@@ -169,6 +176,8 @@ function toForm(entry) {
   for (const [t] of TAGS) $('tag_' + t).checked = g.tags.includes(t);
   $('repo').value = g.repo || '';
   $('branch').value = g.branch || '';
+  formApproved = g.approved || null;
+  showApproved();
   $('checkout').textContent = '';
   $('fixedbox').hidden = g.fixed.length === 0;
   $('fixed').textContent = g.fixed.join('\n');
@@ -378,6 +387,60 @@ async function remove() {
   }
 }
 
+/* --- the approved release ---------------------------------------------------- */
+
+function versionKey(v) { return v.split('.').map((x) => parseInt(x, 10)); }
+
+function newer(a, b) {             // a > b, as version_key in tools/make_catalog.py
+  const x = versionKey(a), y = versionKey(b);
+  for (let i = 0; i < Math.max(x.length, y.length); i++) {
+    const p = x[i] === undefined ? -1 : x[i], q = y[i] === undefined ? -1 : y[i];
+    if (p !== q) return p > q;
+  }
+  return false;
+}
+
+/* the author's newest release now: {branch, commit, version, zip, dirs} */
+async function newestRelease(repo, branchWanted) {
+  const info = await gh('GET', `/repos/${repo}`);
+  if (!info) throw new Error('Repo nie istnieje albo nie jest publiczne – Amiga go nie pobierze.');
+  if (info.private) throw new Error('Repo jest prywatne – Amiga go nie pobierze.');
+  const branch = branchWanted || info.default_branch;
+  const head = await gh('GET', `/repos/${repo}/commits/${encodeURIComponent(branch)}`);
+  if (!head) throw new Error(`Nie ma gałęzi ${branch}.`);
+  const list = await gh('GET', `/repos/${repo}/contents/releases/amiga?ref=${head.sha}`);
+  if (!list) throw new Error(`Brak releases/amiga na gałęzi ${branch}.`);
+  let best = null;
+  for (const f of list) {
+    const m = /^([A-Za-z0-9_]+)-(\d+(?:\.\d+)+)\.zip$/.exec(f.name);
+    if (m && (!best || newer(m[2], best.version))) best = { zip: f.name, version: m[2] };
+  }
+  if (!best) throw new Error(`Na gałęzi ${branch} nie ma releases/amiga/<Gra>-<wersja>.zip.`);
+  return { branch, commit: head.sha, version: best.version, zip: best.zip,
+           dirs: list.filter((f) => f.type === 'dir').map((f) => f.name) };
+}
+
+function showApproved() {
+  $('approved_text').textContent = formApproved
+    ? `Zatwierdzona: ${formApproved.version} (stan repo ${formApproved.commit.slice(0, 7)})`
+    : 'Bez zatwierdzania: gracze dostają zawsze najnowsze wydanie autora.';
+}
+
+async function approve() {
+  const repo = $('repo').value.trim();
+  if (!REPO_OK.test(repo)) { status('bad', 'Najpierw wpisz repo (właściciel/nazwa).'); return; }
+  status('info', 'Sprawdzanie wydania…');
+  try {
+    const r = await newestRelease(repo, $('branch').value.trim());
+    formApproved = { version: r.version, commit: r.commit };
+    showApproved();
+    preview();
+    status('ok', `Zatwierdzona wersja ${r.version} (${r.zip}). Zapisz grę przyciskiem „Wyślij na GitHub”.`);
+  } catch (e) {
+    status('bad', e.message);
+  }
+}
+
 /* --- checking the repo of a game ------------------------------------------- */
 
 async function checkRepo() {
@@ -386,16 +449,13 @@ async function checkRepo() {
   if (!REPO_OK.test(repo)) { out.textContent = 'Wpisz repo w postaci właściciel/nazwa.'; return; }
   out.textContent = 'sprawdzanie…';
   try {
-    const info = await gh('GET', `/repos/${repo}`);
-    if (!info) { out.textContent = '✗ Repo nie istnieje albo nie jest publiczne – Amiga go nie pobierze.'; return; }
-    if (info.private) { out.textContent = '✗ Repo jest prywatne – Amiga go nie pobierze.'; return; }
-    const branch = $('branch').value.trim() || info.default_branch;
-    const list = await gh('GET', `/repos/${repo}/contents/releases/amiga?ref=${encodeURIComponent(branch)}`);
-    if (!list) { out.textContent = `✗ Brak releases/amiga na gałęzi ${branch}.`; return; }
-    const zips = list.filter((f) => /-[0-9][0-9A-Za-z.]*\.zip$/.test(f.name)).map((f) => f.name);
-    const dirs = list.filter((f) => f.type === 'dir').map((f) => f.name);
-    if (!zips.length) { out.textContent = `✗ Na gałęzi ${branch} nie ma releases/amiga/<Gra>-<wersja>.zip.`; return; }
-    out.textContent = `✓ gałąź ${branch}: ${zips.join(', ')}; szuflady: ${dirs.join(', ') || 'brak!'}`;
+    const r = await newestRelease(repo, $('branch').value.trim());
+    let t = `✓ gałąź ${r.branch}: najnowsze wydanie ${r.zip}; szuflady: ${r.dirs.join(', ') || 'brak!'}`;
+    if (formApproved && formApproved.version !== r.version) {
+      t += `\n⚠ autor wydał ${r.version}, zatwierdzona jest ${formApproved.version} – ` +
+           'sprawdź nową wersję i kliknij „Zatwierdź obecne wydanie”.';
+    }
+    out.textContent = t;
   } catch (e) {
     out.textContent = '✗ ' + e.message;
   }
@@ -421,6 +481,8 @@ function init() {
   $('form').addEventListener('submit', save);
   $('delete').addEventListener('click', remove);
   $('check').addEventListener('click', checkRepo);
+  $('approve').addEventListener('click', approve);
+  $('unapprove').addEventListener('click', () => { formApproved = null; showApproved(); preview(); });
   $('reload').addEventListener('click', loadList);
   $('new').addEventListener('click', () => {
     const last = games.length ? games[games.length - 1].game.order : 0;

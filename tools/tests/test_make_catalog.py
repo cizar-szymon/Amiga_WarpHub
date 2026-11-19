@@ -22,12 +22,22 @@ class FakeGitHub:
     def __init__(self, repos):
         self.repos = repos          # repo -> dict(branch, zips{name: files}, git{path: data})
 
+    def at(self, r, ref):
+        # an older commit of the repo (APPROVED): {'refs': {sha: {zips, git}}}
+        return r.get('refs', {}).get(ref, r)
+
     def api(self, path):
+        path, _, query = path.partition('?')
+        ref = query[4:] if query.startswith('ref=') else None
         parts = path.split('/')
         repo = parts[2] + '/' + parts[3]
         if repo not in self.repos:
             raise M.NotPublic(path)
         r = self.repos[repo]
+        if len(parts) == 7 and parts[4] == 'git':      # git/trees/<ref>
+            r = self.at(r, parts[6])
+        elif ref:
+            r = self.at(r, ref)
         if len(parts) == 4:
             return {'default_branch': r['branch'], 'private': False}
         if parts[4] == 'contents':
@@ -43,7 +53,7 @@ class FakeGitHub:
 
     def raw(self, repo, branch, path):
         name = path.rsplit('/', 1)[-1]
-        return make_zip(self.repos[repo]['zips'][name])
+        return make_zip(self.at(self.repos[repo], branch)['zips'][name])
 
 
 GAME_FILES = {
@@ -152,6 +162,33 @@ class TestCatalog(unittest.TestCase):
             len(GAME_FILES['Game/Game']),
             hashlib.sha256(GAME_FILES['Game/Game']).hexdigest()), lines)
         self.assertEqual(lines[-1], 'END')
+
+
+
+OLD_SHA = 'a' * 40
+
+
+class TestApproved(unittest.TestCase):
+    def repo(self):
+        r = repo_with(GAME_FILES)                        # the author's newest: 0.2
+        old = dict(GAME_FILES, **{'Game/Game': b'\x00\x00\x03\xf3old program'})
+        r['refs'] = {OLD_SHA: {'zips': {'Game-0.1.zip': old}, 'git': dict(old)}}
+        return r
+
+    def test_approved_release_from_its_commit(self):
+        game = dict(GAME, approved={'version': '0.1', 'commit': OLD_SHA})
+        g = M.build_game(FakeGitHub({'me/game': self.repo()}), game, lambda m: None)
+        self.assertEqual(g['version'], '0.1')
+        self.assertEqual(g['branch'], OLD_SHA)          # the Amiga downloads from it
+        files = {p: h for p, s, h, f in g['files']}
+        self.assertEqual(files['Game/Game'],
+                         hashlib.sha256(b'\x00\x00\x03\xf3old program').hexdigest())
+
+    def test_approved_version_not_in_commit_left_out(self):
+        logs = []
+        game = dict(GAME, approved={'version': '0.3', 'commit': OLD_SHA})
+        self.assertIsNone(M.build_game(FakeGitHub({'me/game': self.repo()}), game, logs.append))
+        self.assertIn('APPROVED 0.3', logs[-1])
 
 
 if __name__ == '__main__':

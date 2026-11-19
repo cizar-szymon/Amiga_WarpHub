@@ -542,3 +542,18 @@ Settlers z okna.
   zainstalowanej z gita (WARP HUB) byłyby poprzesuwane. Poprawka w repo gry (`14fa4215`,
   gałąź `amiga`): `.gitattributes` `releases/** -text`, pliki zapisane jak w ZIP-ie.
   Katalog: 108 z 108 plików Syndicate Wars zgodnych z `SyndWars-0.220.zip`.
+
+### Zatwierdzona wersja dla gier z cudzych repo (19.11.2026, decyzja użytkownika)
+- Pole `APPROVED <wersja> <commit>` w pliku gry: `make_catalog.py` bierze wtedy listę,
+  ZIP i drzewo gita z tego commita i zapisuje w katalogu `BRANCH <commit>`. Amiga pobiera
+  z `raw.githubusercontent.com/<repo>/<commit>/...`, więc nowsze wydanie autora nie trafia
+  do graczy, dopóki ktoś go nie zatwierdzi. Gdy w commicie jest inna wersja niż zatwierdzona,
+  gra jest pomijana z ostrzeżeniem. Bez pola: zawsze najnowsze (własne gry).
+- Edytor: „Zatwierdź obecne wydanie” (najnowszy ZIP i commit gałęzi w tej chwili),
+  „Zawsze najnowsze”; „Sprawdź repo” pokazuje „autor wydał X, zatwierdzona Y”.
+- Testy: 17 (2 nowe dla `APPROVED` na fałszywym GitHubie, 1 dla złego commita). Edytor
+  w Edge z prawdziwym API: Vastar zatwierdzony jako 0.1 / `e1082c5`. Katalog z tym polem:
+  `BRANCH e1082c5…`. Amiga 2: `WarpHubCLI INSTALL vastar` z tego katalogu do
+  `RAM:WarpHub-pin` – 11 plików, 189 KB w 3,5 s, `Version`: Vastar 0.1.
+- Przy okazji: `WarpHubCLI` z katalogiem z pliku (`CATALOG=RAM:…`) nie pyta NTP, więc przy
+  zegarze z 1978 instalacja kończy się błędem certyfikatu; z `USENTP` działa.

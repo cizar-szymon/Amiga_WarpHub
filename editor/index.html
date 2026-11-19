@@ -54,6 +54,7 @@
   .tile canvas, .tile img { display: block; width: 224px; height: 140px; background: #000; image-rendering: pixelated; }
   .tile .t { padding: 6px 8px; font-weight: 700; font-size: 13px; }
   .tile .v { padding: 0 8px 7px; font-size: 12px; color: var(--ok); }
+  #checkout { white-space: pre-line; }
   #status { margin-top: 12px; padding: 9px 11px; border-radius: 5px; display: none; white-space: pre-wrap; }
   #status.ok { display: block; background: #16301d; border: 1px solid #2e6b3c; }
   #status.bad { display: block; background: #3a1717; border: 1px solid #7a2c2c; }
@@ -151,6 +152,15 @@
         <button type="button" id="check">Sprawdź repo</button>
         <span class="hint" id="checkout"></span>
       </div>
+      <h3>Zatwierdzona wersja</h3>
+      <p id="approved_text"></p>
+      <div class="row">
+        <button type="button" id="approve">Zatwierdź obecne wydanie</button>
+        <button type="button" id="unapprove">Zawsze najnowsze</button>
+      </div>
+      <p class="hint">Zatwierdzona: gracze dostają tylko tę wersję, pobraną z tamtego stanu repo –
+        nowsze wydanie autora czeka, aż je sprawdzisz i zatwierdzisz (dla gier innych osób).
+        Bez zatwierdzania: zawsze najnowsze wydanie (dla własnych gier).</p>
       <p class="hint">Repo musi być publiczne i mieć wydanie w <code>releases/amiga/</code>:
         <code>&lt;Gra&gt;-&lt;wersja&gt;.zip</code> i obok rozpakowaną szufladę. Wersję, listę plików
         i historię zmian katalog bierze stamtąd sam.</p>
