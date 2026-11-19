@@ -5,6 +5,8 @@ updates them: a gallery with a picture of each game, its description, requiremen
 of releases and a button to install or update. The games come straight from their GitHub
 repositories over HTTPS, file by file, each one checked with SHA-256.
 
+![WARP HUB on the Workbench of an A4000 with a Warp 7060](docs/warphub.png)
+
 **It is made for the Amiga 500 / 1200 / 3000 / 4000 with a Warp accelerator card: Warp 560,
 Warp 1240, Warp 1260, Warp 1260 Extreme or Warp 7060.** On a Warp with firmware 3.074 or later,
 **WarpSSL** does the encryption of AmiSSL on the card, so the downloads are faster and leave the
