@@ -3,7 +3,7 @@ NAME en Vastar
 DESC en The 1983 Orca arcade shooter, emulated from the original ROMs.
 DESC pl Strzelanka z automatu Orca z 1983 roku, emulowana z oryginalnych ROM-ów.
 DESC de Der Arcade-Shooter von Orca aus dem Jahr 1983, emuliert aus den Original-ROMs.
-TAGS warp1260,warp7060
+TAGS other
 REQ en 68060
 REQ en 100 MHz recommended
 REQ en AmigaOS 3.1+, RTG
