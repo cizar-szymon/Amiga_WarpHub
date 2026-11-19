@@ -205,12 +205,13 @@ static const char *const default_ntp[] = {
   "pool.ntp.org", "time.cloudflare.com", "time.google.com", "europe.pool.ntp.org", NULL
 };
 
-/* the time for the certificate check: the clock, or NTP when it is too old */
+/* the time for the certificate check: a time server first, the clock of the
+ * Amiga only when none answers and the clock looks right (HUB_CLOCK_OK) */
 static int set_verify_time(const char *ntp, int force_ntp, int verbose)
 {
   ULONG now = hub_amiga_now();
   ULONG t;
-  if (!force_ntp && now >= BUILD_UNIX) return 1;
+  (void)force_ntp;                   /* USENTP: always now, kept for scripts */
   t = hub_sntp(ntp, err, sizeof(err));
   if (t == 0 && ntp == default_ntp[0]) {
     int i;
@@ -219,12 +220,13 @@ static int set_verify_time(const char *ntp, int force_ntp, int verbose)
     }
   }
   if (t == 0) {
-    if (now >= BUILD_UNIX) return 1;
-    printf("The clock of this Amiga is older than WARP HUB and the time server\n"
-           "does not answer (%s). Set the date (Prefs/Time) and try again.\n", err);
+    if (HUB_CLOCK_OK(now)) return 1;
+    show_date("Clock of the Amiga:", now);
+    printf("The clock of this Amiga is wrong and the time server does not\n"
+           "answer (%s). Set the date (Prefs/Time) and try again.\n", err);
     return 0;
   }
-  if (verbose || now < BUILD_UNIX) {
+  if (verbose || !HUB_CLOCK_OK(now)) {
     show_date("Clock of the Amiga:", now);
     show_date("Time from NTP:     ", t);
     printf("(used only to check certificates; the clock is not changed)\n");

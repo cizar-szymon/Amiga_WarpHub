@@ -295,19 +295,20 @@ static int net_open(HubWork *w)
   ULONG now, t = 0;
   int i;
   if (!hub_https_init(NULL, err, sizeof(err))) return 0;
+  /* the time of a time server first (the clock of the Amiga is often wrong:
+   * 1978 without a battery, once 2097), the clock only when none answers */
   now = hub_amiga_now();
-  if (now < BUILD_UNIX) {
-    for (i = 0; t == 0 && ntp_servers[i] != NULL; i++) {
-      t = hub_sntp(ntp_servers[i], err, sizeof(err));
-    }
-    if (t == 0) {
-      snprintf(err, sizeof(err), "The clock of the Amiga is wrong and no time server "
-               "answers: set the date in Prefs/Time.");
-      return 0;
-    }
-    hub_https_verify_time(t);
-    snprintf(w->net_info, sizeof(w->net_info), "NTP time for certificates");
+  for (i = 0; t == 0 && ntp_servers[i] != NULL; i++) {
+    t = hub_sntp(ntp_servers[i], err, sizeof(err));
   }
+  if (t == 0) {
+    if (HUB_CLOCK_OK(now)) return 1;
+    snprintf(err, sizeof(err), "The clock of the Amiga is wrong and no time server "
+             "answers: set the date in Prefs/Time.");
+    return 0;
+  }
+  hub_https_verify_time(t);
+  snprintf(w->net_info, sizeof(w->net_info), "NTP time for certificates");
   return 1;
 }
 

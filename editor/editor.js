@@ -338,6 +338,17 @@ async function save(ev) {
   $('save').disabled = true;
   status('info', 'Wysyłanie…');
   try {
+    if (!current.isNew && current.sha) {
+      // somebody else (or Claude, or a second tab) saved this game since the
+      // form was loaded: saving now would undo that change
+      const now = await gh('GET', `/repos/${OWNER}/${REPO}/contents/${GAMES}/${g.key}.txt?ref=${BRANCH}`);
+      if (now && now.sha !== current.sha) {
+        status('bad', 'Ten plik zmienił się na GitHubie, odkąd otworzyłeś formularz (inna osoba, ' +
+               'inna karta przeglądarki albo poprawka). Nic nie zapisano.\n' +
+               'Kliknij ↻ przy liście, otwórz grę jeszcze raz i wprowadź zmianę ponownie.');
+        return;
+      }
+    }
     const changes = [{ path: `${GAMES}/${g.key}.txt`, text: write(g) }];
     if (newPicture) changes.push({ path: `${IMAGES}/${g.key}.png`, base64: newPicture });
     const what = current.isNew ? 'add' : 'update';

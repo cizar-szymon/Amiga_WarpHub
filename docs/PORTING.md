@@ -568,3 +568,14 @@ Settlers z okna.
   z kropką na końcu), `BRANCH release`.
 - Amiga 2: `WarpHubCLI INSTALL zod` do `RAM:WarpHub-pin` – 14,3 MB w 47,7 s (307 KB/s),
   `Version`: Zod 0.12; ReadMe pustych szuflad cuts/, music/, packs/.
+
+### Zegar Amigi z przyszłości; nadpisanie z edytora (19.11.2026 wieczorem)
+- Zegar Amigi 2 wskazywał nagle rok 2094 (`Date`: 08-Dec-94). WARP HUB pytał serwer czasu
+  tylko przy zegarze wcześniejszym niż data zbudowania, więc wziął 2094 i OpenSSL odrzucił
+  certyfikat („format error in certificate's notBefore field”). Oba okna pokazywały katalog
+  z pamięci. Teraz zawsze najpierw serwer czasu; zegar Amigi tylko, gdy żaden nie
+  odpowiada i data jest między datą zbudowania a +10 lat (`HUB_CLOCK_OK`). Program do
+  Shella tak samo. Amiga 2: `WarpHubCLI LIST` przy zegarze 2094 – katalog pobrany.
+- ZOD znikł z katalogu: zapis w edytorze z formularza otwartego przed moją zmianą usunął
+  `BRANCH release`. Przywrócone. Edytor przed zapisem porównuje teraz SHA pliku na GitHubie
+  z SHA z chwili otwarcia i przy różnicy nic nie zapisuje.
