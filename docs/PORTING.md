@@ -537,3 +537,8 @@ Settlers z okna.
 - Automat katalogu co godzinę (wcześniej raz dziennie): upublicznienie repo gry albo nowe
   wydanie nie zmienia plików WarpHub i nie uruchamiało go (Syndicate Wars brakowało do
   ręcznego uruchomienia). Nowa wersja WARP HUB w `SYS:WarpApps`.
+- Syndicate Wars: w gicie 52 pliki wydania miały LF zamiast CRLF z ZIP-a, w tym 21
+  `alltext-*.wad`, do których `alltext-*.idx` trzyma pozycje dla CRLF. Teksty gry
+  zainstalowanej z gita (WARP HUB) byłyby poprzesuwane. Poprawka w repo gry (`14fa4215`,
+  gałąź `amiga`): `.gitattributes` `releases/** -text`, pliki zapisane jak w ZIP-ie.
+  Katalog: 108 z 108 plików Syndicate Wars zgodnych z `SyndWars-0.220.zip`.
