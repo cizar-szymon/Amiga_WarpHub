@@ -1,10 +1,15 @@
 WARP HUB - wydania
 ==================
 
-Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.4") i w
+Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.5") i w
 Shellu: Version SYS:WarpApps/WarpHub. Opisz, co sie stalo, i podaj
 numer wydania: https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.5 (19.11.2026, wydanie beta)
+------------------------------
+- Przycisk Uruchom (obok wyboru jezyka) i klawisz Return: uruchamia wybrana
+  zainstalowana gre, jak jej ikona.
 
 0.4 (19.11.2026, wydanie beta)
 ------------------------------

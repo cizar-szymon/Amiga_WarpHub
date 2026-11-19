@@ -615,3 +615,11 @@ Settlers z okna.
   zainstalowany `warphub` w szufladzie programu. Nieznany znacznik pliku = `X` (0.3
   odrzucało cały katalog przy nieznanym znaczniku).
 - Opisy i historia wydań 0.4 (PL/EN/DE), edytor zachowuje `FLAT`.
+
+## WARP HUB 0.5: przycisk Uruchom (19.11.2026, pomysł użytkownika)
+- Ostatni wiersz prawej kolumny: „Uruchom” i wybór języka obok siebie (`LAYOUT_EvenSize`).
+  Czynny dla zainstalowanej gry (nie dla samego WARP HUB). Uruchamia największy program
+  szuflady gry, którego ikona jest plikiem gracza, przez `OpenWorkbenchObjectA`
+  (workbench.library 44) – jak dwuklik: Tool Types i stos z ikony. Klawisz Return też.
+- Amiga 1: kopia testowa w `RAM:WarpHub-run`, Vastar wybrany strzałkami, Return →
+  okno Vastar z ekranem tytułowym, tytuł WARP HUB „Starting Vastar...”. Esc zamknął grę.

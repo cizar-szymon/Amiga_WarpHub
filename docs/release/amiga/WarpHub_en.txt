@@ -38,9 +38,11 @@ THE WINDOW
   Games drawer      - the drawer of your installed games
   Programs drawer   - the drawer of your installed programs
   Refresh           - gets the current list of games
+  Run               - starts the chosen installed game like its icon
+                      (with its Tool Types)
   language          - English, Polish, German
-- Keys: arrows - choose and scroll, 1-8 - groups, Help - how to start,
-  Esc - quit.
+- Keys: arrows - choose and scroll, 1-8 - groups, Return - run the game,
+  Help - how to start, Esc - quit.
 
 YOUR FILES
 WARP HUB never overwrites the player's files: game data, settings (*.ini,

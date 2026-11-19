@@ -19,6 +19,8 @@
 #include <libraries/asl.h>
 #include <libraries/locale.h>
 #include <workbench/startup.h>
+#include <workbench/workbench.h>
+#include <proto/wb.h>
 #include <utility/hooks.h>
 
 #include <proto/exec.h>
@@ -60,7 +62,7 @@
 
 extern struct WBStartup *_WBenchMsg;
 
-#define WARPHUB_VERSION "0.4"   /* tools/make_release.py reads it */
+#define WARPHUB_VERSION "0.5"   /* tools/make_release.py reads it */
 const char version_tag[] = "$VER: WarpHub " WARPHUB_VERSION " (19.11.2026)";
 
 unsigned long __stack = 65536;
@@ -70,6 +72,7 @@ void (*const warphub_stackSwap)(void) = __stkinit;
 #define CATALOG_URL \
   "https://raw.githubusercontent.com/cizar-szymon/Amiga_WarpHub/main/catalog/catalog.txt"
 #define PREFS_FILE "PROGDIR:WarpHub.prefs"
+#define SELF_KEY "warphub"     /* WARP HUB itself in the catalog */
 #define CACHE_DIR "PROGDIR:WarpHub-cache"   /* next to other programs (SYS:WarpApps) */
 
 /* the tile: 224x140 (the size of the pictures) on big screens, 144x90 (the
@@ -91,7 +94,8 @@ enum {
   T_DONE, T_FAILED, T_LOADING, T_CACHE_ONLY, T_DOWNLOADING, T_UP_TO_DATE, T_HISTORY_NONE,
   T_READY, T_CHECKING, T_OK, T_NO_CATALOG, T_ADD_YOURSELF, T_FILES, T_IN, T_NO_NET, T_SOON,
   T_NOT_PUBLIC, T_EMPTY, T_NEW_SHORT, T_REQ, T_GAMESDIR, T_CHOOSE_GAMESDIR, T_FOUND, T_SCANNING, T_APPSDIR, T_CHOOSE_APPSDIR, T_GUIDE, T_GUIDE_NONE,
-  T_GUIDE_MISSING, T_PUT_IN, T_CLOSE, T_RESTART,
+  T_GUIDE_MISSING, T_PUT_IN, T_CLOSE, T_RESTART, T_RUN, T_RUNNING,
+  T_RUN_FAILED,
   T_COUNT
 };
 
@@ -116,7 +120,8 @@ static const char *const texts[3][T_COUNT] = {
     "Programs drawer", "Drawer of your installed programs",
     "How to start", "Nothing to add: the game is ready to start after the installation.",
     "The guide is not downloaded yet - press Refresh.", "Into the drawer %s:", "Close",
-    "WARP HUB %s is installed.\nClose WARP HUB and start it again to use the new version."
+    "WARP HUB %s is installed.\nClose WARP HUB and start it again to use the new version.",
+    "Run", "Starting %s...", "Cannot start %s (%s)."
   },
   { /* pl */
     "Odswiez", "Zainstaluj", "Aktualizuj", "Sprawdz pliki", "Przerwij", "Zainstalowana %s",
@@ -138,7 +143,8 @@ static const char *const texts[3][T_COUNT] = {
     "Katalog programow", "Szuflada z zainstalowanymi programami",
     "Instrukcja uruchomienia", "Nic nie trzeba dokladac: po instalacji gra jest gotowa do uruchomienia.",
     "Instrukcja nie jest jeszcze pobrana - nacisnij Odswiez.", "Do szuflady %s:", "Zamknij",
-    "WARP HUB %s jest zainstalowany.\nZamknij WARP HUB i uruchom go ponownie, zeby uzywac nowej wersji."
+    "WARP HUB %s jest zainstalowany.\nZamknij WARP HUB i uruchom go ponownie, zeby uzywac nowej wersji.",
+    "Uruchom", "Uruchamiam %s...", "Nie mozna uruchomic %s (%s)."
   },
   { /* de */
     "Aktualisieren", "Installieren", "Update", "Dateien pr\xfc" "fen", "Abbrechen",
@@ -161,7 +167,8 @@ static const char *const texts[3][T_COUNT] = {
     "Startanleitung", "Nichts hinzuzuf\xfc" "gen: das Spiel ist nach der Installation startbereit.",
     "Die Anleitung ist noch nicht geladen - Aktualisieren dr\xfc" "cken.", "In die Schublade %s:",
     "Schlie\xdf" "en",
-    "WARP HUB %s ist installiert.\nWARP HUB schlie\xdf" "en und neu starten, um die neue Version zu nutzen."
+    "WARP HUB %s ist installiert.\nWARP HUB schlie\xdf" "en und neu starten, um die neue Version zu nutzen.",
+    "Starten", "Starte %s...", "%s kann nicht gestartet werden (%s)."
   }
 };
 
@@ -186,7 +193,7 @@ static char test_key[32], test_dir[256], test_gamesdir[256];
 /* --- state --------------------------------------------------------------- */
 
 enum { GID_LANG = 1, GID_REFRESH, GID_GALLERY, GID_SCROLL, GID_PAGE, GID_INSTALL, GID_STOP,
-       GID_NOTES, GID_PROGRESS, GID_REQ, GID_GAMESDIR, GID_APPSDIR, GID_UPDATE, GID_GUIDE, GID_FILTER };     /* GID_FILTER + 0..FILTERS-1 */
+       GID_NOTES, GID_PROGRESS, GID_REQ, GID_GAMESDIR, GID_APPSDIR, GID_UPDATE, GID_GUIDE, GID_RUN, GID_FILTER };     /* GID_FILTER + 0..FILTERS-1 */
 
 typedef struct Tile {
   Object *dt;                /* the picture (datatype), NULL = none */
@@ -204,7 +211,7 @@ static char status_text[300];
 static struct Screen *scr;
 static struct Window *win;
 static Object *win_obj, *g_lang, *g_refresh, *g_gallery, *g_scroll, *g_page, *g_install,
-    *g_stop, *g_notes, *g_req, *g_gamesdir, *g_appsdir, *g_update, *g_guide, *g_filter[FILTERS];
+    *g_stop, *g_notes, *g_req, *g_gamesdir, *g_appsdir, *g_update, *g_guide, *g_run, *g_filter[FILTERS];
 static struct List notes_list, lang_list;
 static struct MsgPort *app_port;
 static struct Hook gallery_hook, page_hook, req_hook;
@@ -656,6 +663,10 @@ static void update_buttons(void)
   if (win == NULL) return;
   SetGadgetAttrs((struct Gadget *)g_guide, win, NULL, GA_Text, (ULONG)TX(T_GUIDE),
                  GA_Disabled, none, TAG_DONE);
+  /* Run: an installed game (not WARP HUB itself, it runs already) */
+  SetGadgetAttrs((struct Gadget *)g_run, win, NULL, GA_Text, (ULONG)TX(T_RUN),
+                 GA_Disabled, none || installed(&cat->games[selected]) == NULL ||
+                              strcmp(cat->games[selected].key, SELF_KEY) == 0, TAG_DONE);
   SetGadgetAttrs((struct Gadget *)g_install, win, NULL, GA_Text, (ULONG)TX(T_INSTALL),
                  GA_Disabled, !can_install, TAG_DONE);
   SetGadgetAttrs((struct Gadget *)g_update, win, NULL, GA_Text, (ULONG)TX(T_UPDATE),
@@ -955,7 +966,6 @@ static int scan_games_dir(const char *dir, int save, int only_new)
  * version is this program's, so the catalog shows "installed" or "update" and
  * the update replaces WarpHub and WarpHub.info there (the old program stays as
  * WarpHub.old; WarpHub.prefs and WarpHub-cache are not in the catalog). */
-#define SELF_KEY "warphub"
 
 static void note_self(void)
 {
@@ -996,6 +1006,68 @@ static void rescan_games(int only_new)
   for (k = 0; k < ndirs; k++) scan_games_dir(dirs[k], 0, only_new);
   hub_prefs_save(&prefs, PREFS_FILE);
   set_status("");
+}
+
+/* Run: the main program of the installed game (the largest program of its
+ * drawer, as the version check), started as from its icon - with its Tool
+ * Types and the stack of its icon (workbench.library 44, OpenWorkbenchObject) */
+struct Library *WorkbenchBase = NULL;
+
+static int game_program(HubGame *g, const char *dir, char *out, int outlen)
+{
+  int j, found = 0;
+  ULONG best = 0;
+  for (j = 0; j < g->nfiles; j++) {
+    const char *path = g->files[j].path;
+    char name[300];
+    const char *slash = strchr(path, '/');
+    int n = (int)strlen(path);
+    HubFile *icon;
+    BPTR lock;
+    if (g->files[j].flag == 'X' || slash == NULL || strchr(slash + 1, '/') != NULL ||
+        (n > 5 && strcmp(path + n - 5, ".info") == 0)) {
+      continue;
+    }
+    snprintf(name, sizeof(name), "%s.info", path);
+    icon = hub_game_file(g, name);
+    if (icon == NULL || icon->flag != 'K' || g->files[j].size < best) continue;
+    strncpy(name, dir, sizeof(name) - 1);
+    name[sizeof(name) - 1] = 0;
+    if (!AddPart((STRPTR)name, (CONST_STRPTR)hub_local_path(g, path), sizeof(name))) continue;
+    lock = Lock((CONST_STRPTR)name, ACCESS_READ);
+    if (lock == 0) continue;
+    UnLock(lock);
+    strncpy(out, name, outlen - 1);
+    out[outlen - 1] = 0;
+    best = g->files[j].size;
+    found = 1;
+  }
+  return found;
+}
+
+static void run_game(void)
+{
+  HubGame *g;
+  HubInstalled *in;
+  char prog[300], a[400], name[96];
+  if (cat == NULL || selected < 0) return;
+  g = &cat->games[selected];
+  in = installed(g);
+  if (in == NULL || strcmp(g->key, SELF_KEY) == 0) return;
+  latin(hub_text(g->name, lang), name, sizeof(name));
+  if (!game_program(g, in->dir, prog, sizeof(prog))) {
+    snprintf(a, sizeof(a), TX(T_RUN_FAILED), name, in->dir);
+    set_status(a);
+    return;
+  }
+  if (WorkbenchBase == NULL) WorkbenchBase = OpenLibrary((CONST_STRPTR)"workbench.library", 44);
+  if (WorkbenchBase == NULL || !OpenWorkbenchObjectA((STRPTR)prog, NULL)) {
+    snprintf(a, sizeof(a), TX(T_RUN_FAILED), name, prog);
+    set_status(a);
+    return;
+  }
+  snprintf(a, sizeof(a), TX(T_RUNNING), name);
+  set_status(a);
 }
 
 /* the games drawer (apps = 0) or the programs drawer (apps = 1); both are
@@ -1438,10 +1510,17 @@ static Object *make_window(void)
               GA_ID, GID_REFRESH, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_REFRESH),
             TAG_END)),
             CHILD_WeightedHeight, 0,
-            LAYOUT_AddChild, (ULONG)(g_lang = NewObject(CHOOSER_GetClass(), NULL,
-              GA_ID, GID_LANG, GA_RelVerify, TRUE,
-              CHOOSER_Labels, (ULONG)&lang_list,
-              CHOOSER_Selected, lang,
+            LAYOUT_AddChild, (ULONG)(NewObject(LAYOUT_GetClass(), NULL,
+              LAYOUT_Orientation, LAYOUT_ORIENT_HORIZ,
+              LAYOUT_EvenSize, TRUE,
+              LAYOUT_AddChild, (ULONG)(g_run = NewObject(BUTTON_GetClass(), NULL,
+                GA_ID, GID_RUN, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_RUN),
+              TAG_END)),
+              LAYOUT_AddChild, (ULONG)(g_lang = NewObject(CHOOSER_GetClass(), NULL,
+                GA_ID, GID_LANG, GA_RelVerify, TRUE,
+                CHOOSER_Labels, (ULONG)&lang_list,
+                CHOOSER_Selected, lang,
+              TAG_END)),
             TAG_END)),
             CHILD_WeightedHeight, 0,
           TAG_END)),
@@ -1659,6 +1738,7 @@ int main(void)
             else if (code == 0x7B || code == 0x4D) scroll_rows(1);   /* wheel / down */
             else if (code == 0x45) done = 1;                         /* Esc */
             else if (code == 0x5F) show_guide();                     /* Help */
+            else if (code == 0x44 || code == 0x43) run_game();       /* Return, Enter */
             else if (code >= 0x01 && code <= 0x08) {                 /* 1..8: group */
               filter = code - 0x01;
               set_filter_buttons();
@@ -1682,6 +1762,7 @@ int main(void)
               case GID_REFRESH: start_refresh(); break;
               case GID_GAMESDIR: choose_games_dir(0); break;
               case GID_GUIDE: show_guide(); break;
+              case GID_RUN: run_game(); break;
               case GID_APPSDIR: choose_games_dir(1); break;
               case GID_FILTER: case GID_FILTER + 1: case GID_FILTER + 2: case GID_FILTER + 3:
               case GID_FILTER + 4: case GID_FILTER + 5: case GID_FILTER + 6: case GID_FILTER + 7:
@@ -1740,6 +1821,7 @@ out:
   }
   if (work_signal >= 0) FreeSignal(work_signal);
   if (app_port != NULL) DeleteMsgPort(app_port);
+  if (WorkbenchBase != NULL) CloseLibrary(WorkbenchBase);
   close_classes();
   return RETURN_OK;
 }

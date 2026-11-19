@@ -37,9 +37,11 @@ OKNO
   Katalog gier            - szuflada z zainstalowanymi grami
   Katalog programow       - szuflada z zainstalowanymi programami
   Odswiez                 - pobiera aktualna liste gier
+  Uruchom                 - uruchamia wybrana zainstalowana gre, jak jej
+                            ikona (z jej Tool Types)
   jezyk                   - polski, angielski, niemiecki
-- Klawisze: strzalki - wybor gry i przewijanie, 1-8 - grupy, Help -
-  instrukcja uruchomienia, Esc - koniec.
+- Klawisze: strzalki - wybor gry i przewijanie, 1-8 - grupy, Return -
+  uruchom gre, Help - instrukcja uruchomienia, Esc - koniec.
 
 TWOJE PLIKI
 WARP HUB nie nadpisuje plikow gracza: danych gry, ustawien (*.ini, *.prefs),

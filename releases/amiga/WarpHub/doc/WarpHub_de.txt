@@ -40,9 +40,11 @@ DAS FENSTER
   Spiele-Schublade     - die Schublade deiner Spiele
   Programm-Schublade   - die Schublade deiner Programme
   Aktualisieren        - holt die aktuelle Liste
+  Starten              - startet das gewaehlte installierte Spiel wie sein
+                         Symbol (mit seinen Tool Types)
   Sprache              - Deutsch, Englisch, Polnisch
-- Tasten: Pfeile - Auswahl und Blaettern, 1-8 - Gruppen, Help -
-  Startanleitung, Esc - Ende.
+- Tasten: Pfeile - Auswahl und Blaettern, 1-8 - Gruppen, Return - Spiel
+  starten, Help - Startanleitung, Esc - Ende.
 
 DEINE DATEIEN
 WARP HUB ueberschreibt nie die Dateien des Spielers: Spieldaten, Einstellungen

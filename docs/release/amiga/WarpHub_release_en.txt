@@ -1,11 +1,16 @@
 WARP HUB - releases
 ===================
 
-Reporting bugs: the release number is in the screen title ("WARP HUB 0.4")
+Reporting bugs: the release number is in the screen title ("WARP HUB 0.5")
 and in the Shell: Version SYS:WarpApps/WarpHub. Describe what
 happened and give the release number:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.5 (19.11.2026, beta release)
+------------------------------
+- Run button (next to the language) and the Return key: starts the chosen
+  installed game like its icon.
 
 0.4 (19.11.2026, beta release)
 ------------------------------
