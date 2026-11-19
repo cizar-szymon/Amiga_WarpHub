@@ -403,7 +403,7 @@ BRANCH main
 VERSION 0.1
 ZIP Vastar-0.1.zip 81657
 SIZE 193524
-IMAGE 8380 fa75bf1faee990f12dacd692ed205557766cb1b4d9e5ec164ba95117da06c6ad images/vastar.png
+IMAGE 7757 e12a427786ac848ffa4b11cf2e068a58ec372e73e2e078fbf1e482f90036b75a images/vastar.png
 NOTES en Vastar/doc/Vastar_release_en.txt
 NOTES pl Vastar/doc/Vastar_release.txt
 README Vastar/rom/ReadMe.txt
