@@ -17,7 +17,6 @@ REQ de 100 MHz empfohlen
 REQ de 32 MB Fast RAM
 REQ de AmigaOS 3.2, RTG
 REPO cizar-szymon/Amiga_Game_Zod
-BRANCH release
 ORDER 100
 LOCAL ZOD/ZodEngine
 IMAGE-SOURCE ZOD/tools/Icon.jpeg
