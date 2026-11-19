@@ -34,8 +34,18 @@ static int full_name(char *out, int outlen, const char *dest, const char *path,
   return 1;
 }
 
+const char *hub_local_path(const HubGame *g, const char *path)
+{
+  const char *slash = strchr(path, '/');
+  return g->flat && slash != NULL ? slash + 1 : path;
+}
+
 void hub_game_dir(HubGame *g, char *out, int outlen)
 {
+  if (g->flat) {               /* straight into the chosen drawer */
+    out[0] = 0;
+    return;
+  }
   const char *p = g->files[0].path;
   int i;
   for (i = 0; i < g->nfiles; i++) {
@@ -98,7 +108,8 @@ void hub_plan(HubGame *g, const char *dest, HubPlan *plan)
     HubFile *f = &g->files[i];
     ULONG size = 0;
     int here;
-    if (!full_name(name, sizeof(name), dest, f->path, "")) {
+    if (f->flag == 'X' ||
+        !full_name(name, sizeof(name), dest, hub_local_path(g, f->path), "")) {
       f->need = 0;
       continue;
     }
@@ -170,8 +181,8 @@ static int fetch_one(HubConn *c, HubGame *g, const char *dest, HubFile *file,
 
   snprintf(raw, sizeof(raw), "/%s/%s/releases/amiga/%s", g->repo, g->branch, file->path);
   hub_url_path(url, sizeof(url), raw);
-  make_dirs(dest, file->path);
-  if (!full_name(name, sizeof(name), dest, file->path, ".upd")) {
+  make_dirs(dest, hub_local_path(g, file->path));
+  if (!full_name(name, sizeof(name), dest, hub_local_path(g, file->path), ".upd")) {
     snprintf(err, errlen, "Path too long: %s", file->path);
     return 0;
   }
@@ -231,7 +242,8 @@ static void remove_partial(HubGame *g, const char *dest)
   char name[NAME_LEN];
   int i;
   for (i = 0; i < g->nfiles; i++) {
-    if (g->files[i].need && full_name(name, sizeof(name), dest, g->files[i].path, ".upd")) {
+    if (g->files[i].need &&
+        full_name(name, sizeof(name), dest, hub_local_path(g, g->files[i].path), ".upd")) {
       DeleteFile((CONST_STRPTR)name);
     }
   }
@@ -247,12 +259,18 @@ static int put_in_place(HubGame *g, const char *dest, const char *old_version,
     HubFile *f = &g->files[i];
     BPTR lock;
     if (!f->need) continue;
-    full_name(from, sizeof(from), dest, f->path, ".upd");
-    full_name(to, sizeof(to), dest, f->path, "");
+    full_name(from, sizeof(from), dest, hub_local_path(g, f->path), ".upd");
+    full_name(to, sizeof(to), dest, hub_local_path(g, f->path), "");
     lock = Lock((CONST_STRPTR)to, ACCESS_READ);
     if (lock != 0) {
       UnLock(lock);
-      if (is_program(g, f)) {
+      if (is_program(g, f) && g->flat) {
+        /* a program straight in the drawer (SYS:WarpApps/WarpHub): the old
+         * one stays next to it as <name>.old (the drawer is not its own) */
+        snprintf(old, sizeof(old), "%s.old", to);
+        DeleteFile((CONST_STRPTR)old);
+        if (!Rename((CONST_STRPTR)to, (CONST_STRPTR)old)) DeleteFile((CONST_STRPTR)to);
+      } else if (is_program(g, f)) {
         /* the old program to <Game>/old/<name>-<version> */
         snprintf(rel, sizeof(rel), "%s/old/", dir);
         make_dirs(dest, rel);

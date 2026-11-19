@@ -1,11 +1,18 @@
 WARP HUB - releases
 ===================
 
-Reporting bugs: the release number is in the screen title ("WARP HUB 0.3")
-and in the Shell: Version SYS:WarpApps/WarpHub/WarpHub. Describe what
+Reporting bugs: the release number is in the screen title ("WARP HUB 0.4")
+and in the Shell: Version SYS:WarpApps/WarpHub. Describe what
 happened and give the release number:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.4 (19.11.2026, beta release)
+------------------------------
+- WARP HUB lives in SYS:WarpApps as a program with its icon, like the other
+  Warp programs (no drawer of its own); updating itself replaces the program,
+  the previous version stays as WarpHub.old.
+- The cache is the drawer WarpHub-cache next to the program.
 
 0.3 (19.11.2026, beta release)
 ------------------------------

@@ -1,11 +1,18 @@
 WARP HUB - Versionen
 ====================
 
-Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.3")
-und in der Shell: Version SYS:WarpApps/WarpHub/WarpHub. Beschreibe, was
+Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.4")
+und in der Shell: Version SYS:WarpApps/WarpHub. Beschreibe, was
 passiert ist, mit der Versionsnummer:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.4 (19.11.2026, Beta)
+----------------------
+- WARP HUB liegt in SYS:WarpApps als Programm mit Symbol, wie die anderen
+  Warp-Programme (ohne eigene Schublade); das Selbst-Update ersetzt das
+  Programm, die vorige Version bleibt als WarpHub.old.
+- Der Zwischenspeicher ist die Schublade WarpHub-cache neben dem Programm.
 
 0.3 (19.11.2026, Beta)
 ----------------------

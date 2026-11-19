@@ -17,6 +17,10 @@ UTF-8 text, one item per line, "#" starts a comment:
                               files are taken from that commit of the repo,
                               a newer release of the author waits until it
                               is approved (without the line: always the newest)
+    FLAT                      a program that goes straight into the chosen
+                              drawer (WARP HUB in SYS:WarpApps): the files of
+                              <Root>/ only; its doc/ and drawer icon are for
+                              the window, not installed
     ORDER <number>            place in the gallery (smaller first)
     LOCAL <drawer>            PC only: the project drawer (test catalog)
     IMAGE-SOURCE <path> [x0 y0 x1 y1] [pixel]
@@ -59,6 +63,8 @@ def parse(key, text):
             if len(parts) != 2 or not re.match(r'^[0-9a-f]{40}$', parts[1]):
                 raise ValueError('%s: APPROVED <version> <40 hex commit>: %s' % (key, line))
             g['approved'] = {'version': parts[0], 'commit': parts[1]}
+        elif word == 'FLAT' and not rest:
+            g['flat'] = True
         elif word == 'ORDER':
             g['order'] = int(rest)
         elif word == 'LOCAL':
@@ -118,6 +124,8 @@ def write(g):
         out.append('BRANCH ' + g['branch'])
     if g.get('approved'):
         out.append('APPROVED %s %s' % (g['approved']['version'], g['approved']['commit']))
+    if g.get('flat'):
+        out.append('FLAT')
     out.append('ORDER %d' % g.get('order', 1000))
     if g.get('local'):
         out.append('LOCAL ' + g['local'])

@@ -17,6 +17,7 @@ REQ en tested on 060 / 50 MHz
 REQ pl 68020 lub lepszy
 REPO cizar-szymon/Amiga_Game_Miner-2049er
 BRANCH amiga
+FLAT
 APPROVED 0.9 0123456789abcdef0123456789abcdef01234567
 ORDER 40
 LOCAL Miner 2049er
@@ -32,6 +33,7 @@ class GameFiles(unittest.TestCase):
         self.assertEqual(g['req']['en'], ['68020 or better', 'tested on 060 / 50 MHz'])
         self.assertEqual(g['branch'], 'amiga')
         self.assertEqual(g['order'], 40)
+        self.assertTrue(g['flat'])
         self.assertEqual(g['approved'], {'version': '0.9',
                                          'commit': '0123456789abcdef0123456789abcdef01234567'})
         self.assertEqual(g['image'], {'src': 'Miner 2049er/build/port/lv/levels.png',

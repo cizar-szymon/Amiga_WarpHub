@@ -189,6 +189,8 @@ HubCatalog *hub_catalog_parse(char *text, char *err, int errlen)
       if (g->nreq[l] < HUB_MAX_REQ) g->req[l][g->nreq[l]++] = rest;
     } else if (strcmp(cmd, "TAGS") == 0 && rest != NULL) {
       g->tags = rest;
+    } else if (strcmp(cmd, "FLAT") == 0) {
+      g->flat = 1;
     } else if (strcmp(cmd, "SOURCE") == 0 && rest != NULL) {
       g->local = strcmp(rest, "local") == 0;
     } else if (strcmp(cmd, "VERSION") == 0 && rest != NULL) {
@@ -211,13 +213,14 @@ HubCatalog *hub_catalog_parse(char *text, char *err, int errlen)
       HubFile *f;
       char *size = word(&rest), *sha = word(&rest), *flag = word(&rest);
       if (rest == NULL || g->nfiles >= cap_files || strlen(sha) != 64 ||
-          (flag[0] != 'N' && flag[0] != 'K') || !hub_path_ok(rest)) {
+          flag == NULL || flag[0] == 0 || !hub_path_ok(rest)) {
         goto bad;
       }
       f = &g->files[g->nfiles++];
       f->size = strtoul(size, NULL, 10);
       f->sha = sha;
-      f->flag = flag[0];
+      /* N, K; anything else (X, or a flag of a newer catalog): not installed */
+      f->flag = (flag[0] == 'N' || flag[0] == 'K') ? flag[0] : 'X';
       f->path = rest;
     }
     /* unknown lines: newer format items, skipped */

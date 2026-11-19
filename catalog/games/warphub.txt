@@ -17,4 +17,5 @@ REQ de AmigaOS 3.2, RTG
 REQ de AmiSSL 5 (WarpSSL)
 REQ de TCP/IP, Internet
 REPO cizar-szymon/Amiga_WarpHub
+FLAT
 ORDER 1

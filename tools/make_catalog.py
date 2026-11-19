@@ -32,6 +32,9 @@ space, the last field of a line may contain spaces):
     REQ <lang> <text>             one line of the requirements (several lines)
     TAGS <tag>,<tag>...           the groups of the filter buttons: apps, warp1260,
                                   warp1240, warp1260x, warp7060, ppc, other
+    FLAT                          a program straight into the chosen drawer: the
+                                  files of <Root>/ go there; the rest (doc/, the
+                                  drawer icon) has flag X - for the window only
     SOURCE local                  only in catalog-test.txt (--simulate): the repo
                                   is not public yet, the files cannot be downloaded
     SIZE <bytes of all files>
@@ -43,6 +46,7 @@ space, the last field of a line may contain spaces):
     ...
 
 Paths are relative to releases/amiga/ ("Settlers.info", "Settlers/Settlers").
+Flag X: not installed (FLAT entries: texts and icons only for the window).
 Flag K: a file of the player once installed (the program icon with its Tool
 Types, *.ini, *.prefs, the drawer icon) - the Amiga writes it only when it is
 missing. N: replaced by every update.
@@ -379,8 +383,10 @@ def write_catalog(games):
         out.append('VERSION ' + g['version'])
         if g.get('source'):
             out.append('SOURCE ' + g['source'])
+        if g.get('flat'):
+            out.append('FLAT')
         out.append('ZIP %s %d' % g['zip'])
-        out.append('SIZE %d' % sum(f[1] for f in g['files']))
+        out.append('SIZE %d' % sum(f[1] for f in g['files'] if f[3] != 'X'))
         if g.get('image'):
             out.append('IMAGE %d %s %s' % g['image'])
         for lang in LANGS:
@@ -428,6 +434,11 @@ def main(argv=None):
             g['image'] = image_of(os.path.dirname(args.out), game['key'])
             g['tags'] = game.get('tags', [])
             g['req'] = game.get('req', {})
+            if game.get('flat'):
+                g['flat'] = True
+                for i, (rel, size, sha, flag) in enumerate(g['files']):
+                    if rel.count('/') != 1:          # the drawer icon, doc/...
+                        g['files'][i] = (rel, size, sha, 'X')
             for lang, data in g.get('local_notes', {}).items():
                 # the Amiga cannot get them from GitHub: notes/<key>_<lang>.txt
                 d = os.path.join(os.path.dirname(args.out), 'notes')

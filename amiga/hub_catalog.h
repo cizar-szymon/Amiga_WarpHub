@@ -11,7 +11,8 @@ typedef struct HubFile {
   const char *path;        /* relative to releases/amiga/ */
   ULONG size;
   const char *sha;         /* 64 hex digits */
-  char flag;               /* 'N' replace, 'K' player's file: only if missing */
+  char flag;               /* 'N' replace, 'K' player's file: only if missing,
+                              'X' not installed (texts for the window only) */
   char need;               /* set by hub_plan() */
 } HubFile;
 
@@ -24,6 +25,8 @@ typedef struct HubGame {
   const char *version;
   const char *tags;        /* "pc,new" - groups of the filter buttons, or NULL */
   int local;               /* SOURCE local: repo not public yet (test catalog) */
+  int flat;                /* FLAT: the files of <Root>/ go straight into the
+                              chosen drawer (a program such as WARP HUB) */
   const char *zip;
   ULONG zip_size;
   ULONG size;

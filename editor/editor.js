@@ -105,6 +105,8 @@ function parse(key, text) {
       g.approved = { version: p[0], commit: p[1] };
     } else if (word === 'ORDER') {
       g.order = parseInt(rest, 10);
+    } else if (word === 'FLAT' && !rest) {
+      g.flat = true;
     } else if (word === 'LOCAL' || word === 'IMAGE-SOURCE') {
       g.fixed.push(line);          // PC only: kept as it is
     } else {
@@ -123,6 +125,7 @@ function write(g) {
   if (g.repo) out.push('REPO ' + g.repo);
   if (g.branch) out.push('BRANCH ' + g.branch);
   if (g.approved) out.push(`APPROVED ${g.approved.version} ${g.approved.commit}`);
+  if (g.flat) out.push('FLAT');
   out.push('ORDER ' + g.order);
   const local = g.fixed.filter((l) => l.startsWith('LOCAL '));
   const src = g.fixed.filter((l) => l.startsWith('IMAGE-SOURCE '));
@@ -140,6 +143,7 @@ function fromForm() {
               repo: $('repo').value.trim(), branch: $('branch').value.trim(),
               fixed: current ? current.game.fixed : [] };
   if (formApproved) g.approved = formApproved;
+  if (current && current.game.flat) g.flat = true;   // kept as it is
   for (const l of LANGS) {
     const n = oneLine($('name_' + l).value);
     if (n && (l === 'en' || n !== oneLine($('name_en').value))) g.name[l] = n;

@@ -604,3 +604,14 @@ Settlers z okna.
 - Program: `note_self()` – uruchomiony z szuflady `<dir>/WarpHub` zapisuje się jako
   zainstalowany `warphub` w `<dir>`; po aktualizacji samego siebie okno „zamknij i uruchom
   ponownie”. Stary program idzie do `old/` jak u gier.
+
+## WARP HUB 0.4: program prosto w SYS:WarpApps (19.11.2026, decyzja użytkownika)
+- Użytkownik chce sam program z ikoną w `SYS:WarpApps`, jak WarpDiag, bez szuflady.
+- Katalog: linia `FLAT` (plik gry `FLAT`): pliki z `<Root>/` idą prosto do wybranej
+  szuflady, reszta (ikona szuflady, `doc/`) ma znacznik `X` – pobierana tylko do okna
+  (historia, instrukcja), nie instalowana. `SIZE` bez plików `X`.
+- Amiga: `hub_local_path()`, plan i instalacja pomijają `X`; stary program przy FLAT jako
+  `<program>.old`; pamięć podręczna `PROGDIR:WarpHub-cache`; `note_self()` zapisuje
+  zainstalowany `warphub` w szufladzie programu. Nieznany znacznik pliku = `X` (0.3
+  odrzucało cały katalog przy nieznanym znaczniku).
+- Opisy i historia wydań 0.4 (PL/EN/DE), edytor zachowuje `FLAT`.

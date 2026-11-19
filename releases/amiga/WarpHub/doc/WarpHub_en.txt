@@ -17,7 +17,9 @@ The Amiga's clock does not have to be set: to check the certificates WARP HUB
 gets the time from a time server (pool.ntp.org and others).
 
 INSTALLATION
-Put the drawer WarpHub for example into SYS:WarpApps and start the icon WarpHub.
+Copy the program WarpHub with its icon WarpHub.info to SYS:WarpApps (next to
+the other Warp programs) and start the icon. Next to the program WARP HUB keeps
+its settings (WarpHub.prefs) and its cache (the drawer WarpHub-cache).
 
 THE WINDOW
 - At the top the group buttons: All, Programs, Warp 560/1260, Warp 1240,
@@ -54,10 +56,11 @@ Settlers).
 
 UPDATING WARP HUB
 WARP HUB is in the list too (group Programs) and updates itself: after the
-update close it and start it again.
+update close it and start it again. The previous version stays next to it as
+WarpHub.old.
 
 SETTINGS
-The file WarpHub.prefs in the program's drawer (written by WARP HUB).
+The file WarpHub.prefs next to the program (written by WARP HUB).
 Tool Types of the icon: LANG=pl|en|de.
 
 Sources and description: https://github.com/cizar-szymon/Amiga_WarpHub

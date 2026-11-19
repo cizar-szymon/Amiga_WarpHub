@@ -60,7 +60,7 @@
 
 extern struct WBStartup *_WBenchMsg;
 
-#define WARPHUB_VERSION "0.3"   /* tools/make_release.py reads it */
+#define WARPHUB_VERSION "0.4"   /* tools/make_release.py reads it */
 const char version_tag[] = "$VER: WarpHub " WARPHUB_VERSION " (19.11.2026)";
 
 unsigned long __stack = 65536;
@@ -70,7 +70,7 @@ void (*const warphub_stackSwap)(void) = __stkinit;
 #define CATALOG_URL \
   "https://raw.githubusercontent.com/cizar-szymon/Amiga_WarpHub/main/catalog/catalog.txt"
 #define PREFS_FILE "PROGDIR:WarpHub.prefs"
-#define CACHE_DIR "PROGDIR:cache"
+#define CACHE_DIR "PROGDIR:WarpHub-cache"   /* next to other programs (SYS:WarpApps) */
 
 /* the tile: 224x140 (the size of the pictures) on big screens, 144x90 (the
  * picture scaled by the datatype) below 1024x700, so that 640x480 fits */
@@ -925,7 +925,7 @@ static int scan_games_dir(const char *dir, int save, int only_new)
       }
       strncpy(name, dir, sizeof(name) - 1);
       name[sizeof(name) - 1] = 0;
-      if (!AddPart((STRPTR)name, (CONST_STRPTR)path, sizeof(name))) continue;
+      if (!AddPart((STRPTR)name, (CONST_STRPTR)hub_local_path(g, path), sizeof(name))) continue;
       lock = Lock((CONST_STRPTR)name, ACCESS_READ);
       if (lock == 0) continue;
       UnLock(lock);
@@ -950,11 +950,11 @@ static int scan_games_dir(const char *dir, int save, int only_new)
   return found;
 }
 
-/* WARP HUB itself is an entry of the catalog (group Programs, key "warphub"):
- * when it runs from its own drawer <dir>/WarpHub, that is its installation -
- * the version is this program's, so the catalog shows "installed" or "update"
- * and the update replaces this drawer's files (the old program goes to old/;
- * WarpHub.prefs and cache/ are not in the catalog and stay). */
+/* WARP HUB itself is an entry of the catalog (group Programs, key "warphub",
+ * FLAT): the drawer it runs from (SYS:WarpApps) is its installation - the
+ * version is this program's, so the catalog shows "installed" or "update" and
+ * the update replaces WarpHub and WarpHub.info there (the old program stays as
+ * WarpHub.old; WarpHub.prefs and WarpHub-cache are not in the catalog). */
 #define SELF_KEY "warphub"
 
 static void note_self(void)
@@ -962,11 +962,8 @@ static void note_self(void)
   char path[256];
   BPTR dir = GetProgramDir();
   STRPTR part;
+  (void)part;
   if (dir == 0 || !NameFromLock(dir, (STRPTR)path, sizeof(path))) return;
-  if (Stricmp(FilePart((STRPTR)path), (CONST_STRPTR)"WarpHub") != 0) return;
-  part = PathPart((STRPTR)path);
-  if (part == (STRPTR)path) return;               /* "SYS:" alone - no parent */
-  *part = 0;
   hub_prefs_set_installed(&prefs, SELF_KEY, WARPHUB_VERSION, path);
 }
 

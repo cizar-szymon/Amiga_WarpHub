@@ -28,5 +28,8 @@ int hub_install(HubGame *g, const char *dest, const char *old_version,
 
 /* The drawer of the game: the first part of its paths ("Settlers"). */
 void hub_game_dir(HubGame *g, char *out, int outlen);
+/* where a file of the catalog lies under the chosen drawer: its path, or for a
+ * FLAT entry the path without "<Root>/" */
+const char *hub_local_path(const HubGame *g, const char *path);
 
 #endif

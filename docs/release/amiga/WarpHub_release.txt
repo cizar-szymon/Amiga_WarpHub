@@ -1,10 +1,17 @@
 WARP HUB - wydania
 ==================
 
-Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.3") i w
-Shellu: Version SYS:WarpApps/WarpHub/WarpHub. Opisz, co sie stalo, i podaj
+Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.4") i w
+Shellu: Version SYS:WarpApps/WarpHub. Opisz, co sie stalo, i podaj
 numer wydania: https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.4 (19.11.2026, wydanie beta)
+------------------------------
+- WARP HUB lezy w SYS:WarpApps jako program z ikona, jak inne programy Warp
+  (bez wlasnej szuflady); aktualizacja samego siebie podmienia program,
+  poprzednia wersja zostaje jako WarpHub.old.
+- Pamiec podreczna w szufladzie WarpHub-cache obok programu.
 
 0.3 (19.11.2026, wydanie beta)
 ------------------------------

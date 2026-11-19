@@ -17,7 +17,9 @@ Zegar Amigi nie musi byc ustawiony: do sprawdzenia certyfikatow WARP HUB
 pobiera godzine z serwera czasu (pool.ntp.org i inne).
 
 INSTALACJA
-Szuflade WarpHub polozyc np. w SYS:WarpApps i uruchomic ikone WarpHub.
+Program WarpHub z ikona WarpHub.info skopiowac do SYS:WarpApps (obok innych
+programow Warp) i uruchomic ikone. Obok programu WARP HUB zapisuje swoje
+ustawienia (WarpHub.prefs) i pamiec podreczna (szuflada WarpHub-cache).
 
 OKNO
 - U gory przyciski grup: Wszystkie, Programy, Warp 560/1260, Warp 1240,
@@ -52,10 +54,11 @@ Szuflada gry musi miec nazwe taka jak w paczce (np. Settlers).
 
 AKTUALIZACJA WARP HUB
 WARP HUB jest tez na liscie (grupa Programy) i aktualizuje sam siebie: po
-aktualizacji zamknij go i uruchom ponownie.
+aktualizacji zamknij go i uruchom ponownie. Poprzednia wersja zostaje obok
+jako WarpHub.old.
 
 USTAWIENIA
-Plik WarpHub.prefs w szufladzie programu (zapisywany przez WARP HUB).
+Plik WarpHub.prefs obok programu (zapisywany przez WARP HUB).
 Tool Types ikony: LANG=pl|en|de.
 
 Zrodla i opis: https://github.com/cizar-szymon/Amiga_WarpHub
