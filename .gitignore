@@ -5,3 +5,5 @@ build/
 *.o
 catalog/catalog-test.txt
 catalog/notes/
+# notes for the agent (home network addresses) - kept only on the PC
+CLAUDE.md
