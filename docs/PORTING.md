@@ -579,3 +579,15 @@ Settlers z okna.
 - ZOD znikł z katalogu: zapis w edytorze z formularza otwartego przed moją zmianą usunął
   `BRANCH release`. Przywrócone. Edytor przed zapisem porównuje teraz SHA pliku na GitHubie
   z SHA z chwili otwarcia i przy różnicy nic nie zapisuje.
+
+### Wydania gier w gicie bajt w bajt jak ZIP (19.11.2026)
+- W repo Settlers (`amiga-port`), OpenDUNE, Diablo, Vastar i Xain'd Sleena dopisane
+  `releases/** -text` w `.gitattributes`, pliki wydania zapisane jak w ZIP-ie: Diablo 60
+  plików (`.tsv`, `.txt`, `.lua`, `.ini` z CRLF), OpenDUNE `COPYING` + brakujący w gicie
+  `data/ReadMe.txt` (ignorowany przez `data/` w `.gitignore`, dodany `-f`), Settlers
+  `micromod-licence.txt`, Vastar wersja PC (4 pliki, zgodne z `Vastar-0.1-pc.zip`).
+  Settlers przez osobny katalog roboczy `amiga-port` (gałąź użytkownika `lan-observer`
+  nietknięta).
+- Katalog po przebudowie: wszystkie 7 gier, każdy plik z sumą równą plikowi w ZIP-ie
+  (27 + 22 + 251 + 108 + 11 + 11 + 105). Generator nie musi już brać „wersji z gita”
+  zamiast ZIP-a.
