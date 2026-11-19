@@ -112,7 +112,6 @@ NAME en Diablo (DevilutionX)
 DESC en Diablo and Hellfire on the DevilutionX engine, made for Warp cards.
 DESC pl Diablo i Hellfire na silniku DevilutionX, przygotowane dla kart Warp.
 DESC de Diablo und Hellfire mit der DevilutionX-Engine, für Warp-Karten gemacht.
-TAGS warp1260,warp1260x,warp7060
 REQ en WARP accelerator MC68060 + RTG
 REQ en 100 MHz recommended
 REQ en AmigaOS 3.2
