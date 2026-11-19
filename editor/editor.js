@@ -14,8 +14,8 @@ const IMAGES = 'catalog/images';
 const API = 'https://api.github.com';
 const LANGS = ['en', 'pl', 'de'];
 const TAGS = [
-  ['new', 'Nowości'], ['apps', 'Programy'], ['warpextreme', 'WarpExtreme'],
-  ['arcade', 'Arcade'], ['pc', 'PC port'], ['mac', 'MAC port'], ['other', 'Inne'],
+  ['apps', 'Programy'], ['amiga', 'AMIGA port'], ['pc', 'PC port'], ['mac', 'MAC port'],
+  ['warpextreme', 'WarpExtreme'], ['arcade', 'Arcade'], ['other', 'Inne'],
 ];
 const KEY_OK = /^[a-z0-9][a-z0-9_-]{0,30}$/;
 const REPO_OK = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;

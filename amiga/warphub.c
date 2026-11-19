@@ -167,12 +167,12 @@ static int lang = HUB_EN;
 /* the filter buttons: the group (TAGS of the catalog) and its label */
 #define FILTERS 8
 static const char *const filter_tag[FILTERS] = {
-  "", "new", "apps", "warpextreme", "arcade", "pc", "mac", "other"
+  "", "apps", "amiga", "pc", "mac", "warpextreme", "arcade", "other"
 };
 static const char *const filter_label[3][FILTERS] = {
-  {"All", "New", "Programs", "WarpExtreme", "Arcade", "PC port", "MAC port", "Other"},
-  {"Wszystkie", "Nowosci", "Programy", "WarpExtreme", "Arcade", "PC port", "MAC port", "Inne"},
-  {"Alle", "Neu", "Programme", "WarpExtreme", "Arcade", "PC-Port", "MAC-Port", "Andere"}
+  {"All", "Programs", "AMIGA port", "PC port", "MAC port", "WarpExtreme", "Arcade", "Other"},
+  {"Wszystkie", "Programy", "AMIGA port", "PC port", "MAC port", "WarpExtreme", "Arcade", "Inne"},
+  {"Alle", "Programme", "AMIGA-Port", "PC-Port", "MAC-Port", "WarpExtreme", "Arcade", "Andere"}
 };
 static int filter = 0;
 static int view[128], nview;       /* the games shown (indices into the catalog) */

@@ -11,8 +11,8 @@ Warp 1240, Warp 1260, Warp 1260 Extreme or Warp 7060.** On a Warp with firmware 
 CPU free. It was written and tested on an A4000 with a Warp 7060 (68060). Other Amigas with
 AmigaOS 3.2, AmiSSL 5 and a network connection run it too, without the speed of WarpSSL.
 
-- a gallery of the games and programs with pictures, filters: New, Programs, WarpExtreme,
-  Arcade, PC port, MAC port, Other
+- a gallery of the games and programs with pictures, filters: Programs, AMIGA port, PC port,
+  MAC port, WarpExtreme, Arcade, Other
 - English, Polish and German (the window, the descriptions and, where the game has them, the
   release notes)
 - **Install**: you pick a drawer, the game gets its own drawer with the WARP drawer icon

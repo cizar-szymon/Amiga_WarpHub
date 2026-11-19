@@ -7,7 +7,7 @@ UTF-8 text, one item per line, "#" starts a comment:
 
     NAME <lang> <text>        en always, pl / de when they differ
     DESC <lang> <text>        one line per language
-    TAGS <tag>,<tag>...       new, apps, warpextreme, arcade, pc, mac, other
+    TAGS <tag>,<tag>...       apps, amiga, pc, mac, warpextreme, arcade, other
     REQ <lang> <text>         one line of the requirements (several lines)
     REPO <owner>/<repo>       the GitHub repo with releases/amiga
     BRANCH <branch>           when the release is not on the default branch

@@ -501,3 +501,17 @@ Settlers z okna.
   angielskiej, grupy w stałej kolejności. Złe dane dają komunikaty. Zapis na GitHub
   sprawdzony dopiero po wdrożeniu (niżej).
 
+
+### WARP HUB z katalogiem z GitHuba (19.11.2026)
+- Amiga 2 (ekran 1280×1024), nowa kopia w `RAM:WarpHub-lang`, ustawienia bez `CATALOG`, start
+  przez `WBStart`. W 25 s pobrane z GitHuba: `catalog.txt` (37 540 B, z taktowaniem
+  w wymaganiach), 3 obrazki, 6 historii zmian i 4 pliki instrukcji. W galerii 3 publiczne gry.
+- Sprawdzanie przy starcie rozpoznało w `WorkSD:Games` Settlers 0.139, OpenDUNE 0.54
+  i Diablo 0.48 („Zainstalowana”, oba przyciski wyłączone).
+- Na dużym ekranie galeria ma 3 rzędy, choć gry mieszczą się w jednym: pusty obszar pod
+  kafelkami (do poprawy: wysokość galerii według liczby gier).
+
+### Przyciski filtra: nowa kolejność, bez Nowości (19.11.2026, decyzja użytkownika)
+- Wszystkie, Programy, AMIGA port (`amiga`), PC port, MAC port, WarpExtreme, Arcade, Inne;
+  w programie (PL/EN/DE, klawisze 1–8) i w edytorze. Znacznik `new` usunięty z Diablo,
+  AmiXcom i ZOD. Amiga 2 (1280×1024): przyciski w tej kolejności. 640×480 nie sprawdzone.
