@@ -3,7 +3,7 @@ NAME en Miner 2049er
 DESC en Bounty Bob claims every floor of the mine: the 1982 platform game.
 DESC pl Bounty Bob zajmuje każde piętro kopalni: gra platformowa z 1982 roku.
 DESC de Bounty Bob erobert jede Etage der Mine: das Jump'n'Run von 1982.
-TAGS warp1260,warp1240,warp7060,other
+TAGS other
 REQ en 68020 or better
 REQ en tested on 060 / 50 MHz
 REQ en AmigaOS 3.1+
