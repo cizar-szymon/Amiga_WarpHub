@@ -1,0 +1,7 @@
+__pycache__/
+*.tmp
+build/
+*.cfg
+*.o
+catalog/catalog-test.txt
+catalog/notes/
