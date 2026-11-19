@@ -383,6 +383,42 @@ FILE 26082 bbbc8b4dd2ac7f2a76855e087c70639b17aea1282efc7f7a410d8dcbae4f98c9 N Di
 FILE 237573 f12980a91c94931342bd111da00b4adabe8061264cb8ecbdb7fb3a82895c1514 N DiabloWarp/mods/hf/ui_art/supportw.clx
 FILE 84 3e58d8ec63d245ace37079c6800169b992cf1965217e9cf369ca307f477157e0 N DiabloWarp/save/ReadMe.txt
 END
+GAME vastar
+NAME en Vastar
+DESC en The 1983 Orca arcade shooter, emulated from the original ROMs.
+DESC pl Strzelanka z automatu Orca z 1983 roku, emulowana z oryginalnych ROM-ów.
+DESC de Der Arcade-Shooter von Orca aus dem Jahr 1983, emuliert aus den Original-ROMs.
+TAGS other
+REQ en 68060
+REQ en 100 MHz recommended
+REQ en AmigaOS 3.1+, RTG
+REQ pl 68060
+REQ pl 100 MHz (zalecane)
+REQ pl AmigaOS 3.1+, RTG
+REQ de 68060
+REQ de 100 MHz empfohlen
+REQ de AmigaOS 3.1+, RTG
+REPO cizar-szymon/Amiga_Game_VASTAR
+BRANCH main
+VERSION 0.1
+ZIP Vastar-0.1.zip 81657
+SIZE 193524
+IMAGE 8380 fa75bf1faee990f12dacd692ed205557766cb1b4d9e5ec164ba95117da06c6ad images/vastar.png
+NOTES en Vastar/doc/Vastar_release_en.txt
+NOTES pl Vastar/doc/Vastar_release.txt
+README Vastar/rom/ReadMe.txt
+FILE 2444 cf0bdbb9e6eed68de2a893bb1d8106e3a85847b40ca12c78af2d0f4e7d326d15 K Vastar.info
+FILE 167136 3a33b123f2ab0e768b8bf0dab1f85a29775a6c0ca39b9a0313ce2e8e98c9704e N Vastar/Vastar
+FILE 1397 391a617337cee57c381cf9f83410f18a7618eb2acc75fad2374c434a0776a3fe K Vastar/Vastar.info
+FILE 2514 3d62bf4eabd384b483b1808b6f6ee2d431eddc3e0c0a2857b9dfb10273019ffd N Vastar/doc.info
+FILE 2250 3d4ee1a046aa6988d5ef5b399e7ce583d4f57d1b7f76f12358740d1fdaf6847e N Vastar/doc/Vastar.txt
+FILE 6536 c64360a0ed4bb8e74dbdb6dae8c56a5efdda6953008c4adf100df22ed29e1127 N Vastar/doc/Vastar_dev.txt
+FILE 6903 174086fee2f89e82cadd098722b49c2844b60a6f63e07cd2e51e5f96ae41ef7b N Vastar/doc/Vastar_dev_en.txt
+FILE 2328 066228c402e933e6250fb995f840feed58cba83f4d307c23dad633e539accbc7 N Vastar/doc/Vastar_en.txt
+FILE 715 ce89acc948d2c9146aaccd4a374760b51ca4501b4b97ac166d5a3d0bce3f6494 N Vastar/doc/Vastar_release.txt
+FILE 742 1e6f2ab029828581c6598ca8e90299fe06a3d74cb12c0c08bc426917b7f938c0 N Vastar/doc/Vastar_release_en.txt
+FILE 559 ed1a631ff74565faa2c132903ef818c6e4cf6465fc4224f27793521cddde7198 N Vastar/rom/ReadMe.txt
+END
 GAME xainsleena
 NAME en Xain'd Sleena
 DESC en The 1986 Technos arcade game: on foot on the planets, in flight between them.
