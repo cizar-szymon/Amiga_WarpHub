@@ -35,6 +35,7 @@ typedef struct HubInstalled {
 typedef struct HubPrefs {
   char language[4];          /* "" = from the locale */
   char catalog[256];         /* "" = the default URL */
+  char gamesdir[256];        /* the drawer of the installed games ("Work:Games") */
   HubInstalled inst[HUB_MAX_INSTALLED];
   int ninst;
 } HubPrefs;

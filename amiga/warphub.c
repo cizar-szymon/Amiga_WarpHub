@@ -90,7 +90,8 @@ enum {
   T_AVAILABLE, T_SIZE, T_NEEDS_DATA, T_CHOOSE_DIR, T_ASK_INSTALL, T_ASK_UPDATE, T_YES_NO,
   T_DONE, T_FAILED, T_LOADING, T_CACHE_ONLY, T_DOWNLOADING, T_UP_TO_DATE, T_HISTORY_NONE,
   T_READY, T_CHECKING, T_OK, T_NO_CATALOG, T_ADD_YOURSELF, T_FILES, T_IN, T_NO_NET, T_SOON,
-  T_NOT_PUBLIC, T_EMPTY, T_NEW_SHORT, T_COUNT
+  T_NOT_PUBLIC, T_EMPTY, T_NEW_SHORT, T_REQ, T_GAMESDIR, T_CHOOSE_GAMESDIR, T_FOUND,
+  T_COUNT
 };
 
 static const char *const texts[3][T_COUNT] = {
@@ -108,7 +109,9 @@ static const char *const texts[3][T_COUNT] = {
     "OK", "No catalog yet - press Refresh.", "Add yourself:", "files", "in",
     "No network: %s", "Soon",
     "Test: the repo of this game is not public yet - it can be installed after the release.",
-    "No games in this group yet.", "New: %s"
+    "No games in this group yet.", "New: %s", "Requirements",
+    "Games drawer", "Drawer of your installed games",
+    "%d games found in %s."
   },
   { /* pl */
     "Odswiez", "Zainstaluj", "Aktualizuj", "Sprawdz pliki", "Przerwij", "Zainstalowana %s",
@@ -124,7 +127,9 @@ static const char *const texts[3][T_COUNT] = {
     "OK", "Brak katalogu - nacisnij Odswiez.", "Dodaj sam:", "plikow", "w",
     "Brak sieci: %s", "Wkrotce",
     "Test: repo tej gry nie jest jeszcze publiczne - instalacja bedzie mozliwa po publikacji.",
-    "Na razie brak gier w tej grupie.", "Nowa wersja %s"
+    "Na razie brak gier w tej grupie.", "Nowa wersja %s", "Wymagania",
+    "Katalog gier", "Szuflada z zainstalowanymi grami",
+    "Znalezione gry: %d w %s."
   },
   { /* de */
     "Aktualisieren", "Installieren", "Update", "Dateien pr\xfc" "fen", "Abbrechen",
@@ -140,7 +145,9 @@ static const char *const texts[3][T_COUNT] = {
     "OK", "Noch kein Katalog - Aktualisieren dr\xfc" "cken.", "Selbst hinzuf\xfc" "gen:",
     "Dateien", "in", "Kein Netz: %s", "Bald",
     "Test: das Repo dieses Spiels ist noch nicht ö" "ffentlich - Installation nach der Verö" "ffentlichung.",
-    "Noch keine Spiele in dieser Gruppe.", "Neu: %s"
+    "Noch keine Spiele in dieser Gruppe.", "Neu: %s", "Anforderungen",
+    "Spiele-Schublade", "Schublade der installierten Spiele",
+    "%d Spiele in %s gefunden."
   }
 };
 
@@ -159,13 +166,13 @@ static const char *const filter_label[3][FILTERS] = {
 static int filter = 0;
 static int view[128], nview;       /* the games shown (indices into the catalog) */
 /* tests from the Shell: install without requesters after the first refresh */
-static char test_key[32], test_dir[256];
+static char test_key[32], test_dir[256], test_gamesdir[256];
 #define TX(i) (texts[lang == HUB_PL ? 1 : lang == HUB_DE ? 2 : 0][i])
 
 /* --- state --------------------------------------------------------------- */
 
 enum { GID_LANG = 1, GID_REFRESH, GID_GALLERY, GID_SCROLL, GID_PAGE, GID_INSTALL, GID_STOP,
-       GID_NOTES, GID_PROGRESS, GID_FILTER };     /* GID_FILTER + 0..FILTERS-1 */
+       GID_NOTES, GID_PROGRESS, GID_REQ, GID_GAMESDIR, GID_FILTER };     /* GID_FILTER + 0..FILTERS-1 */
 
 typedef struct Tile {
   Object *dt;                /* the picture (datatype), NULL = none */
@@ -183,10 +190,10 @@ static char status_text[300];
 static struct Screen *scr;
 static struct Window *win;
 static Object *win_obj, *g_lang, *g_refresh, *g_gallery, *g_scroll, *g_page, *g_install,
-    *g_stop, *g_notes, *g_progress, *g_filter[FILTERS];
+    *g_stop, *g_notes, *g_progress, *g_req, *g_gamesdir, *g_filter[FILTERS];
 static struct List notes_list, lang_list;
 static struct MsgPort *app_port;
-static struct Hook gallery_hook, page_hook;
+static struct Hook gallery_hook, page_hook, req_hook;
 static BYTE work_signal = -1;
 
 enum { P_BG, P_TILE, P_TEXT, P_DIM, P_ACCENT, P_GREEN, P_SEL, P_COUNT };
@@ -231,23 +238,25 @@ static HubInstalled *installed(HubGame *g)
   return hub_prefs_installed(&prefs, g->key);
 }
 
+/* no status bar (the user wants none): what is going on - downloading with
+ * its percentage, a missing connection, the result - is in the window title,
+ * "WARP HUB" alone when there is nothing to say */
+static char title_text[340];
+
 static void set_status(const char *text)
 {
   strncpy(status_text, text, sizeof(status_text) - 1);
-  if (win != NULL) {
-    SetGadgetAttrs((struct Gadget *)g_progress, win, NULL, GA_Text, (ULONG)status_text,
-                   TAG_DONE);
-  }
+  status_text[sizeof(status_text) - 1] = 0;
+  if (status_text[0]) snprintf(title_text, sizeof(title_text), "WARP HUB - %s", status_text);
+  else strcpy(title_text, "WARP HUB");
+  if (win != NULL) SetWindowTitles(win, (UBYTE *)title_text, (UBYTE *)~0);
 }
 
 static void set_progress(ULONG done, ULONG total)
 {
-  ULONG level = total ? (ULONG)(((done >> 8) * 100UL) / ((total >> 8) + 1)) : 0;
-  if (level > 100) level = 100;
-  if (win != NULL) {
-    SetGadgetAttrs((struct Gadget *)g_progress, win, NULL, FUELGAUGE_Level, level,
-                   GA_Text, (ULONG)status_text, TAG_DONE);
-  }
+  (void)done;
+  (void)total;
+  set_status(status_text);      /* the percentage is in the text */
 }
 
 static void redraw(Object *o)
@@ -471,13 +480,41 @@ static void draw_page(struct RastPort *rp, struct IBox *box)
   }
   p.pen = pens[P_DIM];
   page_line(&p, a, (int)strlen(a));
-  if (g->readmes > 0) {
-    p.pen = pens[P_ACCENT];
-    wrap(rp, TX(T_NEEDS_DATA), box->Width - 16, page_line, &p);
-  }
   if (g->local) {
     p.pen = pens[P_DIM];
     wrap(rp, TX(T_NOT_PUBLIC), box->Width - 16, page_line, &p);
+  }
+}
+
+static void draw_req(struct RastPort *rp, struct IBox *box)
+{
+  PageDraw p;
+  HubGame *g;
+  char a[300];
+  int i, l;
+  SetAPen(rp, pens[P_TILE]);
+  RectFill(rp, box->Left, box->Top, box->Left + box->Width - 1, box->Top + box->Height - 1);
+  if (cat == NULL || selected < 0 || selected >= cat->ngames) return;
+  g = &cat->games[selected];
+  p.rp = rp;
+  p.box = box;
+  p.y = box->Top + 6;
+  SetSoftStyle(rp, FSF_BOLD, AskSoftStyle(rp));
+  p.pen = pens[P_TEXT];
+  page_line(&p, TX(T_REQ), (int)strlen(TX(T_REQ)));
+  SetSoftStyle(rp, 0, AskSoftStyle(rp));
+  p.y += 2;
+  l = g->nreq[lang] > 0 ? lang : HUB_EN;
+  for (i = 0; i < g->nreq[l]; i++) {
+    const char *r = g->req[l][i];
+    /* the data line (Data: / Dane: / Daten: / ROMs) in the accent colour */
+    p.pen = (strchr(r, ':') != NULL) ? pens[P_ACCENT] : pens[P_DIM];
+    latin(r, a, sizeof(a));
+    wrap(rp, a, box->Width - 16, page_line, &p);
+  }
+  if (g->nreq[l] == 0 && g->readmes > 0) {
+    p.pen = pens[P_ACCENT];
+    wrap(rp, TX(T_NEEDS_DATA), box->Width - 16, page_line, &p);
   }
 }
 
@@ -487,7 +524,9 @@ static ULONG render_hook(struct Hook *h, Object *o, struct gpRender *msg)
   (void)h;
   GetAttr(SPACE_AreaBox, o, (ULONG *)&box);
   if (box == NULL || msg->gpr_RPort == NULL) return 0;
-  if (o == g_gallery) draw_gallery(msg->gpr_RPort, box); else draw_page(msg->gpr_RPort, box);
+  if (o == g_gallery) draw_gallery(msg->gpr_RPort, box);
+  else if (o == g_req) draw_req(msg->gpr_RPort, box);
+  else draw_page(msg->gpr_RPort, box);
   return 0;
 }
 
@@ -604,6 +643,8 @@ static void update_buttons(void)
                  GA_Disabled, !work.busy, TAG_DONE);
   SetGadgetAttrs((struct Gadget *)g_refresh, win, NULL, GA_Text, (ULONG)TX(T_REFRESH),
                  GA_Disabled, work.busy, TAG_DONE);
+  SetGadgetAttrs((struct Gadget *)g_gamesdir, win, NULL, GA_Text, (ULONG)TX(T_GAMESDIR),
+                 GA_Disabled, work.busy, TAG_DONE);
 }
 
 static void update_scroller(void)
@@ -632,6 +673,7 @@ static void refresh_all(void)
   update_scroller();
   redraw(g_gallery);
   redraw(g_page);
+  redraw(g_req);
   update_buttons();
   fill_notes();
 }
@@ -642,16 +684,14 @@ static void select_game(int i)
   selected = i;
   redraw(g_gallery);
   redraw(g_page);
+  redraw(g_req);
   update_buttons();
   fill_notes();
 }
 
 static void ready_status(const char *extra)
 {
-  char a[300];
-  snprintf(a, sizeof(a), TX(T_READY), cat != NULL ? cat->ngames : 0, extra ? extra : "");
-  set_status(a);
-  set_progress(0, 0);
+  set_status(extra != NULL ? extra : "");
 }
 
 /* --- the filter ------------------------------------------------------------- */
@@ -742,18 +782,16 @@ static int ask(const char *body, const char *buttons)
   return EasyRequest(win, &es, NULL, (ULONG)body);
 }
 
-static int choose_dir(HubGame *g, char *out, int outlen)
+static int ask_drawer(const char *title, char *out, int outlen)
 {
   struct FileRequester *fr;
-  char title[160], name[96];
   int ok = 0;
-  latin(hub_text(g->name, lang), name, sizeof(name));
-  snprintf(title, sizeof(title), TX(T_CHOOSE_DIR), name);
   fr = (struct FileRequester *)AllocAslRequestTags(ASL_FileRequest,
                                                    ASLFR_Window, (ULONG)win,
                                                    ASLFR_TitleText, (ULONG)title,
                                                    ASLFR_DrawersOnly, TRUE,
-                                                   ASLFR_InitialDrawer, (ULONG)"Work:",
+                                                   ASLFR_InitialDrawer,
+                                                   (ULONG)(prefs.gamesdir[0] ? prefs.gamesdir : "Work:"),
                                                    ASLFR_SleepWindow, TRUE,
                                                    TAG_DONE);
   if (fr == NULL) return 0;
@@ -764,6 +802,105 @@ static int choose_dir(HubGame *g, char *out, int outlen)
   }
   FreeAslRequest(fr);
   return ok;
+}
+
+static int choose_dir(HubGame *g, char *out, int outlen)
+{
+  char title[160], name[96];
+  latin(hub_text(g->name, lang), name, sizeof(name));
+  snprintf(title, sizeof(title), TX(T_CHOOSE_DIR), name);
+  return ask_drawer(title, out, outlen);
+}
+
+/* the version in "$VER: <name> <version>" of a program, "" when none */
+static void program_version(const char *file, char *out, int outlen)
+{
+  ULONG len = 0, i;
+  char *data = hub_read_file(file, 32UL << 20, &len);
+  out[0] = 0;
+  if (data == NULL) return;
+  for (i = 0; i + 6 < len; i++) {
+    if (data[i] == '$' && strncmp(data + i, "$VER: ", 6) == 0) {
+      const char *p = data + i + 6;
+      const char *end = data + len;
+      /* the first word that starts with a digit */
+      while (p < end && *p && *p != '\n') {
+        while (p < end && *p == ' ') p++;
+        if (p < end && *p >= '0' && *p <= '9') {
+          int n = 0;
+          while (p < end && n < outlen - 1 && ((*p >= '0' && *p <= '9') || *p == '.')) out[n++] = *p++;
+          out[n] = 0;
+          break;
+        }
+        while (p < end && *p && *p != ' ' && *p != '\n') p++;
+      }
+      break;
+    }
+  }
+  hub_free(data);
+}
+
+/* the games of the catalog found in the games drawer: <dir>/<Game>/<program>.
+ * A game has one or more programs (a file of the drawer whose icon is a
+ * player's file); the version is the $VER of the largest program that has
+ * one (OpenDUNE, not its MakeMusic; devilutionx, not the Hellfire starter).
+ * Remembered in WarpHub.prefs. */
+static int scan_games_dir(const char *dir)
+{
+  int i, j, found = 0;
+  for (i = 0; cat != NULL && i < cat->ngames; i++) {
+    HubGame *g = &cat->games[i];
+    char best[24] = "";
+    ULONG best_size = 0;
+    int here = 0;
+    for (j = 0; j < g->nfiles; j++) {
+      const char *path = g->files[j].path;
+      char name[300], ver[24];
+      const char *slash = strchr(path, '/');
+      int n = (int)strlen(path);
+      BPTR lock;
+      if (slash == NULL || strchr(slash + 1, '/') != NULL ||
+          (n > 5 && strcmp(path + n - 5, ".info") == 0)) {
+        continue;
+      }
+      snprintf(name, sizeof(name), "%s.info", path);
+      {
+        HubFile *icon = hub_game_file(g, name);
+        if (icon == NULL || icon->flag != 'K') continue;
+      }
+      strncpy(name, dir, sizeof(name) - 1);
+      name[sizeof(name) - 1] = 0;
+      if (!AddPart((STRPTR)name, (CONST_STRPTR)path, sizeof(name))) continue;
+      lock = Lock((CONST_STRPTR)name, ACCESS_READ);
+      if (lock == 0) continue;
+      UnLock(lock);
+      here = 1;
+      program_version(name, ver, sizeof(ver));
+      if (ver[0] && g->files[j].size >= best_size) {
+        strcpy(best, ver);
+        best_size = g->files[j].size;
+      }
+    }
+    if (here) {
+      hub_prefs_set_installed(&prefs, g->key, best[0] ? best : "0", dir);
+      found++;
+    }
+  }
+  hub_prefs_save(&prefs, PREFS_FILE);
+  return found;
+}
+
+static void choose_games_dir(void)
+{
+  char dir[256], a[400];
+  int n;
+  if (work.busy) return;
+  if (!ask_drawer(TX(T_CHOOSE_GAMESDIR), dir, sizeof(dir))) return;
+  strncpy(prefs.gamesdir, dir, sizeof(prefs.gamesdir) - 1);
+  n = scan_games_dir(dir);
+  snprintf(a, sizeof(a), TX(T_FOUND), n, dir);
+  set_status(a);
+  refresh_all();
 }
 
 static void start_install(void)
@@ -894,11 +1031,11 @@ static void free_pens(void)
 /* width of the widest label of the buttons in all languages */
 static int button_width(void)
 {
-  static const int ids[] = {T_INSTALL, T_UPDATE, T_REPAIR, T_STOP};
+  static const int ids[] = {T_INSTALL, T_UPDATE, T_REPAIR, T_STOP, T_GAMESDIR};
   struct RastPort *rp = &scr->RastPort;
   int w = 0, l, i;
   for (l = 0; l < 3; l++) {
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 5; i++) {
       const char *t = texts[l][ids[i]];
       int n = TextLength(rp, (STRPTR)t, (int)strlen(t));
       if (n > w) w = n;
@@ -950,6 +1087,7 @@ static Object *make_window(void)
   gallery_hook.h_Entry = (HOOKFUNC)HookEntry;
   gallery_hook.h_SubEntry = (HOOKFUNC)render_hook;
   page_hook = gallery_hook;
+  req_hook = gallery_hook;
 
   return NewObject(WINDOW_GetClass(), NULL,
       WA_Title, (ULONG)"WARP HUB",
@@ -966,7 +1104,6 @@ static Object *make_window(void)
       WINDOW_AppPort, (ULONG)app_port,
       WINDOW_Layout, (ULONG)(NewObject(LAYOUT_GetClass(), NULL, LAYOUT_Orientation, LAYOUT_ORIENT_VERT,
         LAYOUT_SpaceOuter, TRUE,
-        LAYOUT_DeferLayout, TRUE,
         LAYOUT_AddChild, (ULONG)(filter_row()),
         CHILD_WeightedHeight, 0,
         LAYOUT_AddChild, (ULONG)(NewObject(LAYOUT_GetClass(), NULL, LAYOUT_Orientation, LAYOUT_ORIENT_HORIZ,
@@ -1005,6 +1142,14 @@ static Object *make_window(void)
             CHILD_WeightedHeight, 100,
           TAG_END)),
           LAYOUT_AddChild, (ULONG)(NewObject(LAYOUT_GetClass(), NULL, LAYOUT_Orientation, LAYOUT_ORIENT_VERT,
+            LAYOUT_AddChild, (ULONG)(g_req = NewObject(SPACE_GetClass(), NULL,
+              GA_ID, GID_REQ, GA_ReadOnly, TRUE,
+              SPACE_MinWidth, small ? 150 : 190,
+              SPACE_MinHeight, (scr->Font->ta_YSize + 1) * (small ? 7 : 8) + 12,
+              SPACE_RenderHook, (ULONG)&req_hook,
+              SPACE_BevelStyle, BVS_FIELD,
+            TAG_END)),
+            CHILD_WeightedHeight, 0,
             LAYOUT_AddChild, (ULONG)(g_install = NewObject(BUTTON_GetClass(), NULL,
               GA_ID, GID_INSTALL, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_INSTALL),
             TAG_END)),
@@ -1013,6 +1158,10 @@ static Object *make_window(void)
             LAYOUT_AddChild, (ULONG)(g_stop = NewObject(BUTTON_GetClass(), NULL,
               GA_ID, GID_STOP, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_STOP),
               GA_Disabled, TRUE,
+            TAG_END)),
+            CHILD_WeightedHeight, 0,
+            LAYOUT_AddChild, (ULONG)(g_gamesdir = NewObject(BUTTON_GetClass(), NULL,
+              GA_ID, GID_GAMESDIR, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_GAMESDIR),
             TAG_END)),
             CHILD_WeightedHeight, 0,
             LAYOUT_AddChild, (ULONG)(g_refresh = NewObject(BUTTON_GetClass(), NULL,
@@ -1031,13 +1180,6 @@ static Object *make_window(void)
           CHILD_WeightedWidth, 0,
         TAG_END)),
         CHILD_WeightedHeight, 100,
-        LAYOUT_AddChild, (ULONG)(g_progress = NewObject(FUELGAUGE_GetClass(), NULL,
-          GA_ID, GID_PROGRESS,
-          FUELGAUGE_Min, 0, FUELGAUGE_Max, 100, FUELGAUGE_Level, 0,
-          FUELGAUGE_Percent, FALSE, FUELGAUGE_Ticks, 0,
-          GA_Text, (ULONG)status_text,
-        TAG_END)),
-        CHILD_WeightedHeight, 0,
       TAG_END)),
     TAG_END);
 }
@@ -1129,14 +1271,15 @@ static void read_options(void)
     }
     CurrentDir(old);
   } else {
-    LONG args[4] = {0, 0, 0, 0};
-    struct RDArgs *rd = ReadArgs((CONST_STRPTR)"CATALOG/K,LANG/K,TESTINSTALL/K,TESTTO/K",
-                                 args, NULL);
+    LONG args[5] = {0, 0, 0, 0, 0};
+    struct RDArgs *rd = ReadArgs((CONST_STRPTR)"CATALOG/K,LANG/K,TESTINSTALL/K,TESTTO/K,"
+                                 "TESTGAMESDIR/K", args, NULL);
     if (rd != NULL) {
       if (args[0]) strncpy(prefs.catalog, (char *)args[0], sizeof(prefs.catalog) - 1);
       if (args[1]) strncpy(prefs.language, (char *)args[1], sizeof(prefs.language) - 1);
       if (args[2]) strncpy(test_key, (char *)args[2], sizeof(test_key) - 1);
       if (args[3]) strncpy(test_dir, (char *)args[3], sizeof(test_dir) - 1);
+      if (args[4]) strncpy(test_gamesdir, (char *)args[4], sizeof(test_gamesdir) - 1);
       FreeArgs(rd);
     }
   }
@@ -1199,6 +1342,14 @@ int main(void)
   }
   SetGadgetAttrs((struct Gadget *)g_lang, win, NULL, CHOOSER_Selected, lang, TAG_DONE);
   ready_status(NULL);
+  if (test_gamesdir[0]) {
+    char a[400];
+    int n;
+    strncpy(prefs.gamesdir, test_gamesdir, sizeof(prefs.gamesdir) - 1);
+    n = scan_games_dir(test_gamesdir);
+    snprintf(a, sizeof(a), TX(T_FOUND), n, test_gamesdir);
+    set_status(a);
+  }
   refresh_all();
 
   work_mask = 1UL << work_signal;
@@ -1256,6 +1407,7 @@ int main(void)
           case WMHI_GADGETUP:
             switch (result & WMHI_GADGETMASK) {
               case GID_REFRESH: start_refresh(); break;
+              case GID_GAMESDIR: choose_games_dir(); break;
               case GID_FILTER: case GID_FILTER + 1: case GID_FILTER + 2: case GID_FILTER + 3:
               case GID_FILTER + 4: case GID_FILTER + 5: case GID_FILTER + 6: case GID_FILTER + 7:
                 filter = (int)(result & WMHI_GADGETMASK) - GID_FILTER;

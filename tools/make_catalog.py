@@ -29,6 +29,7 @@ space, the last field of a line may contain spaces):
     BRANCH <branch>
     VERSION <version>
     ZIP <name> <size>
+    REQ <lang> <text>             one line of the requirements (several lines)
     TAGS <tag>,<tag>...           the groups of the filter buttons: new, apps,
                                   warpextreme, arcade, pc, mac, other
     SOURCE local                  only in catalog-test.txt (--simulate): the repo
@@ -316,6 +317,14 @@ def image_of(catalog_dir, key):
     return (len(data), hashlib.sha256(data).hexdigest(), rel)
 
 
+def req_lines(req):
+    out = []
+    for lang in LANGS:
+        for line in req.get(lang, []):
+            out.append('REQ %s %s' % (lang, one_line(line)))
+    return out
+
+
 def one_line(text):
     return ' '.join(str(text).split())
 
@@ -325,11 +334,13 @@ def write_catalog(games):
            '# made %s by tools/make_catalog.py' % time.strftime('%Y-%m-%d %H:%M', time.gmtime())]
     for g in games:
         if 'block' in g:                      # copied from catalog.txt
-            lines = [l for l in g['block'] if not l.startswith(('IMAGE ', 'TAGS '))]
+            lines = [l for l in g['block'] if not l.startswith(('IMAGE ', 'TAGS ', 'REQ '))]
             if g.get('image'):
                 lines.insert(-1, 'IMAGE %d %s %s' % g['image'])
             if g.get('tags'):
                 lines.insert(1, 'TAGS ' + ','.join(g['tags']))
+            for k, line in enumerate(req_lines(g.get('req', {}))):
+                lines.insert(2 + k, line)
             out.extend(lines)
             continue
         out.append('GAME ' + g['key'])
@@ -342,6 +353,7 @@ def write_catalog(games):
                     out.append('%s %s %s' % (field, lang, one_line(values.get(lang, en))))
         if g.get('tags'):
             out.append('TAGS ' + ','.join(g['tags']))
+        out.extend(req_lines(g.get('req', {})))
         out.append('REPO ' + g['repo'])
         out.append('BRANCH ' + g['branch'])
         out.append('VERSION ' + g['version'])
@@ -396,6 +408,7 @@ def main(argv=None):
         if g:
             g['image'] = image_of(os.path.dirname(args.out), game['key'])
             g['tags'] = game.get('tags', [])
+            g['req'] = game.get('req', {})
             for lang, data in g.get('local_notes', {}).items():
                 # the Amiga cannot get them from GitHub: notes/<key>_<lang>.txt
                 d = os.path.join(os.path.dirname(args.out), 'notes')

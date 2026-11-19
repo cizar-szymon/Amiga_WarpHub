@@ -182,6 +182,11 @@ HubCatalog *hub_catalog_parse(char *text, char *err, int errlen)
       g->repo = rest;
     } else if (strcmp(cmd, "BRANCH") == 0 && rest != NULL) {
       g->branch = rest;
+    } else if (strcmp(cmd, "REQ") == 0 && rest != NULL) {
+      char *lang = word(&rest);
+      int l = hub_lang(lang);
+      if (rest == NULL) goto bad;
+      if (g->nreq[l] < HUB_MAX_REQ) g->req[l][g->nreq[l]++] = rest;
     } else if (strcmp(cmd, "TAGS") == 0 && rest != NULL) {
       g->tags = rest;
     } else if (strcmp(cmd, "SOURCE") == 0 && rest != NULL) {

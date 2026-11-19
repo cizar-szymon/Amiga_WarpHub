@@ -1,11 +1,24 @@
 WARPHUB-CATALOG 1
-# made 2026-11-19 11:54 by tools/make_catalog.py
+# made 2026-11-19 13:43 by tools/make_catalog.py
 GAME settlers
 NAME en The Settlers
 NAME de Die Siedler
 DESC en Freeserf port of The Settlers: build an economy, roads and an army. Game against the computer and over the LAN.
 DESC pl Port Freeserf gry The Settlers: budowa gospodarki, dróg i armii. Gra z komputerem i przez sieć lokalną.
 DESC de Freeserf-Portierung von Die Siedler: Wirtschaft, Straßen und Armee aufbauen. Spiel gegen den Computer und im Netzwerk.
+TAGS pc
+REQ en 68040 / 68060
+REQ en 32 MB Fast RAM
+REQ en AmigaOS 3.x, RTG 8-bit
+REQ en Data: Amiga Settlers
+REQ pl 68040 / 68060
+REQ pl 32 MB Fast RAM
+REQ pl AmigaOS 3.x, RTG 8-bit
+REQ pl Dane: Settlers z Amigi
+REQ de 68040 / 68060
+REQ de 32 MB Fast RAM
+REQ de AmigaOS 3.x, RTG 8-Bit
+REQ de Daten: Amiga-Siedler
 REPO cizar-szymon/Amiga_game_Settlers
 BRANCH amiga-port
 VERSION 0.139
@@ -50,6 +63,19 @@ NAME en OpenDUNE
 DESC en Dune II, the strategy classic, on the OpenDUNE engine. 800x600 on RTG, LAN game for three players.
 DESC pl Dune II, klasyka strategii, na silniku OpenDUNE. 800x600 na RTG, gra w sieci lokalnej dla trzech graczy.
 DESC de Dune II, der Strategieklassiker, mit der OpenDUNE-Engine. 800x600 auf RTG, Netzwerkspiel für drei Spieler.
+TAGS pc
+REQ en 68040 / 68060
+REQ en 32 MB Fast RAM
+REQ en AmigaOS 3.1+, RTG 8-bit
+REQ en Data: Dune II (PC)
+REQ pl 68040 / 68060
+REQ pl 32 MB Fast RAM
+REQ pl AmigaOS 3.1+, RTG 8-bit
+REQ pl Dane: Dune II (PC)
+REQ de 68040 / 68060
+REQ de 32 MB Fast RAM
+REQ de AmigaOS 3.1+, RTG 8-Bit
+REQ de Daten: Dune II (PC)
 REPO cizar-szymon/Amiga_game_OpenDUNE
 BRANCH main
 VERSION 0.54
@@ -86,6 +112,19 @@ NAME en Diablo (DevilutionX)
 DESC en Diablo and Hellfire on the DevilutionX engine, made for Warp cards.
 DESC pl Diablo i Hellfire na silniku DevilutionX, przygotowane dla kart Warp.
 DESC de Diablo und Hellfire mit der DevilutionX-Engine, für Warp-Karten gemacht.
+TAGS pc,new
+REQ en 68060 / 68040
+REQ en 64 MB Fast RAM
+REQ en AmigaOS 3.2, RTG 8-bit
+REQ en Data: diabdat.mpq
+REQ pl 68060 / 68040
+REQ pl 64 MB Fast RAM
+REQ pl AmigaOS 3.2, RTG 8-bit
+REQ pl Dane: diabdat.mpq
+REQ de 68060 / 68040
+REQ de 64 MB Fast RAM
+REQ de AmigaOS 3.2, RTG 8-Bit
+REQ de Daten: diabdat.mpq
 REPO cizar-szymon/Amiga_Game_Diablo
 BRANCH main
 VERSION 0.48

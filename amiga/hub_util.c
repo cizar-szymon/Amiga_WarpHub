@@ -144,6 +144,8 @@ void hub_prefs_load(HubPrefs *p, const char *file)
     if (next) *next++ = 0;
     if (sscanf(line, "LANGUAGE %3s", a) == 1) {
       strcpy(p->language, a);
+    } else if (strncmp(line, "GAMESDIR ", 9) == 0) {
+      strncpy(p->gamesdir, line + 9, sizeof(p->gamesdir) - 1);
     } else if (strncmp(line, "CATALOG ", 8) == 0) {
       strncpy(p->catalog, line + 8, sizeof(p->catalog) - 1);
     } else if (sscanf(line, "INSTALLED %31s %23s %255[^\n]", a, b, c) == 3) {
@@ -159,6 +161,7 @@ int hub_prefs_save(const HubPrefs *p, const char *file)
   int n = 0, i;
   if (p->language[0]) n += snprintf(buf + n, sizeof(buf) - n, "LANGUAGE %s\n", p->language);
   if (p->catalog[0]) n += snprintf(buf + n, sizeof(buf) - n, "CATALOG %s\n", p->catalog);
+  if (p->gamesdir[0]) n += snprintf(buf + n, sizeof(buf) - n, "GAMESDIR %s\n", p->gamesdir);
   for (i = 0; i < p->ninst && n < (int)sizeof(buf); i++) {
     n += snprintf(buf + n, sizeof(buf) - n, "INSTALLED %s %s %s\n", p->inst[i].key,
                   p->inst[i].version, p->inst[i].dir);

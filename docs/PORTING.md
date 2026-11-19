@@ -340,3 +340,51 @@ podkreślenia `===` / `---` i puste linie. Wcześniej zostawały pojedyncze sło
 liniach.
 
 Sprawdzone na Amidze 2 (640×480).
+
+## Wymagania i „Katalog gier” (19.11.2026)
+
+Uwaga użytkownika: obok opisu gry ma być ramka z wymaganiami, przyciski pod nią, oraz
+przycisk „Katalog gier” do wybrania szuflady zainstalowanych gier.
+
+### Ramka „Wymagania”
+- `games.json`, pole `req`: krótkie linie PL/EN/DE, przepisane z rozdziałów
+  REQUIREMENTS / WHAT YOU NEED opisów gier. W katalogu linie `REQ <język> <tekst>`;
+- linia z dwukropkiem (Dane:, ROM-y:) jest pomarańczowa;
+- gra bez `req`, ale z pustymi szufladami na dane, pokazuje ogólne „Potrzebne pliki
+  oryginalnej gry”;
+- uwaga o danych zniknęła ze strony gry.
+
+### Przycisk „Katalog gier”
+- requester ASL wybiera szufladę, która trafia do `WarpHub.prefs` jako `GAMESDIR`;
+- WARP HUB szuka w niej `<szuflada>/<Gra>/<program>` każdej gry z katalogu (program to plik
+  szuflady gry, którego ikona ma flagę K);
+- wersję bierze z `$VER` największego programu gry, który ma `$VER`: OpenDUNE, a nie
+  MakeMusic (1.2); devilutionx, a nie Hellfire (bez `$VER`);
+- znalezione gry zapisuje jako `INSTALLED`;
+- requester instalacji zaczyna w tej szufladzie (nadal pyta zawsze).
+
+### Prawa kolumna, od góry
+Wymagania, Zainstaluj / Aktualizuj / Sprawdź pliki, Przerwij, Katalog gier, Odśwież, język.
+
+### Testy na Amidze 2
+- Opcja testowa z Shella `TESTGAMESDIR=<szuflada>` przeszukuje szufladę bez requestera.
+- `RAM:WarpHub-test`: OpenDUNE 0.54 i Diablo 0.48 rozpoznane z `$VER`.
+- Program OpenDUNE w tej szufladzie był uszkodzony po teście błędnej sumy. Naprawił go
+  `WarpHubCLI INSTALL` z GitHuba: 1 plik, 472 KB, 1,6 s.
+- `catalog.txt` (3 publiczne gry) i `catalog-test.txt` (10 gier) mają linie `REQ`.
+
+## Bez paska stanu (19.11.2026)
+
+Uwaga użytkownika: ramka z liczbą gier jest niepotrzebna, więc ją usunąłem. Stan pokazuje
+tytuł okna:
+- w czasie pracy postęp, np. „WARP HUB - Pobieranie Settlers/Settlers (47%)”;
+- po zakończeniu wynik, np. „WARP HUB - The Settlers 0.139 zainstalowana w ...”;
+- brak połączenia: komunikat o błędzie;
+- w spoczynku samo „WARP HUB”.
+
+Pułapka: po usunięciu paska zostało jego `CHILD_WeightedHeight, 0` i trafiło do dolnej części
+okna. Wszystkie wiersze miały wtedy wagę 0, ReAction rozkładał wolne miejsce na przerwy nad
+i pod galerią. `LAYOUT_DeferLayout` też usunięty, więc okno układa się od razu.
+
+Sprawdzone na Amidze 2 (640×480): układ bez przerw, postęp w tytule przy instalacji
+Settlers z okna.

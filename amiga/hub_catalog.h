@@ -31,6 +31,9 @@ typedef struct HubGame {
   ULONG image_size;
   const char *image_sha;
   const char *notes[HUB_LANGS];
+#define HUB_MAX_REQ 8
+  const char *req[HUB_LANGS][HUB_MAX_REQ];   /* lines of the requirements */
+  int nreq[HUB_LANGS];
   const char *readme[HUB_MAX_README];
   int readmes;
   HubFile *files;
