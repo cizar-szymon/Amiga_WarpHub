@@ -383,6 +383,141 @@ FILE 26082 bbbc8b4dd2ac7f2a76855e087c70639b17aea1282efc7f7a410d8dcbae4f98c9 N Di
 FILE 237573 f12980a91c94931342bd111da00b4adabe8061264cb8ecbdb7fb3a82895c1514 N DiabloWarp/mods/hf/ui_art/supportw.clx
 FILE 84 3e58d8ec63d245ace37079c6800169b992cf1965217e9cf369ca307f477157e0 N DiabloWarp/save/ReadMe.txt
 END
+GAME syndwars
+NAME en Syndicate Wars
+DESC en Syndicate Wars on the SyndWarsFX engine: cyborg agents in a 3D city.
+DESC pl Syndicate Wars na silniku SyndWarsFX: cyborgi-agenci w trójwymiarowym mieście.
+DESC de Syndicate Wars mit der SyndWarsFX-Engine: Cyborg-Agenten in einer 3D-Stadt.
+TAGS warp1260,warp1260x,warp7060
+REQ en 68060
+REQ en 100 MHz recommended
+REQ en 64 MB Fast RAM
+REQ en AmigaOS 3.2, RTG 8-bit
+REQ pl 68060
+REQ pl 100 MHz (zalecane)
+REQ pl 64 MB Fast RAM
+REQ pl AmigaOS 3.2, RTG 8-bit
+REQ de 68060
+REQ de 100 MHz empfohlen
+REQ de 64 MB Fast RAM
+REQ de AmigaOS 3.2, RTG 8-Bit
+REPO cizar-szymon/Amiga_game_SyndicateWars
+BRANCH amiga
+VERSION 0.220
+ZIP SyndWars-0.220.zip 3702901
+SIZE 5757188
+IMAGE 20439 9ebe42a698a4ed609f4344192b9f767829e6fe612b6c64427c8d289d4a452af7 images/syndwars.png
+NOTES en SyndWars/doc/SyndWars_release_en.txt
+NOTES pl SyndWars/doc/SyndWars_release.txt
+FILE 2444 cf0bdbb9e6eed68de2a893bb1d8106e3a85847b40ca12c78af2d0f4e7d326d15 K SyndWars.info
+FILE 1540216 07d53c80b552e9dd4ce7b3095361f21453d6f33dc5fc9ba57adc961d36cca88f N SyndWars/SyndWars
+FILE 8722 75db79b76df2db556bd46c84ada597ce5fffe778f880ac285e12b95255662596 K SyndWars/SyndWars.info
+FILE 1336363 d2769247e01837946f9c7540d22e7e3e99cf49cf660f5efeaff58f0dbe73ea68 N SyndWars/conf/Tone_000/000_Acoustic_Grand_Piano.pat
+FILE 308691 6cc159965b284f9588578e91ab7d2c6b24a62ffa4e957fdadbb016d3c376856d N SyndWars/conf/Tone_000/004_Electric_Piano_1_Rhodes.pat
+FILE 3280 c78c6a76005745f68b74a5d0bd58eb83a85dd4029a4515157ad2a840bd9ce13f K SyndWars/conf/cities.ini
+FILE 2309 12aedb9b9ceb0356390b09698ba0f89f19d0ae656fbc486ab5b1122eabd33a0f K SyndWars/conf/cybmods.ini
+FILE 246 b668eed5f4c14d2592a6fd3d66e1ed07fc0aebab16e8a9c50c99e589e63cf209 K SyndWars/conf/midipats.cfg
+FILE 45474 3809c7a5dbcd0bbf5e163a2ce781cea2c173fb2281a7ddb7b2f30cc26303c098 K SyndWars/conf/miss000.ini
+FILE 39157 536d015a9cf316b7a600ec1d8c3754d1065a4bade01d4ed9939cdab6ad470431 K SyndWars/conf/miss001.ini
+FILE 24536 1345c7c64fdaeb86908e93f88693f6b2a73dd66a138a552c3a61cb18d7cce38a K SyndWars/conf/miss002.ini
+FILE 46318 512e61a0f04f611af66c75cdc8480c15bcf48984023a43acbe8a516151a7f4ab K SyndWars/conf/miss003.ini
+FILE 4594 847d8fff621b75903c005109205d9170e8bddeb922325b3c82a8d8f0ab4f7f9f K SyndWars/conf/miss099.ini
+FILE 6113 e51cd8821f518fd0e8dbec5510585d6d6251d60dcfe6c05bb62fca37ca78f18f K SyndWars/conf/panel0-0.ini
+FILE 6156 92449e0ec0184d252dffaa52cc9bf0e6c9881bcc644b01addeb3514e50cbf526 K SyndWars/conf/panel0-1.ini
+FILE 6215 116d18cb5d7dad89b4a9f80ced7c82db70faba14068bd902c64b998ecffb90a5 K SyndWars/conf/panel0-3.ini
+FILE 6113 e51cd8821f518fd0e8dbec5510585d6d6251d60dcfe6c05bb62fca37ca78f18f K SyndWars/conf/panel1-0.ini
+FILE 6156 92449e0ec0184d252dffaa52cc9bf0e6c9881bcc644b01addeb3514e50cbf526 K SyndWars/conf/panel1-1.ini
+FILE 6215 116d18cb5d7dad89b4a9f80ced7c82db70faba14068bd902c64b998ecffb90a5 K SyndWars/conf/panel1-3.ini
+FILE 6113 6a5fe46afb4fe87b9d57d8e96f232556829750a40da3c395adc83697ed5aa5b8 K SyndWars/conf/panel2-0.ini
+FILE 6156 798da49c4d0c2fc525196734ec093e1878476ca55a5e45c55721a7919609c236 K SyndWars/conf/panel2-1.ini
+FILE 6215 8248f3ef06de4eedf5bdd970f1cdd5184b225ffb2fca3adf51dff4044cf24d33 K SyndWars/conf/panel2-3.ini
+FILE 2459 ce5051e95c724551fc56248232a641e888ee2349203dd8848d529823c853d266 K SyndWars/conf/people.ini
+FILE 6970 c76ab08ef5d15682ed913c287253eedf42808d2a58103a67a129257bbbb0208b K SyndWars/conf/pop0-0.ini
+FILE 6251 bbd9b7c11a2e5f100c9d773dc2fc49a2393b60913f934acbe07066b9c986cbc9 K SyndWars/conf/pop0-1.ini
+FILE 6303 ba9b48e5f8c8f2378a3e7dc4feb78358620ddf0a9a780233bba540bca651999d K SyndWars/conf/pop0-3.ini
+FILE 6202 4d194b0f237afdc7e83b055339daedf9603eea727da62165188baeee22260d52 K SyndWars/conf/pop1-0.ini
+FILE 6251 1e1bf417b2cdcc2e26eb3f5ae79105fa67657980f1a39e8e493f7a117e6b2722 K SyndWars/conf/pop1-1.ini
+FILE 6303 f846fd35a1789615a39a1ea9c459618fc80c17cb1569d8be5cf23bda49d62f2b K SyndWars/conf/pop1-3.ini
+FILE 6202 6473869f0e190fa34cf7040e2605de75d9679f0069799eba3e2c28eb84298877 K SyndWars/conf/pop2-0.ini
+FILE 6251 ac9f66c7d915eae0ddadd5a3c35ddd587182de8fae68592d4960f888f84606c3 K SyndWars/conf/pop2-1.ini
+FILE 6303 2987755780a6b480915050f20f77d781aa3963a76168845b611988cb9b0c181d K SyndWars/conf/pop2-3.ini
+FILE 1729 9f515d835e3ee79f31dc1e296d6a515ecfc90e97aed1ffb35806943f32d4b8bf K SyndWars/conf/rules.ini
+FILE 7827 4751e68f50d79d14c4ed9a5a76fc679091cae8e005bc9b73aeb1c68d878fc5e5 K SyndWars/conf/weapons.ini
+FILE 138 6504df64eabbf85dc9d13c07b34746d204632b29216c8c5468971b96ba5bd93e K SyndWars/config.ini
+FILE 2514 6c1791cc035d29be579dca62433263d1069ed7e53fdf606a45f812d6deddafed N SyndWars/doc.info
+FILE 537 09947d632421e92ec20343d9e6e95d761ea95878addcf282bc81165b33fbf3d6 N SyndWars/doc/COPYING
+FILE 5021 a758f7db64e7e958cdb626ae72e1946425bbbfea21f4252a0f8d60cdd70db4cd N SyndWars/doc/Install.txt
+FILE 3218 659bf5badbbfbd9f045a97fdeaddc68fa6d6e4b39c935d70b9f69388e1f6dcdb N SyndWars/doc/Install.txt.info
+FILE 4431 9632b6fd5cde5c63fe604f483e9a4149665daf6960664773af644dfa8a01e716 N SyndWars/doc/SyndWars.txt
+FILE 3308 f6ca3a09267f0c9baa2abf16f3de2d17a5f179720c777543c34a3558b69f26eb N SyndWars/doc/SyndWars.txt.info
+FILE 2849 0d02cb22aa2b66f55fa48094642ca425119b529c4e45bad588933e992d1a5acc N SyndWars/doc/SyndWars_dev.txt
+FILE 3308 6596e79960c09303d6b26ed8f54cf35fad8324d71897060bc8b93d7f2ab7621d N SyndWars/doc/SyndWars_dev.txt.info
+FILE 3097 1c49776ba4fe717d066369d1bc08a530ca60772e9ee79d1b881536e35c7fbac5 N SyndWars/doc/SyndWars_dev_en.txt
+FILE 3354 0c36a8c180591227a22f688265dbeb1fbb2be9bd3cb0c64a4a1e3906c108054a N SyndWars/doc/SyndWars_dev_en.txt.info
+FILE 4609 087a2890b8e937b35e4f910ee2f587290fcd9074b20e1c1ae1aa9b8df178533f N SyndWars/doc/SyndWars_en.txt
+FILE 3354 f5d26b5dd3e1a7f7ac3872afe846b7298ed9203498da702caec9468fa7bb3832 N SyndWars/doc/SyndWars_en.txt.info
+FILE 1277 86e28283b377d1bd66b55f81abd66d0ac56b6fa64155f3bd1dc4d96b5c36a08c N SyndWars/doc/SyndWars_release.txt
+FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e N SyndWars/doc/SyndWars_release.txt.info
+FILE 1475 fe69ca3671494c3a52da3a520580f9ee03a58b8e3da069b36f4b1cf8db7dde38 N SyndWars/doc/SyndWars_release_en.txt
+FILE 3354 b476e8587b9ec2cb2764412450168cc1473eb08f4c3bc1dffd7001589c51deb7 N SyndWars/doc/SyndWars_release_en.txt.info
+FILE 26530 dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551 N SyndWars/doc/libsmacker-COPYING
+FILE 580 8b4693ca0a0d27a8b04e5989e9330a589160a67728cfee9d455eac05f57d2237 N SyndWars/language/eng/alltext-p.idx
+FILE 28878 35bc7f716ef917c9ae36dcd886b4a3f66bd3a3fc92f0bc121518c6896a63ed8e N SyndWars/language/eng/alltext-p.wad
+FILE 600 e8915eaf3e0b5ed1afd7ae0018f523cd853ebaf34772a8c6ff8a97c3b3371125 N SyndWars/language/eng/alltext-s.idx
+FILE 61844 b3d9a8d6e6459563d5823b84931842bc8629b49907ffc0add7b6a588703e449f N SyndWars/language/eng/alltext-s.wad
+FILE 680 290796ff08f4ef7de7418b5bf41cb2c49f74397face69ac4443d96dbdd85e3dc N SyndWars/language/eng/alltext-z.idx
+FILE 55984 81c34e8e2f53015e3ba516ff00dbf94093c16cecd21dc5ae3d9c04324bd90b6b N SyndWars/language/eng/alltext-z.wad
+FILE 9921 3dc15fbe65b560885d08c5a81e510d70cd38829e66e609d5e5c3a0b40162d73e N SyndWars/language/eng/guitext.dat
+FILE 580 c50c62c03898a017eb5f997b425c56061f877951ba40ec142c0c7d4fb11b17f5 N SyndWars/language/fre/alltext-p.idx
+FILE 30170 2f4ed2a422d04bc7779ff87258adedab6be5e366c5367b14ebd7816f4d27ce6e N SyndWars/language/fre/alltext-p.wad
+FILE 600 75f7dcfed967a13af8b34f2ad90ce1912149ca5191b2beb91ba0306d0deb7d8d N SyndWars/language/fre/alltext-s.idx
+FILE 67220 5c5bd73756cc069aaee707575fdb8cd46b6727fd948e31eb0b3763a8fb7bfc78 N SyndWars/language/fre/alltext-s.wad
+FILE 680 ba4677f2712e8b929a016f165b4975c0e2d8f6ddfdd8bef1b57152e8b9f48b7f N SyndWars/language/fre/alltext-z.idx
+FILE 57929 6e6f96e7bb22cb20fb6ea26af0454ffd3ec1fbd9016a696c20342a39512d5c82 N SyndWars/language/fre/alltext-z.wad
+FILE 10415 37c8af6c248ead8a01fd4bbdfe3af67a0ed3f6722936f5af11717ca6a7d3ff25 N SyndWars/language/fre/guitext.dat
+FILE 580 9a28e2531d2cb8a1d7fb41dd99a0f0e3413033618f34addd01a6f5cc6c1adafa N SyndWars/language/ger/alltext-p.idx
+FILE 29961 50a0be9943bf3d62e18c2ca76b488f38082bc602cafc7086b973adb55b53ce72 N SyndWars/language/ger/alltext-p.wad
+FILE 600 9a315bc6e4bcfc3d0b7e8bed6de18346635fc65cd26c88d45b01054010b4ec79 N SyndWars/language/ger/alltext-s.idx
+FILE 73153 698b31bcb8eda6c32b549a3243c76d1445a8417b0e8e59f2492c1f0148adc829 N SyndWars/language/ger/alltext-s.wad
+FILE 680 0930fe602ece914ee78ea396f953e5cc35a3625d9cab16e7b197c6a74ea64c8e N SyndWars/language/ger/alltext-z.idx
+FILE 65679 f1f413e591c3c76cc55bc93159bfd6f44086ef9d81920397ee63ebee1735cb1f N SyndWars/language/ger/alltext-z.wad
+FILE 10446 5c6f88c63e3009768e684245e6b2415a400e90802b8df561b7e543cfdb01d798 N SyndWars/language/ger/guitext.dat
+FILE 580 f3cb81c2161ff898ccc963c0758c2e0c8c7be0de4c1dd414e5172f44f832b585 N SyndWars/language/ita/alltext-p.idx
+FILE 29673 b947777467467c8dc458c17ced1cc27a45f8a80942699d8848c008973a8c72cd N SyndWars/language/ita/alltext-p.wad
+FILE 600 1f75f0478c93a7c2dad00fce36105e3b2f7792eed3ecc6382658ec8a86d437ac N SyndWars/language/ita/alltext-s.idx
+FILE 71099 821c76e2a3a23866f769ac1008807336353de409b6161cb4f61f5ede100e8509 N SyndWars/language/ita/alltext-s.wad
+FILE 680 eb103d5f099115da98f36209c425612b89d173926b7f0a6f9b084afbe33c69f5 N SyndWars/language/ita/alltext-z.idx
+FILE 62127 cebb0306e4546945405637b5f8e1837463e9a8ce9cf2f51e15b1ccea69499361 N SyndWars/language/ita/alltext-z.wad
+FILE 10584 78b9e0f7a83325ab5dd392d6ebb45471d48c3ad98d309205d1e15b523911a056 N SyndWars/language/ita/guitext.dat
+FILE 580 3d5521f2231d4aa2875a8e790367122d8cbaf93d4c22939b9bd150cf4a082967 N SyndWars/language/pol/alltext-p.idx
+FILE 29330 a6995763efefd7744c0c6861ff27326036a78cdaa9b09c154b6fa38653767ebc N SyndWars/language/pol/alltext-p.wad
+FILE 600 891f6ff48d56a4ccea1801af8841f2f8af8a9bf63ebc91d6b4e64496a4cee8e4 N SyndWars/language/pol/alltext-s.idx
+FILE 65605 f2c5ca9e751da1cbfa03478f72185a96b92f68fdf8fbbda955923cf35e7b649f N SyndWars/language/pol/alltext-s.wad
+FILE 680 6d76e253a2ac4903dd1c62d81663ee6ffa31e8c4a9379643851108fd81b901a6 N SyndWars/language/pol/alltext-z.idx
+FILE 55248 874a76f7a4b9a7c3c4e762c52248c2aa2d05800c2c62e10452d1410f2021142c N SyndWars/language/pol/alltext-z.wad
+FILE 10425 b9309cf1494b98d3b754cfcb6b84efa0126c37e0d38f30ac4361e127c712bb21 N SyndWars/language/pol/guitext.dat
+FILE 580 eb2d89b858bb5695326bf9f860aa81fc628530254f42c998c887b70f94efb7f6 N SyndWars/language/spa/alltext-p.idx
+FILE 29460 1324bf4bb76e3d28a9ca297578ffe04a6ee1d2fe40fe9a2d56e91160b62c2e0d N SyndWars/language/spa/alltext-p.wad
+FILE 600 3a6eb12e04b36fd5c153b41c3f26e243c82728a94ce8881c3d06327bd69ea70e N SyndWars/language/spa/alltext-s.idx
+FILE 67951 f871e14ceab4e7c95cd39f343d763e5ac1e550793d096f69ef5cc714f07252d0 N SyndWars/language/spa/alltext-s.wad
+FILE 680 0b9f016ceecbb5e6a6004b3f3c05b44c94ca0c87aabaaf0778de120d8d60fd1b N SyndWars/language/spa/alltext-z.idx
+FILE 59872 28bc4ef75da2679b6663817e635016ed3321b33036386fbd803b67aeba3a0747 N SyndWars/language/spa/alltext-z.wad
+FILE 10493 8b9560f2b11fe0d7915fa7bff0545bf5f7a7769af13826bb1153821c158f0d39 N SyndWars/language/spa/guitext.dat
+FILE 580 02c4c3fe0916a92cc41fc61c901501b452200ee913943f70ed813ea467f8264e N SyndWars/language/swe/alltext-p.idx
+FILE 28941 0477dc693b40e1e4047136df74ace7a479c988aadbffbed662c627b0755e1268 N SyndWars/language/swe/alltext-p.wad
+FILE 600 df163a3c5fa4f5cafb16d524f320049fdf91c3a71ec70d65b6f97c94725d04d1 N SyndWars/language/swe/alltext-s.idx
+FILE 63382 106d64ea315e3fb567518d0f8787e34d085068733ca50b4b1e27669d84e25d37 N SyndWars/language/swe/alltext-s.wad
+FILE 680 41383c17e590ffcd3b967d16cf1fabf97b0c5a34e769e687de2bb52b519f7b33 N SyndWars/language/swe/alltext-z.idx
+FILE 56015 cc30aef21715a0364a2eb3a718e2f4263122a58bb3e742768a136e3a40df9fa1 N SyndWars/language/swe/alltext-z.wad
+FILE 10086 6a39640756f3e37833ed9dc45e4d31b69653abb5eb57d8ec53a81b51a22e3956 N SyndWars/language/swe/guitext.dat
+FILE 2514 8c52987a14444348f49520e206c85aac6f860292c8e97a982cc8496703097056 N SyndWars/pc.info
+FILE 11129 65daa459b1774fb27bc19db6eb76c29f1c2e426e325f5f5e8652ca4c8b977c03 N SyndWars/pc/SyndWarsData.py
+FILE 4606 ca0b4f6f8529b78685b470a703cba97089714310634307486c66d92d896b71c8 N SyndWars/pc/cdimage.py
+FILE 3071 f56253700a702931dc4901522c03032080d26560fa6a8c0fec8e17c66d4f11ff N SyndWars/pc/make_music.py
+FILE 4022 a6fda2146dff5e2342d607a24a3b4fd6f7b7a3e88c9eedd1ff29e1a5de93b5d2 N SyndWars/pc/make_sound_bank.py
+FILE 916416 7da57cd4cd2ea20670c75ffc5bc4b9aeba85ef030d33e5230faaab87ddda39f5 N SyndWars/swcore.wxt
+FILE 77984 8401cc665d3e0b84c0cc7002b61b08fac3a549bc50ce45b3bd85028fa442645a N SyndWars/swhost
+END
 GAME vastar
 NAME en Vastar
 DESC en The 1983 Orca arcade shooter, emulated from the original ROMs.
