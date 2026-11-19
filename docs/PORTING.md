@@ -623,3 +623,6 @@ Settlers z okna.
   (workbench.library 44) – jak dwuklik: Tool Types i stos z ikony. Klawisz Return też.
 - Amiga 1: kopia testowa w `RAM:WarpHub-run`, Vastar wybrany strzałkami, Return →
   okno Vastar z ekranem tytułowym, tytuł WARP HUB „Starting Vastar...”. Esc zamknął grę.
+- **Aktualizacja samego siebie sprawdzona (Amiga 1, użytkownik klikał):** WARP HUB 0.4 →
+  „Update” → `SYS:WarpApps/WarpHub` 0.5 (`Version`), `WarpHub.old` = 0.4, ikona i
+  `WarpHub.prefs` bez zmian, w ustawieniach `INSTALLED warphub 0.5 SystemSD:WarpApps`.
