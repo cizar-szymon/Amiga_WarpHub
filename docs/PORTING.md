@@ -12,18 +12,16 @@
 | 6. Instalacja / aktualizacja w GUI, aktualizacja samego WARP HUB | ⏳ |
 | 7. Repo WarpHub na GitHubie (katalog musi być publiczny), wydanie | ⏳ za zgodą |
 
-## Decyzja: pobieranie wprost z GitHuba, bez serwera danych (19.11.2026)
+## Decyzja: pobieranie wprost z GitHuba (19.11.2026)
 
-Użytkownik zmienił pierwotną koncepcję z `CLAUDE.md` (serwer danych na Raspberry Pi 4, TCP
-bez TLS). **WARP HUB pobiera gry wprost z GitHuba przez HTTPS** z AmiSSL 5. Na kartach Warp od
+**WARP HUB pobiera gry wprost z GitHuba przez HTTPS** z AmiSSL 5. Na kartach Warp od
 oprogramowania 3.074 AmiSSL przyspiesza **WarpSSL**: szyfrowanie AES-GCM i ChaCha20-Poly1305
 oraz uzgadnianie TLS robi karta. Warp560 / 100 MHz: ok. 1 MB/s przy 55% CPU zamiast 450 KB/s
 przy 100%.
 
 Dlaczego tak:
 - TLS gwarantuje, że pliki pochodzą z GitHuba, a SHA-256 z katalogu sprawdza każdy plik;
-- nie trzeba otwartego portu w domu ani usługi na RP4;
-- gry są dostępne także wtedy, gdy domowy internet nie działa.
+- nie potrzeba żadnego własnego serwera.
 
 Wymagania gracza: AmiSSL 5 (`amisslmaster.library` ≥ 5), stos TCP/IP, poprawna data
 (certyfikaty).
@@ -43,8 +41,8 @@ Jak to działa:
 
 Format katalogu: opis na początku `tools/make_catalog.py`.
 
-Sprawdzanie wersji w grach (przycisk UPDATE, dziś Settlers 0.140+ pyta dawny serwer aktualizacji)
-jest do ustalenia z użytkownikiem. Gry mogłyby czytać ten sam `catalog.txt`.
+Sprawdzanie wersji w grach (przycisk UPDATE) jest do ustalenia z użytkownikiem. Gry mogłyby
+czytać ten sam `catalog.txt`.
 
 ## Wyniki
 
