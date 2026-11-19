@@ -3,7 +3,7 @@ NAME en WARP HUB
 DESC en This program: the games and programs for Warp cards in one window - install, update, how to start. Updates itself.
 DESC pl Ten program: gry i programy dla kart Warp w jednym oknie - instalacja, aktualizacja, instrukcja uruchomienia. Aktualizuje sam siebie.
 DESC de Dieses Programm: Spiele und Programme fuer Warp-Karten in einem Fenster - Installation, Update, Startanleitung. Aktualisiert sich selbst.
-TAGS apps,warp1260,warp1240,warp1260x,warp7060
+TAGS apps
 REQ en 68040 / 68060
 REQ en AmigaOS 3.2, RTG
 REQ en AmiSSL 5 (WarpSSL)
