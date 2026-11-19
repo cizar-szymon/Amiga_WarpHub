@@ -3,7 +3,7 @@ NAME en OpenDUNE
 DESC en Dune II, the strategy classic, on the OpenDUNE engine. 800x600 on RTG, LAN game for three players.
 DESC pl Dune II, klasyka strategii, na silniku OpenDUNE. 800x600 na RTG, gra w sieci lokalnej dla trzech graczy.
 DESC de Dune II, der Strategieklassiker, mit der OpenDUNE-Engine. 800x600 auf RTG, Netzwerkspiel für drei Spieler.
-TAGS warp1260,warp1240,warp7060
+TAGS warp1260,warp1240,warp1260x,warp7060
 REQ en 68040 / 68060
 REQ en 100 MHz recommended
 REQ en 32 MB Fast RAM
