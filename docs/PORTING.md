@@ -557,3 +557,14 @@ Settlers z okna.
   `RAM:WarpHub-pin` – 11 plików, 189 KB w 3,5 s, `Version`: Vastar 0.1.
 - Przy okazji: `WarpHubCLI` z katalogiem z pliku (`CATALOG=RAM:…`) nie pyta NTP, więc przy
   zegarze z 1978 instalacja kończy się błędem certyfikatu; z `USENTP` działa.
+
+### ZOD z gałęzi release (19.11.2026, decyzja użytkownika: wariant A)
+- Wydanie ZOD jest poza gitem na gałęziach kodu (dane silnika, jak u Cego) i w GitHub
+  Releases (`v0.12`). Teraz także na osobnej gałęzi `release` repo
+  `cizar-szymon/Amiga_Game_Zod`, bajt w bajt: skrypt w projekcie ZOD
+  `tools/release/push_release_branch.sh` (`* -text`, bez zmian w drzewie roboczym).
+  ZIP z dysku = ZIP z Releases; 105 z 105 plików szuflady zgodnych z ZIP-em.
+- `catalog/games/zod.txt`: `REPO cizar-szymon/Amiga_Game_Zod` (w edytorze wpisało się
+  z kropką na końcu), `BRANCH release`.
+- Amiga 2: `WarpHubCLI INSTALL zod` do `RAM:WarpHub-pin` – 14,3 MB w 47,7 s (307 KB/s),
+  `Version`: Zod 0.12; ReadMe pustych szuflad cuts/, music/, packs/.
