@@ -522,3 +522,18 @@ Settlers z okna.
   (AMIGA/PC/MAC port), Arcade i WarpExtreme usunięte.
 - Wstępnie według wymagań: wszystkie gry 560/1260 i 7060; 1240: Settlers, OpenDUNE, AmiXcom,
   ZOD, Miner 2049er, Wizard of Wor. 1260X i PowerPC puste (decyzja użytkownika w edytorze).
+
+### Nowe gry z katalogu rozpoznawane po „Odśwież” (19.11.2026, zgłoszenie użytkownika)
+- Błąd: szuflady gier były przeszukiwane raz, przy starcie, według katalogu z pamięci. Gra,
+  która doszła do katalogu dopiero po odświeżeniu (Vastar), była „do pobrania”, choć leżała
+  w `WorkSD:Games/Vastar` (`Version`: Vastar 0.1).
+- Teraz po każdym odświeżeniu przeszukiwane są szuflady dla gier bez linii `INSTALLED`
+  (`scan_games_dir(..., only_new)`; nic nie jest wtedy zapominane). Przy pierwszym starcie
+  bez katalogu w pamięci pełne przeszukanie po pobraniu.
+- Test Amiga 2, kopia `RAM:WarpHub-f`: w pamięci stary katalog (3 gry), start → pobrany
+  nowy (5 gier) → w ustawieniach doszły `vastar 0.1` i `xainsleena 0.9.17`.
+- Uwaga: `raw.githubusercontent.com` trzyma pliki do 5 minut (`Cache-Control: max-age=300`,
+  parametr w adresie tego nie omija) – zmiana z edytora jest na Amidze najpóźniej po 5 min.
+- Automat katalogu co godzinę (wcześniej raz dziennie): upublicznienie repo gry albo nowe
+  wydanie nie zmienia plików WarpHub i nie uruchamiało go (Syndicate Wars brakowało do
+  ręcznego uruchomienia). Nowa wersja WARP HUB w `SYS:WarpApps`.

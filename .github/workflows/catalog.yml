@@ -2,7 +2,7 @@
 # catalog/games/*.txt and the releases in the games' GitHub repos, and brings
 # the pictures of catalog/images/ to 224x140 / 256 colours.
 # Runs after every change of a game file or picture (also from the web
-# editor), once a day (new releases of the games) and by hand.
+# editor), every hour (new releases of the games, repos made public) and by hand.
 name: catalog
 
 on:
@@ -15,7 +15,7 @@ on:
       - 'tools/make_images.py'
       - 'tools/game_files.py'
   schedule:
-    - cron: '17 4 * * *'
+    - cron: '17 * * * *'
   workflow_dispatch:
 
 permissions:

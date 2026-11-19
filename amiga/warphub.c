@@ -891,7 +891,9 @@ static void program_version(const char *file, char *out, int outlen)
  * player's file); the version is the $VER of the largest program that has
  * one (OpenDUNE, not its MakeMusic; devilutionx, not the Hellfire starter).
  * Remembered in WarpHub.prefs. */
-static int scan_games_dir(const char *dir, int save)
+/* only_new: only the games WARP HUB does not know yet (no INSTALLED line) -
+ * after a refresh brought new games; nothing is forgotten then */
+static int scan_games_dir(const char *dir, int save, int only_new)
 {
   int i, j, found = 0;
   BPTR dlock = Lock((CONST_STRPTR)dir, ACCESS_READ);
@@ -902,6 +904,7 @@ static int scan_games_dir(const char *dir, int save)
     char best[24] = "";
     ULONG best_size = 0;
     int here = 0;
+    if (only_new && hub_prefs_installed(&prefs, g->key) != NULL) continue;
     for (j = 0; j < g->nfiles; j++) {
       const char *path = g->files[j].path;
       char name[300], ver[24];
@@ -933,7 +936,7 @@ static int scan_games_dir(const char *dir, int save)
     if (here) {
       hub_prefs_set_installed(&prefs, g->key, best[0] ? best : "0", dir);
       found++;
-    } else {
+    } else if (!only_new) {
       HubInstalled *in = hub_prefs_installed(&prefs, g->key);
       if (in != NULL && Stricmp((CONST_STRPTR)in->dir, (CONST_STRPTR)dir) == 0) {
         hub_prefs_remove_installed(&prefs, g->key);   /* deleted or moved away */
@@ -949,11 +952,14 @@ static int scan_games_dir(const char *dir, int save)
  * without WARP HUB. Needs the catalog (cached one, or the first download). */
 static int games_scanned;
 
-static void rescan_games(void)
+/* at the start all games; after a refresh (only_new) the games that came
+ * with the new catalog */
+static void rescan_games(int only_new)
 {
   char dirs[HUB_MAX_INSTALLED + 2][256];
   int ndirs = 0, i, k;
-  if (cat == NULL || games_scanned) return;
+  if (cat == NULL || (games_scanned && !only_new)) return;
+  if (!games_scanned) only_new = 0;
   games_scanned = 1;
   for (i = -2; i < prefs.ninst; i++) {
     const char *d = i == -2 ? prefs.gamesdir : i == -1 ? prefs.appsdir : prefs.inst[i].dir;
@@ -967,7 +973,7 @@ static void rescan_games(void)
   }
   if (ndirs == 0) return;
   set_status(TX(T_SCANNING));
-  for (k = 0; k < ndirs; k++) scan_games_dir(dirs[k], 0);
+  for (k = 0; k < ndirs; k++) scan_games_dir(dirs[k], 0, only_new);
   hub_prefs_save(&prefs, PREFS_FILE);
   set_status("");
 }
@@ -1121,7 +1127,7 @@ static void choose_games_dir(int apps)
                   keep[0] ? keep : prefs.gamesdir, dir, sizeof(dir))) return;
   strncpy(keep, dir, 255);
   keep[255] = 0;
-  n = scan_games_dir(dir, 1);
+  n = scan_games_dir(dir, 1, 0);
   if (n < 0) n = 0;
   snprintf(a, sizeof(a), TX(T_FOUND), n, dir);
   set_status(a);
@@ -1182,7 +1188,7 @@ static void worker_news(void)
     if (work.new_cat != NULL) {
       take_catalog(work.new_cat);
       work.new_cat = NULL;
-      rescan_games();           /* first start: no cached catalog before */
+      rescan_games(1);          /* new games of the catalog (or all on a first start) */
       ready_status(work.msg[0] ? work.msg : NULL);
     } else {
       snprintf(a, sizeof(a), TX(T_CACHE_ONLY), work.msg);
@@ -1583,13 +1589,13 @@ int main(void)
     char a[400];
     int n;
     strncpy(prefs.gamesdir, test_gamesdir, sizeof(prefs.gamesdir) - 1);
-    n = scan_games_dir(test_gamesdir, 1);
+    n = scan_games_dir(test_gamesdir, 1, 0);
     if (n < 0) n = 0;
     games_scanned = 1;
     snprintf(a, sizeof(a), TX(T_FOUND), n, test_gamesdir);
     set_status(a);
   }
-  rescan_games();
+  rescan_games(0);
   refresh_all();
 
   work_mask = 1UL << work_signal;
