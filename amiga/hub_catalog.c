@@ -243,3 +243,20 @@ bad:
   hub_catalog_free(cat);
   return NULL;
 }
+
+int hub_guide_files(HubGame *g, HubFile **out, int max)
+{
+  int i, n = 0;
+  for (i = 0; i < g->nfiles && max > 0; i++) {
+    const char *s = strchr(g->files[i].path, '/');
+    if (s != NULL && strcmp(s, "/doc/Install.txt") == 0) {
+      out[0] = &g->files[i];
+      return 1;
+    }
+  }
+  for (i = 0; i < g->readmes && n < max; i++) {
+    HubFile *f = hub_game_file(g, g->readme[i]);
+    if (f != NULL) out[n++] = f;
+  }
+  return n;
+}

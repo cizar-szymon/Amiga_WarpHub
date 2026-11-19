@@ -51,6 +51,11 @@ void hub_cache_notes(const HubWork *w, const char *key, int lang, char *out, int
   snprintf(out, outlen, "%s/notes/%s_%s.txt", w->cache, key, names[lang]);
 }
 
+void hub_cache_guide(const HubWork *w, const char *key, int n, char *out, int outlen)
+{
+  snprintf(out, outlen, "%s/guide/%s_%d.txt", w->cache, key, n);
+}
+
 /* --- getting files ------------------------------------------------------- */
 
 typedef struct Mem {
@@ -225,6 +230,20 @@ static void job_refresh(HubWork *w)
       }
       hub_cache_notes(w, g->key, lang, name, sizeof(name));
       if (!to_cache(src, name, f->size, f->sha)) missing++;
+    }
+    {
+      HubFile *gf[HUB_MAX_README];
+      int k, ng = hub_guide_files(g, gf, HUB_MAX_README);
+      for (k = 0; k < ng; k++) {
+        if (g->local) {
+          snprintf(src, sizeof(src), "%snotes/%s_guide%d.txt", base, g->key, k);
+        } else {
+          snprintf(src, sizeof(src), "https://raw.githubusercontent.com/%s/%s/releases/amiga/%s",
+                   g->repo, g->branch, gf[k]->path);
+        }
+        hub_cache_guide(w, g->key, k, name, sizeof(name));
+        if (!to_cache(src, name, gf[k]->size, gf[k]->sha)) missing++;
+      }
     }
   }
   w->new_cat = cat;

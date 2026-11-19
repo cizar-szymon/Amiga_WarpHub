@@ -265,8 +265,16 @@ def build_local(game, games_dir, log=print):
     g = game_entry(game, repo, branch, version, (zip_name, len(data)), root, files, log)
     g['source'] = 'local'
     g['local_notes'] = {lang: files[path] for lang, path in g['notes'].items()}
+    g['local_guide'] = [files[p] for p in guide_files(root, files, g['readmes'])]
     log('  (simulated from %s)' % rel_dir)
     return g
+
+
+def guide_files(root, files, readmes):
+    """The files of the guide window on the Amiga (as hub_guide_files):
+    <Game>/doc/Install.txt when there is one, else the data ReadMe.txt files."""
+    install = '%s/doc/Install.txt' % root
+    return [install] if install in files else list(readmes)
 
 
 def game_entry(game, repo, branch, version, zip_info, root, files, log):
@@ -414,6 +422,11 @@ def main(argv=None):
                 d = os.path.join(os.path.dirname(args.out), 'notes')
                 os.makedirs(d, exist_ok=True)
                 with open(os.path.join(d, '%s_%s.txt' % (g['key'], lang)), 'wb') as f:
+                    f.write(data)
+            for n, data in enumerate(g.get('local_guide', [])):
+                d = os.path.join(os.path.dirname(args.out), 'notes')
+                os.makedirs(d, exist_ok=True)
+                with open(os.path.join(d, '%s_guide%d.txt' % (g['key'], n)), 'wb') as f:
                     f.write(data)
             games.append(g)
     text = write_catalog(games)

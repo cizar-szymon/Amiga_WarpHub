@@ -57,6 +57,9 @@ const char *hub_text(const char *const *texts, int lang);
 
 /* The game is in group tag (TAGS line). */
 int hub_game_has_tag(const HubGame *g, const char *tag);
+/* the files of the "how to start" guide: <Game>/doc/Install.txt when the
+ * game has one, else the ReadMe.txt files of its empty data drawers */
+int hub_guide_files(HubGame *g, HubFile **out, int max);
 
 /* The file of the catalog with this path, or NULL. */
 HubFile *hub_game_file(HubGame *g, const char *path);

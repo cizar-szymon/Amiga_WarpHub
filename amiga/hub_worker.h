@@ -46,5 +46,6 @@ void hub_worker_quit(HubWork *w);
 /* The cache files of a game (the window reads them). */
 void hub_cache_image(const HubWork *w, const char *key, char *out, int outlen);
 void hub_cache_notes(const HubWork *w, const char *key, int lang, char *out, int outlen);
+void hub_cache_guide(const HubWork *w, const char *key, int n, char *out, int outlen);
 
 #endif

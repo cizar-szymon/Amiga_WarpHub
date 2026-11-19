@@ -373,6 +373,76 @@ Wymagania, Zainstaluj / Aktualizuj / Sprawdź pliki, Przerwij, Katalog gier, Od�
   `WarpHubCLI INSTALL` z GitHuba: 1 plik, 472 KB, 1,6 s.
 - `catalog.txt` (3 publiczne gry) i `catalog-test.txt` (10 gier) mają linie `REQ`.
 
+### Sprawdzanie gier przy każdym starcie (19.11.2026, prośba użytkownika)
+- Po wczytaniu katalogu (z pamięci, a przy pierwszym starcie po pobraniu) WARP HUB
+  przeszukuje znów `GAMESDIR` i każdą szufladę z linii `INSTALLED`. W tym czasie tytuł okna
+  pokazuje „Szukam zainstalowanych gier...”.
+- Gra znaleziona: wersja z `$VER` jest zapisywana (gracz mógł zaktualizować grę ręcznie).
+- Gry nie ma w swojej szufladzie: linia `INSTALLED` znika (gra usunięta albo przeniesiona).
+- Szuflady w ogóle nie ma (dysk niezamontowany): nic nie jest zmieniane.
+- `$VER` jest czytany kawałkami po 32 KB do pierwszego wystąpienia, a nie cały program naraz
+  (Settlers ma 3,2 MB, Diablo kilka MB).
+- Test na Amidze 2 (start przez `WBStart`, jak z ikony), w `WarpHub.prefs` celowo złe dane:
+  - OpenDUNE 0.40 → 0.54;
+  - Settlers 0.100 → 0.139;
+  - Vastar (nie ma go w szufladzie): usunięty;
+  - ZOD w nieistniejącym `RAM:NotThere`: zostawiony.
+- Plik ustawień był zapisany ok. 2 s po poleceniu startu, razem z otwarciem okna. Mierzone
+  na `RAM:`; na karcie SD albo dysku będzie wolniej, jeszcze nie mierzone.
+
+### Osobna szuflada programów (19.11.2026, prośba użytkownika)
+- Przycisk „Katalog programów” pod „Katalog gier” zapisuje `APPSDIR` w `WarpHub.prefs`.
+- Pozycje z grupy Programy (znacznik `apps`) proponują instalację w tej szufladzie, a gry
+  w `GAMESDIR`. Requester nadal pyta zawsze.
+- Przy starcie i po wybraniu przeszukiwane są obie szuflady.
+- Na Amidze 2 (640×480) okno z dodatkowym przyciskiem mieści się bez zmian układu.
+- W katalogu nie ma jeszcze żadnej pozycji `apps`, więc instalacji programu nie sprawdzono.
+
+### Dwa przyciski: Zainstaluj i Aktualizuj (19.11.2026, prośba użytkownika)
+- Wcześniej był jeden przycisk ze zmieniającym się napisem (Zainstaluj / Aktualizuj /
+  Sprawdź pliki). Teraz są dwa stałe:
+  - „Zainstaluj” jest czynny, gdy gry nie ma;
+  - „Aktualizuj” jest czynny, gdy gra jest i katalog ma nowszą wersję.
+- Gdy gra jest aktualna, oba są wyłączone. „Sprawdź pliki” dla aktualnej gry zniknęło
+  z okna; `WarpHubCLI CHECK` / `INSTALL` nadal to umie.
+- Test na Amidze 2: w testowym katalogu Diablo 0.49 przy zainstalowanej 0.48 →
+  „Aktualizuj” czynny, „Zainstaluj” wyłączony; Settlers i OpenDUNE aktualne → oba
+  wyłączone. Katalog testowy przywrócony.
+
+### Instrukcja uruchomienia (19.11.2026, prośba użytkownika)
+- Pierwszy przycisk w prawej kolumnie, „Instrukcja uruchomienia” (EN „How to start”, DE
+  „Startanleitung”), także klawisz Help. Otwiera osobne okno z przewijanym tekstem:
+  - jest `<Gra>/doc/Install.txt` → ten plik (Settlers, OpenDUNE);
+  - nie ma → pliki `ReadMe.txt` z pustych szuflad, każdy z nagłówkiem „Do szuflady
+    `<Gra>/data`:” (Diablo, gry symulowane);
+  - gra bez takich plików → „Nic nie trzeba dokładać…”.
+- Okno: przycisk Zamknij, gadżet zamknięcia albo Esc; strzałki i kółko myszy przewijają.
+  Główne okno w tym czasie czeka (zajęty wskaźnik), a kliknięte w nim rzeczy są pomijane.
+- Po instalacji, gdy gra potrzebuje danych, okno otwiera się samo. Zastępuje requester
+  z listą plików `ReadMe.txt`.
+- Pliki są pobierane razem z historią zmian do `PROGDIR:cache/guide/<klucz>_<n>.txt`, ze
+  sprawdzeniem SHA-256 (`hub_guide_files()` w `hub_catalog.c`, ta sama reguła w
+  `make_catalog.py`). Gry symulowane: `catalog/notes/<klucz>_guide<n>.txt`.
+- Linie „Dane: …” / „ROM-y: …” zniknęły z ramki Wymagania (`games.json`, oba katalogi).
+  Mówi o tym instrukcja.
+- Test na Amidze 2: 9 plików instrukcji pobranych przy starcie; okna Diablo (dwa ReadMe)
+  i OpenDUNE (`Install.txt`) otwarte klawiszem Help, Esc zamyka. Pierwsza wersja łamała
+  linie za wąsko (miara czcionką okna zamiast czcionką ekranu), poprawione.
+- Do rozważenia: `Install.txt` jest w trzech językach naraz (EN, PL, DE) i zaczyna się od
+  rozpakowania ZIP-a, czego przy WARP HUB nie trzeba. Można przewijać od razu do części
+  w języku programu albo dodać w portach krótszy tekst tylko dla WARP HUB.
+
+### Historia wydań tej samej wysokości co przyciski (19.11.2026, prośba użytkownika)
+- Z prawej kolumny zniknął pusty odstęp pod wyborem języka. Okno otwiera się najniższe, na
+  jakie pozwala układ (`WA_InnerHeight 50`; ReAction powiększa je do minimum).
+- Historia wydań zaczyna się na wysokości „Instrukcji uruchomienia” i kończy na wysokości
+  wyboru języka. Wysokość galerii nadal liczy `win_h`.
+- Amiga 2 (640×480): okno o kilka linii niższe niż ekran, góra i dół obu kolumn równo.
+- Przy okazji: w `WarpHub.prefs` użytkownik wybrał `GAMESDIR WorkSD:Games` i
+  `APPSDIR WorkSD:`. Sprawdzanie przy starcie rozpoznało tam wszystkie 10 gier, z wersjami
+  z `$VER`, m.in. Xain'd Sleena 0.9.17, AmiXcom 0.106, ZOD 0.12. Gra zainstalowana w dwóch
+  miejscach ma w ustawieniach tylko jedno: to, które sprawdzono jako ostatnie.
+
 ## Bez paska stanu (19.11.2026)
 
 Uwaga użytkownika: ramka z liczbą gier jest niepotrzebna, więc ją usunąłem. Stan pokazuje

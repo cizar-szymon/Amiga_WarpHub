@@ -22,6 +22,7 @@ void hub_to_latin(const char *utf8, char *out, int outlen);
 /* --- settings: PROGDIR:WarpHub.prefs ----------------------------------- *
  *   LANGUAGE pl|en|de
  *   CATALOG <https URL or file>
+ *   GAMESDIR <drawer of the games>   APPSDIR <drawer of the programs>
  *   INSTALLED <key> <version> <drawer>        one line per game        */
 
 #define HUB_MAX_INSTALLED 32
@@ -36,6 +37,7 @@ typedef struct HubPrefs {
   char language[4];          /* "" = from the locale */
   char catalog[256];         /* "" = the default URL */
   char gamesdir[256];        /* the drawer of the installed games ("Work:Games") */
+  char appsdir[256];         /* the drawer of the installed programs ("Work:Programs") */
   HubInstalled inst[HUB_MAX_INSTALLED];
   int ninst;
 } HubPrefs;
@@ -45,5 +47,6 @@ int hub_prefs_save(const HubPrefs *p, const char *file);
 HubInstalled *hub_prefs_installed(HubPrefs *p, const char *key);
 void hub_prefs_set_installed(HubPrefs *p, const char *key, const char *version,
                              const char *dir);
+void hub_prefs_remove_installed(HubPrefs *p, const char *key);
 
 #endif

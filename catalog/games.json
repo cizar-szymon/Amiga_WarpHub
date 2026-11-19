@@ -25,20 +25,17 @@
         "en": [
           "68040 / 68060",
           "32 MB Fast RAM",
-          "AmigaOS 3.x, RTG 8-bit",
-          "Data: Amiga Settlers"
+          "AmigaOS 3.x, RTG 8-bit"
         ],
         "pl": [
           "68040 / 68060",
           "32 MB Fast RAM",
-          "AmigaOS 3.x, RTG 8-bit",
-          "Dane: Settlers z Amigi"
+          "AmigaOS 3.x, RTG 8-bit"
         ],
         "de": [
           "68040 / 68060",
           "32 MB Fast RAM",
-          "AmigaOS 3.x, RTG 8-Bit",
-          "Daten: Amiga-Siedler"
+          "AmigaOS 3.x, RTG 8-Bit"
         ]
       }
     },
@@ -65,20 +62,17 @@
         "en": [
           "68040 / 68060",
           "32 MB Fast RAM",
-          "AmigaOS 3.1+, RTG 8-bit",
-          "Data: Dune II (PC)"
+          "AmigaOS 3.1+, RTG 8-bit"
         ],
         "pl": [
           "68040 / 68060",
           "32 MB Fast RAM",
-          "AmigaOS 3.1+, RTG 8-bit",
-          "Dane: Dune II (PC)"
+          "AmigaOS 3.1+, RTG 8-bit"
         ],
         "de": [
           "68040 / 68060",
           "32 MB Fast RAM",
-          "AmigaOS 3.1+, RTG 8-Bit",
-          "Daten: Dune II (PC)"
+          "AmigaOS 3.1+, RTG 8-Bit"
         ]
       }
     },
@@ -111,20 +105,17 @@
         "en": [
           "68060 / 68040",
           "64 MB Fast RAM",
-          "AmigaOS 3.2, RTG 8-bit",
-          "Data: diabdat.mpq"
+          "AmigaOS 3.2, RTG 8-bit"
         ],
         "pl": [
           "68060 / 68040",
           "64 MB Fast RAM",
-          "AmigaOS 3.2, RTG 8-bit",
-          "Dane: diabdat.mpq"
+          "AmigaOS 3.2, RTG 8-bit"
         ],
         "de": [
           "68060 / 68040",
           "64 MB Fast RAM",
-          "AmigaOS 3.2, RTG 8-Bit",
-          "Daten: diabdat.mpq"
+          "AmigaOS 3.2, RTG 8-Bit"
         ]
       }
     },
@@ -199,20 +190,17 @@
         "en": [
           "68060",
           "64 MB Fast RAM",
-          "AmigaOS 3.2, RTG 8-bit",
-          "Data: GOG + PC (Python)"
+          "AmigaOS 3.2, RTG 8-bit"
         ],
         "pl": [
           "68060",
           "64 MB Fast RAM",
-          "AmigaOS 3.2, RTG 8-bit",
-          "Dane: GOG + PC (Python)"
+          "AmigaOS 3.2, RTG 8-bit"
         ],
         "de": [
           "68060",
           "64 MB Fast RAM",
-          "AmigaOS 3.2, RTG 8-Bit",
-          "Daten: GOG + PC (Python)"
+          "AmigaOS 3.2, RTG 8-Bit"
         ]
       }
     },
@@ -243,18 +231,15 @@
       "req": {
         "en": [
           "68060",
-          "AmigaOS 3.1+, RTG",
-          "ROMs: MAME \"vastar\""
+          "AmigaOS 3.1+, RTG"
         ],
         "pl": [
           "68060",
-          "AmigaOS 3.1+, RTG",
-          "ROM-y: MAME \"vastar\""
+          "AmigaOS 3.1+, RTG"
         ],
         "de": [
           "68060",
-          "AmigaOS 3.1+, RTG",
-          "ROMs: MAME \"vastar\""
+          "AmigaOS 3.1+, RTG"
         ]
       }
     },
@@ -287,20 +272,17 @@
         "en": [
           "68060 (100 MHz)",
           "4 MB Fast RAM",
-          "AmigaOS 3.1+, RTG",
-          "ROMs: MAME \"xsleena\""
+          "AmigaOS 3.1+, RTG"
         ],
         "pl": [
           "68060 (100 MHz)",
           "4 MB Fast RAM",
-          "AmigaOS 3.1+, RTG",
-          "ROM-y: MAME \"xsleena\""
+          "AmigaOS 3.1+, RTG"
         ],
         "de": [
           "68060 (100 MHz)",
           "4 MB Fast RAM",
-          "AmigaOS 3.1+, RTG",
-          "ROMs: MAME \"xsleena\""
+          "AmigaOS 3.1+, RTG"
         ]
       }
     },
@@ -372,20 +354,17 @@
         "en": [
           "68040 / 68060 (FPU)",
           "64 MB Fast RAM",
-          "AmigaOS 3.2, RTG 8-bit",
-          "Data: UFO / X-COM (PC)"
+          "AmigaOS 3.2, RTG 8-bit"
         ],
         "pl": [
           "68040 / 68060 (FPU)",
           "64 MB Fast RAM",
-          "AmigaOS 3.2, RTG 8-bit",
-          "Dane: UFO / X-COM (PC)"
+          "AmigaOS 3.2, RTG 8-bit"
         ],
         "de": [
           "68040 / 68060 (FPU)",
           "64 MB Fast RAM",
-          "AmigaOS 3.2, RTG 8-Bit",
-          "Daten: UFO / X-COM (PC)"
+          "AmigaOS 3.2, RTG 8-Bit"
         ]
       }
     },
@@ -412,20 +391,17 @@
         "en": [
           "68060 / 68040",
           "32 MB Fast RAM",
-          "AmigaOS 3.2, RTG",
-          "Data: Z (packs)"
+          "AmigaOS 3.2, RTG"
         ],
         "pl": [
           "68060 / 68040",
           "32 MB Fast RAM",
-          "AmigaOS 3.2, RTG",
-          "Dane: Z (packs)"
+          "AmigaOS 3.2, RTG"
         ],
         "de": [
           "68060 / 68040",
           "32 MB Fast RAM",
-          "AmigaOS 3.2, RTG",
-          "Daten: Z (packs)"
+          "AmigaOS 3.2, RTG"
         ]
       }
     }

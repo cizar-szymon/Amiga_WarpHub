@@ -90,7 +90,8 @@ enum {
   T_AVAILABLE, T_SIZE, T_NEEDS_DATA, T_CHOOSE_DIR, T_ASK_INSTALL, T_ASK_UPDATE, T_YES_NO,
   T_DONE, T_FAILED, T_LOADING, T_CACHE_ONLY, T_DOWNLOADING, T_UP_TO_DATE, T_HISTORY_NONE,
   T_READY, T_CHECKING, T_OK, T_NO_CATALOG, T_ADD_YOURSELF, T_FILES, T_IN, T_NO_NET, T_SOON,
-  T_NOT_PUBLIC, T_EMPTY, T_NEW_SHORT, T_REQ, T_GAMESDIR, T_CHOOSE_GAMESDIR, T_FOUND,
+  T_NOT_PUBLIC, T_EMPTY, T_NEW_SHORT, T_REQ, T_GAMESDIR, T_CHOOSE_GAMESDIR, T_FOUND, T_SCANNING, T_APPSDIR, T_CHOOSE_APPSDIR, T_GUIDE, T_GUIDE_NONE,
+  T_GUIDE_MISSING, T_PUT_IN, T_CLOSE,
   T_COUNT
 };
 
@@ -111,7 +112,10 @@ static const char *const texts[3][T_COUNT] = {
     "Test: the repo of this game is not public yet - it can be installed after the release.",
     "No games in this group yet.", "New: %s", "Requirements",
     "Games drawer", "Drawer of your installed games",
-    "%d games found in %s."
+    "%d games found in %s.", "Looking for your games...",
+    "Programs drawer", "Drawer of your installed programs",
+    "How to start", "Nothing to add: the game is ready to start after the installation.",
+    "The guide is not downloaded yet - press Refresh.", "Into the drawer %s:", "Close"
   },
   { /* pl */
     "Odswiez", "Zainstaluj", "Aktualizuj", "Sprawdz pliki", "Przerwij", "Zainstalowana %s",
@@ -129,7 +133,10 @@ static const char *const texts[3][T_COUNT] = {
     "Test: repo tej gry nie jest jeszcze publiczne - instalacja bedzie mozliwa po publikacji.",
     "Na razie brak gier w tej grupie.", "Nowa wersja %s", "Wymagania",
     "Katalog gier", "Szuflada z zainstalowanymi grami",
-    "Znalezione gry: %d w %s."
+    "Znalezione gry: %d w %s.", "Szukam zainstalowanych gier...",
+    "Katalog programow", "Szuflada z zainstalowanymi programami",
+    "Instrukcja uruchomienia", "Nic nie trzeba dokladac: po instalacji gra jest gotowa do uruchomienia.",
+    "Instrukcja nie jest jeszcze pobrana - nacisnij Odswiez.", "Do szuflady %s:", "Zamknij"
   },
   { /* de */
     "Aktualisieren", "Installieren", "Update", "Dateien pr\xfc" "fen", "Abbrechen",
@@ -144,10 +151,14 @@ static const char *const texts[3][T_COUNT] = {
     "Aktuell.", "Noch keine Versionsgeschichte.", "%d Spiele. %s", "Pr\xfc" "fe Dateien von %s...",
     "OK", "Noch kein Katalog - Aktualisieren dr\xfc" "cken.", "Selbst hinzuf\xfc" "gen:",
     "Dateien", "in", "Kein Netz: %s", "Bald",
-    "Test: das Repo dieses Spiels ist noch nicht ö" "ffentlich - Installation nach der Verö" "ffentlichung.",
+    "Test: das Repo dieses Spiels ist noch nicht \xf6" "ffentlich - Installation nach der Ver\xf6" "ffentlichung.",
     "Noch keine Spiele in dieser Gruppe.", "Neu: %s", "Anforderungen",
     "Spiele-Schublade", "Schublade der installierten Spiele",
-    "%d Spiele in %s gefunden."
+    "%d Spiele in %s gefunden.", "Suche installierte Spiele...",
+    "Programm-Schublade", "Schublade der installierten Programme",
+    "Startanleitung", "Nichts hinzuzuf\xfc" "gen: das Spiel ist nach der Installation startbereit.",
+    "Die Anleitung ist noch nicht geladen - Aktualisieren dr\xfc" "cken.", "In die Schublade %s:",
+    "Schlie\xdf" "en"
   }
 };
 
@@ -172,7 +183,7 @@ static char test_key[32], test_dir[256], test_gamesdir[256];
 /* --- state --------------------------------------------------------------- */
 
 enum { GID_LANG = 1, GID_REFRESH, GID_GALLERY, GID_SCROLL, GID_PAGE, GID_INSTALL, GID_STOP,
-       GID_NOTES, GID_PROGRESS, GID_REQ, GID_GAMESDIR, GID_FILTER };     /* GID_FILTER + 0..FILTERS-1 */
+       GID_NOTES, GID_PROGRESS, GID_REQ, GID_GAMESDIR, GID_APPSDIR, GID_UPDATE, GID_GUIDE, GID_FILTER };     /* GID_FILTER + 0..FILTERS-1 */
 
 typedef struct Tile {
   Object *dt;                /* the picture (datatype), NULL = none */
@@ -190,7 +201,7 @@ static char status_text[300];
 static struct Screen *scr;
 static struct Window *win;
 static Object *win_obj, *g_lang, *g_refresh, *g_gallery, *g_scroll, *g_page, *g_install,
-    *g_stop, *g_notes, *g_progress, *g_req, *g_gamesdir, *g_filter[FILTERS];
+    *g_stop, *g_notes, *g_req, *g_gamesdir, *g_appsdir, *g_update, *g_guide, *g_filter[FILTERS];
 static struct List notes_list, lang_list;
 static struct MsgPort *app_port;
 static struct Hook gallery_hook, page_hook, req_hook;
@@ -629,21 +640,30 @@ static void fill_notes(void)
 
 static void update_buttons(void)
 {
-  const char *label = TX(T_INSTALL);
+  /* two buttons: Install for a game that is not there, Update for an installed
+   * one with a newer version in the catalog */
   int none = cat == NULL || selected < 0;
-  if (!none) {
+  int can_install = 0, can_update = 0;
+  if (!none && !work.busy && !cat->games[selected].local) {
     HubGame *g = &cat->games[selected];
     HubInstalled *in = installed(g);
-    if (in != NULL) label = version_cmp(in->version, g->version) < 0 ? TX(T_UPDATE) : TX(T_REPAIR);
+    if (in == NULL) can_install = 1;
+    else if (version_cmp(in->version, g->version) < 0) can_update = 1;
   }
   if (win == NULL) return;
-  SetGadgetAttrs((struct Gadget *)g_install, win, NULL, GA_Text, (ULONG)label,
-                 GA_Disabled, none || work.busy || cat->games[selected].local, TAG_DONE);
+  SetGadgetAttrs((struct Gadget *)g_guide, win, NULL, GA_Text, (ULONG)TX(T_GUIDE),
+                 GA_Disabled, none, TAG_DONE);
+  SetGadgetAttrs((struct Gadget *)g_install, win, NULL, GA_Text, (ULONG)TX(T_INSTALL),
+                 GA_Disabled, !can_install, TAG_DONE);
+  SetGadgetAttrs((struct Gadget *)g_update, win, NULL, GA_Text, (ULONG)TX(T_UPDATE),
+                 GA_Disabled, !can_update, TAG_DONE);
   SetGadgetAttrs((struct Gadget *)g_stop, win, NULL, GA_Text, (ULONG)TX(T_STOP),
                  GA_Disabled, !work.busy, TAG_DONE);
   SetGadgetAttrs((struct Gadget *)g_refresh, win, NULL, GA_Text, (ULONG)TX(T_REFRESH),
                  GA_Disabled, work.busy, TAG_DONE);
   SetGadgetAttrs((struct Gadget *)g_gamesdir, win, NULL, GA_Text, (ULONG)TX(T_GAMESDIR),
+                 GA_Disabled, work.busy, TAG_DONE);
+  SetGadgetAttrs((struct Gadget *)g_appsdir, win, NULL, GA_Text, (ULONG)TX(T_APPSDIR),
                  GA_Disabled, work.busy, TAG_DONE);
 }
 
@@ -782,7 +802,7 @@ static int ask(const char *body, const char *buttons)
   return EasyRequest(win, &es, NULL, (ULONG)body);
 }
 
-static int ask_drawer(const char *title, char *out, int outlen)
+static int ask_drawer(const char *title, const char *start, char *out, int outlen)
 {
   struct FileRequester *fr;
   int ok = 0;
@@ -791,7 +811,7 @@ static int ask_drawer(const char *title, char *out, int outlen)
                                                    ASLFR_TitleText, (ULONG)title,
                                                    ASLFR_DrawersOnly, TRUE,
                                                    ASLFR_InitialDrawer,
-                                                   (ULONG)(prefs.gamesdir[0] ? prefs.gamesdir : "Work:"),
+                                                   (ULONG)(start != NULL && start[0] ? start : "Work:"),
                                                    ASLFR_SleepWindow, TRUE,
                                                    TAG_DONE);
   if (fr == NULL) return 0;
@@ -809,20 +829,43 @@ static int choose_dir(HubGame *g, char *out, int outlen)
   char title[160], name[96];
   latin(hub_text(g->name, lang), name, sizeof(name));
   snprintf(title, sizeof(title), TX(T_CHOOSE_DIR), name);
-  return ask_drawer(title, out, outlen);
+  /* programs (group "apps") go to the programs drawer, games to the games drawer */
+  return ask_drawer(title, hub_game_has_tag(g, "apps") && prefs.appsdir[0] ? prefs.appsdir
+                                                                         : prefs.gamesdir,
+                    out, outlen);
 }
 
-/* the version in "$VER: <name> <version>" of a program, "" when none */
+/* the version in "$VER: <name> <version>" of a program, "" when none.
+ * Read in 32 KB pieces (the last 64 bytes of a piece are kept, so a $VER
+ * across two pieces is found too); stops at the first $VER. */
+#define VER_PIECE 32768
+#define VER_KEEP 64
 static void program_version(const char *file, char *out, int outlen)
 {
-  ULONG len = 0, i;
-  char *data = hub_read_file(file, 32UL << 20, &len);
+  BPTR fh = Open((CONST_STRPTR)file, MODE_OLDFILE);
+  char *buf;
+  LONG have = 0, got;
   out[0] = 0;
-  if (data == NULL) return;
-  for (i = 0; i + 6 < len; i++) {
-    if (data[i] == '$' && strncmp(data + i, "$VER: ", 6) == 0) {
-      const char *p = data + i + 6;
-      const char *end = data + len;
+  if (fh == 0) return;
+  buf = (char *)hub_malloc(VER_PIECE + VER_KEEP + 1);
+  if (buf == NULL) {
+    Close(fh);
+    return;
+  }
+  while ((got = Read(fh, buf + have, VER_PIECE)) > 0) {
+    LONG len = have + got, i;
+    for (i = 0; i + 6 <= len; i++) {
+      if (buf[i] == '$' && strncmp(buf + i, "$VER: ", 6) == 0) break;
+    }
+    if (i + 6 <= len) {
+      const char *p, *end;
+      /* the whole line of $VER in the buffer */
+      if (len - i < 100) {
+        LONG more = Read(fh, buf + len, VER_PIECE + VER_KEEP - len);
+        if (more > 0) len += more;
+      }
+      p = buf + i + 6;
+      end = buf + len;
       /* the first word that starts with a digit */
       while (p < end && *p && *p != '\n') {
         while (p < end && *p == ' ') p++;
@@ -836,8 +879,11 @@ static void program_version(const char *file, char *out, int outlen)
       }
       break;
     }
+    have = len < VER_KEEP ? len : VER_KEEP;
+    memmove(buf, buf + len - have, have);
   }
-  hub_free(data);
+  hub_free(buf);
+  Close(fh);
 }
 
 /* the games of the catalog found in the games drawer: <dir>/<Game>/<program>.
@@ -845,9 +891,12 @@ static void program_version(const char *file, char *out, int outlen)
  * player's file); the version is the $VER of the largest program that has
  * one (OpenDUNE, not its MakeMusic; devilutionx, not the Hellfire starter).
  * Remembered in WarpHub.prefs. */
-static int scan_games_dir(const char *dir)
+static int scan_games_dir(const char *dir, int save)
 {
   int i, j, found = 0;
+  BPTR dlock = Lock((CONST_STRPTR)dir, ACCESS_READ);
+  if (dlock == 0) return -1;      /* not there now: keep what we know */
+  UnLock(dlock);
   for (i = 0; cat != NULL && i < cat->ngames; i++) {
     HubGame *g = &cat->games[i];
     char best[24] = "";
@@ -884,20 +933,196 @@ static int scan_games_dir(const char *dir)
     if (here) {
       hub_prefs_set_installed(&prefs, g->key, best[0] ? best : "0", dir);
       found++;
+    } else {
+      HubInstalled *in = hub_prefs_installed(&prefs, g->key);
+      if (in != NULL && Stricmp((CONST_STRPTR)in->dir, (CONST_STRPTR)dir) == 0) {
+        hub_prefs_remove_installed(&prefs, g->key);   /* deleted or moved away */
+      }
     }
   }
-  hub_prefs_save(&prefs, PREFS_FILE);
+  if (save) hub_prefs_save(&prefs, PREFS_FILE);
   return found;
 }
 
-static void choose_games_dir(void)
+/* at every start: the games drawer and every drawer a game was installed to,
+ * looked at again - the player may have added, removed or updated a game
+ * without WARP HUB. Needs the catalog (cached one, or the first download). */
+static int games_scanned;
+
+static void rescan_games(void)
+{
+  char dirs[HUB_MAX_INSTALLED + 2][256];
+  int ndirs = 0, i, k;
+  if (cat == NULL || games_scanned) return;
+  games_scanned = 1;
+  for (i = -2; i < prefs.ninst; i++) {
+    const char *d = i == -2 ? prefs.gamesdir : i == -1 ? prefs.appsdir : prefs.inst[i].dir;
+    for (k = 0; k < ndirs; k++) {
+      if (Stricmp((CONST_STRPTR)dirs[k], (CONST_STRPTR)d) == 0) break;
+    }
+    if (k == ndirs && d[0] && ndirs < HUB_MAX_INSTALLED + 2) {
+      strncpy(dirs[ndirs], d, 255);
+      dirs[ndirs++][255] = 0;
+    }
+  }
+  if (ndirs == 0) return;
+  set_status(TX(T_SCANNING));
+  for (k = 0; k < ndirs; k++) scan_games_dir(dirs[k], 0);
+  hub_prefs_save(&prefs, PREFS_FILE);
+  set_status("");
+}
+
+/* the games drawer (apps = 0) or the programs drawer (apps = 1); both are
+ * searched for everything of the catalog */
+/* --- the "how to start" window ---------------------------------------------- */
+
+static struct List guide_list;
+
+static void guide_add(void *u, const char *line, int len)
+{
+  char buf[256];
+  struct Node *n;
+  if (len > (int)sizeof(buf) - 1) len = sizeof(buf) - 1;
+  memcpy(buf, line, len);
+  buf[len] = 0;
+  n = AllocListBrowserNode(1, LBNCA_CopyText, TRUE, LBNCA_Text, (ULONG)buf, TAG_DONE);
+  if (n != NULL) AddTail((struct List *)u, n);
+}
+
+static void guide_text(HubGame *g, int width)
+{
+  HubFile *gf[HUB_MAX_README];
+  char file[300], a[300];
+  int k, ng = hub_guide_files(g, gf, HUB_MAX_README);
+  if (ng == 0) wrap(&scr->RastPort, TX(T_GUIDE_NONE), width, guide_add, &guide_list);
+  for (k = 0; k < ng; k++) {
+    ULONG len = 0;
+    char *text, *conv, *s, *d;
+    hub_cache_guide(&work, g->key, k, file, sizeof(file));
+    text = hub_read_file(file, 256UL << 10, &len);
+    if (text == NULL) {
+      wrap(&scr->RastPort, TX(T_GUIDE_MISSING), width, guide_add, &guide_list);
+      break;
+    }
+    if (strstr(gf[k]->path, "/doc/Install.txt") == NULL) {
+      /* a ReadMe.txt of an empty drawer: say which drawer */
+      char dir[200];
+      char *slash;
+      strncpy(dir, gf[k]->path, sizeof(dir) - 1);
+      dir[sizeof(dir) - 1] = 0;
+      slash = strrchr(dir, '/');
+      if (slash != NULL) *slash = 0;
+      if (k > 0) guide_add(&guide_list, "", 0);
+      snprintf(a, sizeof(a), TX(T_PUT_IN), dir);
+      guide_add(&guide_list, a, (int)strlen(a));
+      guide_add(&guide_list, "", 0);
+    }
+    conv = (char *)hub_malloc(len + 1);
+    if (conv != NULL) {
+      hub_to_latin(text, conv, (int)len + 1);
+      for (s = d = conv; *s; s++) {          /* no CR, tabs as spaces */
+        if (*s == '\r') continue;
+        *d++ = *s == '\t' ? ' ' : *s;
+      }
+      *d = 0;
+      wrap(&scr->RastPort, conv, width, guide_add, &guide_list);
+      hub_free(conv);
+    }
+    hub_free(text);
+  }
+}
+
+/* a window of its own over the main one; the main one waits (busy pointer)
+ * and what was clicked in it meanwhile is thrown away */
+static void show_guide(void)
+{
+  HubGame *g;
+  Object *gw, *lb;
+  struct Window *w2;
+  char title[200], name[96];
+  ULONG sig = 0, result;
+  UWORD code;
+  int done = 0, ww, wh;
+  if (cat == NULL || selected < 0 || win == NULL) return;
+  g = &cat->games[selected];
+  latin(hub_text(g->name, lang), name, sizeof(name));
+  snprintf(title, sizeof(title), "%s - %s", name, TX(T_GUIDE));
+  ww = win->Width - 40;
+  wh = win->Height - 40;
+  NewList(&guide_list);
+  guide_text(g, ww - 50);   /* the list: margins and its scroller */
+  gw = NewObject(WINDOW_GetClass(), NULL,
+      WA_Title, (ULONG)title,
+      WA_PubScreen, (ULONG)scr,
+      WA_DragBar, TRUE, WA_DepthGadget, TRUE, WA_CloseGadget, TRUE, WA_SizeGadget, TRUE,
+      WA_Activate, TRUE,
+      WA_Left, win->LeftEdge + 20, WA_Top, win->TopEdge + 20,
+      WA_Width, ww, WA_Height, wh,
+      WA_IDCMP, IDCMP_RAWKEY,
+      WINDOW_Layout, (ULONG)(NewObject(LAYOUT_GetClass(), NULL, LAYOUT_Orientation, LAYOUT_ORIENT_VERT,
+        LAYOUT_SpaceOuter, TRUE,
+        LAYOUT_AddChild, (ULONG)(lb = NewObject(LISTBROWSER_GetClass(), NULL,
+          GA_ReadOnly, TRUE,
+          LISTBROWSER_Labels, (ULONG)&guide_list,
+          LISTBROWSER_ShowSelected, FALSE,
+        TAG_END)),
+        LAYOUT_AddChild, (ULONG)(NewObject(BUTTON_GetClass(), NULL,
+          GA_ID, 1, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_CLOSE),
+        TAG_END)),
+        CHILD_WeightedHeight, 0,
+      TAG_END)),
+    TAG_END);
+  if (gw != NULL) {
+    SetAttrs(win_obj, WA_BusyPointer, TRUE, TAG_DONE);
+    w2 = (struct Window *)RA_OpenWindow(gw);
+    if (w2 != NULL) GetAttr(WINDOW_SigMask, gw, &sig);
+    while (w2 != NULL && !done) {
+      ULONG s = Wait(sig | SIGBREAKF_CTRL_C);
+      if (s & SIGBREAKF_CTRL_C) {
+        SetSignal(SIGBREAKF_CTRL_C, SIGBREAKF_CTRL_C);   /* for the main loop too */
+        done = 1;
+      }
+      while ((result = RA_HandleInput(gw, &code)) != WMHI_LASTMSG) {
+        switch (result & WMHI_CLASSMASK) {
+          case WMHI_CLOSEWINDOW: done = 1; break;
+          case WMHI_GADGETUP: if ((result & WMHI_GADGETMASK) == 1) done = 1; break;
+          case WMHI_RAWKEY: {
+            ULONG top = 0;
+            LONG step = 0;
+            if (code == 0x45) done = 1;                              /* Esc */
+            else if (code == 0x7A || code == 0x4C) step = -3;        /* wheel / up */
+            else if (code == 0x7B || code == 0x4D) step = 3;         /* wheel / down */
+            if (step != 0) {
+              GetAttr(LISTBROWSER_Top, lb, &top);
+              if (step < 0 && top < (ULONG)-step) top = 0;
+              else top += step;
+              SetGadgetAttrs((struct Gadget *)lb, w2, NULL, LISTBROWSER_Top, top, TAG_DONE);
+            }
+            break;
+          }
+        }
+      }
+    }
+    DisposeObject(gw);
+    SetAttrs(win_obj, WA_BusyPointer, FALSE, TAG_DONE);
+    while (RA_HandleInput(win_obj, &code) != WMHI_LASTMSG) {
+    }
+  }
+  FreeListBrowserList(&guide_list);
+}
+
+static void choose_games_dir(int apps)
 {
   char dir[256], a[400];
+  char *keep = apps ? prefs.appsdir : prefs.gamesdir;
   int n;
   if (work.busy) return;
-  if (!ask_drawer(TX(T_CHOOSE_GAMESDIR), dir, sizeof(dir))) return;
-  strncpy(prefs.gamesdir, dir, sizeof(prefs.gamesdir) - 1);
-  n = scan_games_dir(dir);
+  if (!ask_drawer(TX(apps ? T_CHOOSE_APPSDIR : T_CHOOSE_GAMESDIR),
+                  keep[0] ? keep : prefs.gamesdir, dir, sizeof(dir))) return;
+  strncpy(keep, dir, 255);
+  keep[255] = 0;
+  n = scan_games_dir(dir, 1);
+  if (n < 0) n = 0;
   snprintf(a, sizeof(a), TX(T_FOUND), n, dir);
   set_status(a);
   refresh_all();
@@ -957,6 +1182,7 @@ static void worker_news(void)
     if (work.new_cat != NULL) {
       take_catalog(work.new_cat);
       work.new_cat = NULL;
+      rescan_games();           /* first start: no cached catalog before */
       ready_status(work.msg[0] ? work.msg : NULL);
     } else {
       snprintf(a, sizeof(a), TX(T_CACHE_ONLY), work.msg);
@@ -989,12 +1215,10 @@ static void worker_news(void)
       set_status(a);
       set_progress(0, 0);
       if (g->readmes > 0 && work.plan.files > 0 && !test_dir[0]) {
-        n += snprintf(a + n, sizeof(a) - n, "\n\n%s", TX(T_ADD_YOURSELF));
-        for (i = 0; i < g->readmes && n < (int)sizeof(a); i++) {
-          n += snprintf(a + n, sizeof(a) - n, "\n%s/%s", work.dir, g->readme[i]);
-        }
-        ask(a, TX(T_OK));
+        refresh_all();
+        show_guide();           /* what to add and where */
       }
+      (void)i;
     } else {
       snprintf(a, sizeof(a), TX(T_FAILED), work.msg);
       set_status(a);
@@ -1031,11 +1255,12 @@ static void free_pens(void)
 /* width of the widest label of the buttons in all languages */
 static int button_width(void)
 {
-  static const int ids[] = {T_INSTALL, T_UPDATE, T_REPAIR, T_STOP, T_GAMESDIR};
+  static const int ids[] = {T_INSTALL, T_UPDATE, T_REPAIR, T_STOP, T_GAMESDIR, T_APPSDIR,
+                            T_GUIDE};
   struct RastPort *rp = &scr->RastPort;
   int w = 0, l, i;
   for (l = 0; l < 3; l++) {
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < (int)(sizeof(ids) / sizeof(ids[0])); i++) {
       const char *t = texts[l][ids[i]];
       int n = TextLength(rp, (STRPTR)t, (int)strlen(t));
       if (n > w) w = n;
@@ -1096,7 +1321,9 @@ static Object *make_window(void)
       WA_DragBar, TRUE, WA_DepthGadget, TRUE, WA_CloseGadget, TRUE, WA_SizeGadget, TRUE,
       WA_Activate, TRUE,
       WA_InnerWidth, win_w,
-      WA_InnerHeight, win_h,
+      /* as low as the layout allows: the history of releases then ends with
+       * the last button (the user wants them the same height) */
+      WA_InnerHeight, 50,
       WA_IDCMP, IDCMP_MOUSEBUTTONS | IDCMP_RAWKEY,
       WINDOW_Position, WPOS_CENTERSCREEN,
       WINDOW_IconifyGadget, TRUE,
@@ -1150,11 +1377,19 @@ static Object *make_window(void)
               SPACE_BevelStyle, BVS_FIELD,
             TAG_END)),
             CHILD_WeightedHeight, 0,
+            LAYOUT_AddChild, (ULONG)(g_guide = NewObject(BUTTON_GetClass(), NULL,
+              GA_ID, GID_GUIDE, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_GUIDE),
+            TAG_END)),
+            CHILD_WeightedHeight, 0,
             LAYOUT_AddChild, (ULONG)(g_install = NewObject(BUTTON_GetClass(), NULL,
               GA_ID, GID_INSTALL, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_INSTALL),
             TAG_END)),
             CHILD_WeightedHeight, 0,
             CHILD_MinWidth, bw,
+            LAYOUT_AddChild, (ULONG)(g_update = NewObject(BUTTON_GetClass(), NULL,
+              GA_ID, GID_UPDATE, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_UPDATE),
+            TAG_END)),
+            CHILD_WeightedHeight, 0,
             LAYOUT_AddChild, (ULONG)(g_stop = NewObject(BUTTON_GetClass(), NULL,
               GA_ID, GID_STOP, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_STOP),
               GA_Disabled, TRUE,
@@ -1162,6 +1397,10 @@ static Object *make_window(void)
             CHILD_WeightedHeight, 0,
             LAYOUT_AddChild, (ULONG)(g_gamesdir = NewObject(BUTTON_GetClass(), NULL,
               GA_ID, GID_GAMESDIR, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_GAMESDIR),
+            TAG_END)),
+            CHILD_WeightedHeight, 0,
+            LAYOUT_AddChild, (ULONG)(g_appsdir = NewObject(BUTTON_GetClass(), NULL,
+              GA_ID, GID_APPSDIR, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_APPSDIR),
             TAG_END)),
             CHILD_WeightedHeight, 0,
             LAYOUT_AddChild, (ULONG)(g_refresh = NewObject(BUTTON_GetClass(), NULL,
@@ -1174,8 +1413,6 @@ static Object *make_window(void)
               CHOOSER_Selected, lang,
             TAG_END)),
             CHILD_WeightedHeight, 0,
-            LAYOUT_AddChild, (ULONG)(NewObject(SPACE_GetClass(), NULL, TAG_END)),
-            CHILD_WeightedHeight, 100,
           TAG_END)),
           CHILD_WeightedWidth, 0,
         TAG_END)),
@@ -1346,10 +1583,13 @@ int main(void)
     char a[400];
     int n;
     strncpy(prefs.gamesdir, test_gamesdir, sizeof(prefs.gamesdir) - 1);
-    n = scan_games_dir(test_gamesdir);
+    n = scan_games_dir(test_gamesdir, 1);
+    if (n < 0) n = 0;
+    games_scanned = 1;
     snprintf(a, sizeof(a), TX(T_FOUND), n, test_gamesdir);
     set_status(a);
   }
+  rescan_games();
   refresh_all();
 
   work_mask = 1UL << work_signal;
@@ -1386,6 +1626,7 @@ int main(void)
             if (code == 0x7A || code == 0x4C) scroll_rows(-1);       /* wheel / up */
             else if (code == 0x7B || code == 0x4D) scroll_rows(1);   /* wheel / down */
             else if (code == 0x45) done = 1;                         /* Esc */
+            else if (code == 0x5F) show_guide();                     /* Help */
             else if (code >= 0x01 && code <= 0x08) {                 /* 1..8: group */
               filter = code - 0x01;
               set_filter_buttons();
@@ -1407,7 +1648,9 @@ int main(void)
           case WMHI_GADGETUP:
             switch (result & WMHI_GADGETMASK) {
               case GID_REFRESH: start_refresh(); break;
-              case GID_GAMESDIR: choose_games_dir(); break;
+              case GID_GAMESDIR: choose_games_dir(0); break;
+              case GID_GUIDE: show_guide(); break;
+              case GID_APPSDIR: choose_games_dir(1); break;
               case GID_FILTER: case GID_FILTER + 1: case GID_FILTER + 2: case GID_FILTER + 3:
               case GID_FILTER + 4: case GID_FILTER + 5: case GID_FILTER + 6: case GID_FILTER + 7:
                 filter = (int)(result & WMHI_GADGETMASK) - GID_FILTER;
@@ -1415,7 +1658,8 @@ int main(void)
                 apply_filter();
                 refresh_all();
                 break;
-              case GID_INSTALL: start_install(); break;
+              case GID_INSTALL:
+              case GID_UPDATE: start_install(); break;
               case GID_STOP: hub_worker_break(); break;
               case GID_SCROLL: {
                 ULONG t = 0;
