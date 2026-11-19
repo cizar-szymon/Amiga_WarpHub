@@ -23,7 +23,7 @@ BRANCH main
 VERSION 0.4
 FLAT
 ZIP WarpHub-0.4.zip 66544
-SIZE 72958
+SIZE 70444
 IMAGE 2485 e4c6fcc78037abd22d90858afbae99e98f8ac59fe96be8cd324f5c6d7de4cf86 images/warphub.png
 NOTES en WarpHub/doc/WarpHub_release_en.txt
 NOTES pl WarpHub/doc/WarpHub_release.txt
@@ -31,7 +31,7 @@ NOTES de WarpHub/doc/WarpHub_release_de.txt
 FILE 6862 ea64fde17ae4daeac0823985da76ba69e9dd13132b8a7c1eb13c57cd533b5b74 X WarpHub.info
 FILE 67124 a3e3f4238b43653421c44f750ed6fcff1219c96f028be7fd2eddcdda569e3b87 N WarpHub/WarpHub
 FILE 3320 ec8027ba82761c6c5ee4058c742bea0f7b7a44f393d1a2beb5ca325df12211f8 K WarpHub/WarpHub.info
-FILE 2514 40a9f307f7de340bd324734098f4edb73e61c0dd1f1fc355554de827049f812b N WarpHub/doc.info
+FILE 2514 40a9f307f7de340bd324734098f4edb73e61c0dd1f1fc355554de827049f812b X WarpHub/doc.info
 FILE 2936 c23c213be52fdf5220bd4c69a7f1de336e64059a1a10a851abeb8b5c7fef25a8 X WarpHub/doc/WarpHub.txt
 FILE 3308 f6ca3a09267f0c9baa2abf16f3de2d17a5f179720c777543c34a3558b69f26eb X WarpHub/doc/WarpHub.txt.info
 FILE 3219 53054d5a4d15eca795b49a9275c5234bd502e9ffbdcc9c501055087df40ccde8 X WarpHub/doc/WarpHub_de.txt
