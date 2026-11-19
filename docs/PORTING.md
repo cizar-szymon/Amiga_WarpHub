@@ -626,3 +626,27 @@ Settlers z okna.
 - **Aktualizacja samego siebie sprawdzona (Amiga 1, użytkownik klikał):** WARP HUB 0.4 →
   „Update” → `SYS:WarpApps/WarpHub` 0.5 (`Version`), `WarpHub.old` = 0.4, ikona i
   `WarpHub.prefs` bez zmian, w ustawieniach `INSTALLED warphub 0.5 SystemSD:WarpApps`.
+
+## Do zrobienia: prywatne źródło pełnych paczek (pomysł użytkownika 19.11.2026)
+- Cel: na Amigach użytkownika WARP HUB instaluje także **pełne paczki** z danymi gier
+  (`private/<Gra>-<v>-full.zip` z projektów gier), których nie wolno publikować.
+- Kod jawny i ogólny: drugie, prywatne źródło katalogu włączane tylko liniami w
+  `WarpHub.prefs` na Amigach użytkownika (np. `PRIVATE <adres https>/catalog.txt`,
+  `PRIVATE-KEY <losowy klucz>`); bez nich program działa jak dziś. W kodzie i repo żadnego
+  adresu ani klucza; żadnego ukrywania w kodzie („tajny klawisz” nic nie chroni).
+- **Serwer: osobny Raspberry Pi 4** (nie Pi400 – serwer gier), na publicznym IP
+  użytkownika z **przekierowanym portem** na routerze (ustawia użytkownik). HTTPS
+  (certyfikat, np. Let's Encrypt, albo własne CA wbudowane do sprawdzania), pliki tylko z
+  poprawnym kluczem, katalog w tym samym formacie co publiczny (rozpakowane pełne paczki,
+  SHA-256). Generator katalogu z `private/` na PC, wysyłka na RP4.
+- Ostrożnie: dane gier tylko dla Amig użytkownika; serwer niewidoczny bez klucza, limity
+  prób, log. Wdrożenie na RP4 i router tylko za zgodą użytkownika (adres RP4 – zapytać).
+- **Hasło w okienku (decyzja użytkownika 19.11.2026), sprawdzane przez serwer:**
+  - WARP HUB pyta o hasło w okienku (raz po uruchomieniu, gdy jest `PRIVATE` w ustawieniach)
+    i wysyła je przez HTTPS do serwera na RP4; program nie wie, jakie hasło jest dobre –
+    w kodzie ani hasła, ani jego skrótu, ani adresu (adres tylko w `WarpHub.prefs`).
+  - Serwer porównuje (skrót hasła u siebie), wydaje katalog i pliki; po kilku złych próbach
+    blokada adresu IP na pewien czas, wpis w logu.
+  - Hasło trzymane tylko w pamięci do zamknięcia programu; opcja „zapamiętaj na tej Amidze”
+    (zapis w `WarpHub.prefs`) dla wygody na maszynach użytkownika.
+  - Odrzucone: hasło sprawdzane przez sam program (jawny kod – do obejścia w kilka minut).
