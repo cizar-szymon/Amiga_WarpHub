@@ -6,7 +6,7 @@ NAME de Die Siedler
 DESC en Freeserf port of The Settlers: build an economy, roads and an army. Game against the computer and over the LAN.
 DESC pl Port Freeserf gry The Settlers: budowa gospodarki, dróg i armii. Gra z komputerem i przez sieć lokalną.
 DESC de Freeserf-Portierung von Die Siedler: Wirtschaft, Straßen und Armee aufbauen. Spiel gegen den Computer und im Netzwerk.
-TAGS pc
+TAGS warp1260,warp1240,warp7060
 REQ en 68040 / 68060
 REQ en 100 MHz recommended
 REQ en 32 MB Fast RAM
@@ -63,7 +63,7 @@ NAME en OpenDUNE
 DESC en Dune II, the strategy classic, on the OpenDUNE engine. 800x600 on RTG, LAN game for three players.
 DESC pl Dune II, klasyka strategii, na silniku OpenDUNE. 800x600 na RTG, gra w sieci lokalnej dla trzech graczy.
 DESC de Dune II, der Strategieklassiker, mit der OpenDUNE-Engine. 800x600 auf RTG, Netzwerkspiel für drei Spieler.
-TAGS pc
+TAGS warp1260,warp1240,warp7060
 REQ en 68040 / 68060
 REQ en 100 MHz recommended
 REQ en 32 MB Fast RAM
@@ -112,7 +112,7 @@ NAME en Diablo (DevilutionX)
 DESC en Diablo and Hellfire on the DevilutionX engine, made for Warp cards.
 DESC pl Diablo i Hellfire na silniku DevilutionX, przygotowane dla kart Warp.
 DESC de Diablo und Hellfire mit der DevilutionX-Engine, für Warp-Karten gemacht.
-TAGS pc
+TAGS warp1260,warp7060
 REQ en WARP accelerator MC68060 + RTG
 REQ en 100 MHz recommended
 REQ en AmigaOS 3.2

@@ -30,8 +30,8 @@ space, the last field of a line may contain spaces):
     VERSION <version>
     ZIP <name> <size>
     REQ <lang> <text>             one line of the requirements (several lines)
-    TAGS <tag>,<tag>...           the groups of the filter buttons: apps, amiga,
-                                  warpextreme, arcade, pc, mac, other
+    TAGS <tag>,<tag>...           the groups of the filter buttons: apps, warp1260,
+                                  warp1240, warp1260x, warp7060, ppc, other
     SOURCE local                  only in catalog-test.txt (--simulate): the repo
                                   is not public yet, the files cannot be downloaded
     SIZE <bytes of all files>

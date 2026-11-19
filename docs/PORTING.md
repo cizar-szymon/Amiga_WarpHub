@@ -515,3 +515,10 @@ Settlers z okna.
 - Wszystkie, Programy, AMIGA port (`amiga`), PC port, MAC port, WarpExtreme, Arcade, Inne;
   w programie (PL/EN/DE, klawisze 1–8) i w edytorze. Znacznik `new` usunięty z Diablo,
   AmiXcom i ZOD. Amiga 2 (1280×1024): przyciski w tej kolejności. 640×480 nie sprawdzone.
+
+### Przyciski filtra według kart Warp (19.11.2026, decyzja użytkownika)
+- Wszystkie, Programy, Warp 560/1260 (`warp1260`), Warp 1240 (`warp1240`), Warp 1260X
+  (`warp1260x`), Warp 7060 (`warp7060`), PowerPC (`ppc`), Inne (`other`). Typy z platform
+  (AMIGA/PC/MAC port), Arcade i WarpExtreme usunięte.
+- Wstępnie według wymagań: wszystkie gry 560/1260 i 7060; 1240: Settlers, OpenDUNE, AmiXcom,
+  ZOD, Miner 2049er, Wizard of Wor. 1260X i PowerPC puste (decyzja użytkownika w edytorze).

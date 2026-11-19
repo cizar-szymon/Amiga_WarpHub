@@ -3,7 +3,7 @@ NAME en Wizard of Wor
 DESC en The 1980 arcade maze shooter by Midway, rewritten from the C64 version for one or two players.
 DESC pl Labiryntowa strzelanka z automatu Midway z 1980 roku, przepisana z wersji na C64, dla jednego lub dwóch graczy.
 DESC de Das Labyrinth-Ballerspiel von Midway aus dem Jahr 1980, aus der C64-Version neu geschrieben, für ein oder zwei Spieler.
-TAGS arcade
+TAGS warp1260,warp1240,warp7060
 REQ en 68020 or better
 REQ en tested on 060 / 50 MHz
 REQ en 1 MB
