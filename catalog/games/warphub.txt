@@ -1,0 +1,20 @@
+# WARP HUB: WARP HUB (format: tools/game_files.py)
+NAME en WARP HUB
+DESC en This program: the games and programs for Warp cards in one window - install, update, how to start. Updates itself.
+DESC pl Ten program: gry i programy dla kart Warp w jednym oknie - instalacja, aktualizacja, instrukcja uruchomienia. Aktualizuje sam siebie.
+DESC de Dieses Programm: Spiele und Programme fuer Warp-Karten in einem Fenster - Installation, Update, Startanleitung. Aktualisiert sich selbst.
+TAGS apps,warp1260,warp1240,warp1260x,warp7060
+REQ en 68040 / 68060
+REQ en AmigaOS 3.2, RTG
+REQ en AmiSSL 5 (WarpSSL)
+REQ en TCP/IP, internet
+REQ pl 68040 / 68060
+REQ pl AmigaOS 3.2, RTG
+REQ pl AmiSSL 5 (WarpSSL)
+REQ pl TCP/IP, internet
+REQ de 68040 / 68060
+REQ de AmigaOS 3.2, RTG
+REQ de AmiSSL 5 (WarpSSL)
+REQ de TCP/IP, Internet
+REPO cizar-szymon/Amiga_WarpHub
+ORDER 1

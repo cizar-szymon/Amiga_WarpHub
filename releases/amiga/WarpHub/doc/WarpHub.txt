@@ -1,0 +1,61 @@
+WARP HUB - gry i programy dla Amigi z karta Warp
+================================================
+
+WARP HUB pokazuje w jednym oknie porty gier i programy dla Amigi z karta Warp,
+instaluje je i aktualizuje. Pliki pobiera wprost z GitHuba przez HTTPS, kazdy
+sprawdzony suma SHA-256.
+
+WYMAGANIA
+- Amiga 500 / 1200 / 3000 / 4000 z karta Warp (Warp 560, 1240, 1260,
+  1260 Extreme, 7060), 68040 albo 68060
+- AmigaOS 3.2, karta graficzna (Picasso96)
+- AmiSSL 5; na kartach Warp z oprogramowaniem 3.074 lub nowszym
+  szyfrowanie robi karta (WarpSSL)
+- stos TCP/IP z dostepem do internetu (Roadshow, warpSOCKET)
+- png.datatype (obrazki gier)
+Zegar Amigi nie musi byc ustawiony: do sprawdzenia certyfikatow WARP HUB
+pobiera godzine z serwera czasu (pool.ntp.org i inne).
+
+INSTALACJA
+Szuflade WarpHub polozyc np. w SYS:WarpApps i uruchomic ikone WarpHub.
+
+OKNO
+- U gory przyciski grup: Wszystkie, Programy, Warp 560/1260, Warp 1240,
+  Warp 1260X, Warp 7060, PowerPC, Inne (karty, na ktorych gra dziala).
+- Galeria gier: obrazek, nazwa i stan (zainstalowana, nowa wersja, do
+  pobrania). Wybor myszka albo strzalkami.
+- Pod galeria: opis gry, wymagania i historia wydan.
+- Przyciski po prawej:
+  Instrukcja uruchomienia - co trzeba dolozyc (np. dane oryginalnej gry)
+                            i gdzie; otwiera sie tez sama po instalacji
+  Zainstaluj              - gra, ktorej nie ma; WARP HUB pyta o szuflade
+  Aktualizuj              - gdy jest nowsza wersja; pobiera tylko zmienione
+                            pliki, stary program trafia do old/
+  Przerwij                - przerywa pobieranie
+  Katalog gier            - szuflada z zainstalowanymi grami
+  Katalog programow       - szuflada z zainstalowanymi programami
+  Odswiez                 - pobiera aktualna liste gier
+  jezyk                   - polski, angielski, niemiecki
+- Klawisze: strzalki - wybor gry i przewijanie, 1-8 - grupy, Help -
+  instrukcja uruchomienia, Esc - koniec.
+
+TWOJE PLIKI
+WARP HUB nie nadpisuje plikow gracza: danych gry, ustawien (*.ini, *.prefs),
+zapisow gry ani ikony programu z Twoimi Tool Types.
+Danych gier i ROM-ow WARP HUB nie rozprowadza - instrukcja uruchomienia mowi,
+skad je wziac i gdzie polozyc.
+
+ZAINSTALOWANE GRY
+Przy kazdym starcie WARP HUB przeszukuje szuflady gier i programow i rozpoznaje
+zainstalowane gry (takze zainstalowane recznie) po numerze wersji programu.
+Szuflada gry musi miec nazwe taka jak w paczce (np. Settlers).
+
+AKTUALIZACJA WARP HUB
+WARP HUB jest tez na liscie (grupa Programy) i aktualizuje sam siebie: po
+aktualizacji zamknij go i uruchom ponownie.
+
+USTAWIENIA
+Plik WarpHub.prefs w szufladzie programu (zapisywany przez WARP HUB).
+Tool Types ikony: LANG=pl|en|de.
+
+Zrodla i opis: https://github.com/cizar-szymon/Amiga_WarpHub

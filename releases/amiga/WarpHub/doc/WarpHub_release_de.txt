@@ -1,0 +1,23 @@
+WARP HUB - Versionen
+====================
+
+Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.3")
+und in der Shell: Version SYS:WarpApps/WarpHub/WarpHub. Beschreibe, was
+passiert ist, mit der Versionsnummer:
+https://github.com/cizar-szymon/Amiga_WarpHub/issues
+
+
+0.3 (19.11.2026, Beta)
+----------------------
+- Erste Version: eine Galerie der Spiele und Programme fuer Warp-Karten mit
+  Bildern, Beschreibungen, Anforderungen und Versionsgeschichte; Deutsch,
+  Englisch, Polnisch.
+- Installiert und aktualisiert direkt von GitHub (AmiSSL / WarpSSL), nur
+  geaenderte Dateien, jede mit SHA-256 geprueft; das alte Programm kommt
+  nach old/.
+- Die Dateien des Spielers bleiben: Spieldaten, Einstellungen, Spielstaende,
+  das Symbol mit seinen Tool Types.
+- Startanleitung: was hinzuzufuegen ist und wohin.
+- Bei jedem Start erkennt es die installierten Spiele in den Spiele- und
+  Programm-Schubladen.
+- WARP HUB aktualisiert sich selbst (Gruppe Programme).

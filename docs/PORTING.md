@@ -591,3 +591,16 @@ Settlers z okna.
 - Katalog po przebudowie: wszystkie 7 gier, każdy plik z sumą równą plikowi w ZIP-ie
   (27 + 22 + 251 + 108 + 11 + 11 + 105). Generator nie musi już brać „wersji z gita”
   zamiast ZIP-a.
+
+## WARP HUB 0.3: wydanie i aktualizacja samego siebie (19.11.2026)
+- Decyzja użytkownika: własna szuflada `SYS:WarpApps/WarpHub/` (program, ikona,
+  `WarpHub.prefs`, `cache/`, `doc/`), w `SYS:WarpApps` ikona szuflady WARP.
+- `tools/make_release.py`: `releases/amiga/WarpHub-<v>.zip`, `WarpHub/` (program, ikona,
+  `doc/` z opisami PL/EN/DE i historią wydań, ikony tekstów z OpenDUNE), `WarpHub.info`
+  (`WARP-drawer.info`); sprawdza `$VER`. Źródła tekstów: `docs/release/amiga/`.
+- Katalog: `catalog/games/warphub.txt` (klucz `warphub`, grupa Programy, `ORDER 1`), obrazek
+  z ikony. Automat katalogu rusza też po zmianie w `releases/`. `.gitattributes`:
+  `releases/** -text`.
+- Program: `note_self()` – uruchomiony z szuflady `<dir>/WarpHub` zapisuje się jako
+  zainstalowany `warphub` w `<dir>`; po aktualizacji samego siebie okno „zamknij i uruchom
+  ponownie”. Stary program idzie do `old/` jak u gier.

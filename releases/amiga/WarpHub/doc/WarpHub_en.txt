@@ -1,0 +1,63 @@
+WARP HUB - games and programs for the Amiga with a Warp card
+============================================================
+
+WARP HUB shows the game ports and programs for the Amiga with a Warp card in
+one window, installs them and keeps them up to date. It downloads the files
+straight from GitHub over HTTPS and checks each one with SHA-256.
+
+REQUIREMENTS
+- Amiga 500 / 1200 / 3000 / 4000 with a Warp card (Warp 560, 1240, 1260,
+  1260 Extreme, 7060), 68040 or 68060
+- AmigaOS 3.2, a graphics card (Picasso96)
+- AmiSSL 5; on Warp cards with firmware 3.074 or later the card does the
+  encryption (WarpSSL)
+- a TCP/IP stack with internet access (Roadshow, warpSOCKET)
+- png.datatype (the pictures of the games)
+The Amiga's clock does not have to be set: to check the certificates WARP HUB
+gets the time from a time server (pool.ntp.org and others).
+
+INSTALLATION
+Put the drawer WarpHub for example into SYS:WarpApps and start the icon WarpHub.
+
+THE WINDOW
+- At the top the group buttons: All, Programs, Warp 560/1260, Warp 1240,
+  Warp 1260X, Warp 7060, PowerPC, Other (the cards a game runs on).
+- The gallery: picture, name and state (installed, new version, available).
+  Choose with the mouse or the arrow keys.
+- Below: the description of the game, its requirements and its history of
+  releases.
+- The buttons on the right:
+  How to start      - what you have to add (e.g. the data of the original
+                      game) and where; also opens by itself after installing
+  Install           - a game you do not have; WARP HUB asks for a drawer
+  Update            - when there is a newer version; only the changed files
+                      are downloaded, the old program goes to old/
+  Stop              - stops the download
+  Games drawer      - the drawer of your installed games
+  Programs drawer   - the drawer of your installed programs
+  Refresh           - gets the current list of games
+  language          - English, Polish, German
+- Keys: arrows - choose and scroll, 1-8 - groups, Help - how to start,
+  Esc - quit.
+
+YOUR FILES
+WARP HUB never overwrites the player's files: game data, settings (*.ini,
+*.prefs), saved games and the program icon with your Tool Types.
+WARP HUB does not distribute game data or ROMs - "How to start" says where to
+get them and where to put them.
+
+INSTALLED GAMES
+At every start WARP HUB looks into the games and programs drawers and
+recognises the installed games (also ones installed by hand) by the version of
+their program. The game's drawer must have the name of the package (e.g.
+Settlers).
+
+UPDATING WARP HUB
+WARP HUB is in the list too (group Programs) and updates itself: after the
+update close it and start it again.
+
+SETTINGS
+The file WarpHub.prefs in the program's drawer (written by WARP HUB).
+Tool Types of the icon: LANG=pl|en|de.
+
+Sources and description: https://github.com/cizar-szymon/Amiga_WarpHub

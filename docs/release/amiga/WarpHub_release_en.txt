@@ -1,0 +1,22 @@
+WARP HUB - releases
+===================
+
+Reporting bugs: the release number is in the screen title ("WARP HUB 0.3")
+and in the Shell: Version SYS:WarpApps/WarpHub/WarpHub. Describe what
+happened and give the release number:
+https://github.com/cizar-szymon/Amiga_WarpHub/issues
+
+
+0.3 (19.11.2026, beta release)
+------------------------------
+- First release: a gallery of the games and programs for Warp cards with
+  pictures, descriptions, requirements and the history of releases; English,
+  Polish, German.
+- Installs and updates straight from GitHub (AmiSSL / WarpSSL), only the
+  changed files, each one checked with SHA-256; the old program goes to old/.
+- The player's files stay: game data, settings, saved games, the icon with
+  its Tool Types.
+- How to start: what to add and where.
+- At every start it recognises the installed games in the games and
+  programs drawers.
+- WARP HUB updates itself (group Programs).

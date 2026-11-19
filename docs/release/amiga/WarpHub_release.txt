@@ -1,0 +1,19 @@
+WARP HUB - wydania
+==================
+
+Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.3") i w
+Shellu: Version SYS:WarpApps/WarpHub/WarpHub. Opisz, co sie stalo, i podaj
+numer wydania: https://github.com/cizar-szymon/Amiga_WarpHub/issues
+
+
+0.3 (19.11.2026, wydanie beta)
+------------------------------
+- Pierwsze wydanie: galeria gier i programow dla kart Warp z obrazkami,
+  opisami, wymaganiami i historia wydan; polski, angielski, niemiecki.
+- Instalacja i aktualizacja wprost z GitHuba (AmiSSL / WarpSSL), tylko
+  zmienione pliki, kazdy sprawdzony suma SHA-256; stary program do old/.
+- Pliki gracza zostaja: dane gry, ustawienia, zapisy, ikona z Tool Types.
+- Instrukcja uruchomienia: co dolozyc i gdzie.
+- Przy kazdym starcie rozpoznaje zainstalowane gry w szufladach gier
+  i programow.
+- WARP HUB aktualizuje sam siebie (grupa Programy).

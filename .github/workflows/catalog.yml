@@ -11,6 +11,7 @@ on:
     paths:
       - 'catalog/games/**'
       - 'catalog/images/**'
+      - 'releases/**'
       - 'tools/make_catalog.py'
       - 'tools/make_images.py'
       - 'tools/game_files.py'

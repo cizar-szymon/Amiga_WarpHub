@@ -60,7 +60,7 @@
 
 extern struct WBStartup *_WBenchMsg;
 
-#define WARPHUB_VERSION "0.2"
+#define WARPHUB_VERSION "0.3"   /* tools/make_release.py reads it */
 const char version_tag[] = "$VER: WarpHub " WARPHUB_VERSION " (19.11.2026)";
 
 unsigned long __stack = 65536;
@@ -91,7 +91,7 @@ enum {
   T_DONE, T_FAILED, T_LOADING, T_CACHE_ONLY, T_DOWNLOADING, T_UP_TO_DATE, T_HISTORY_NONE,
   T_READY, T_CHECKING, T_OK, T_NO_CATALOG, T_ADD_YOURSELF, T_FILES, T_IN, T_NO_NET, T_SOON,
   T_NOT_PUBLIC, T_EMPTY, T_NEW_SHORT, T_REQ, T_GAMESDIR, T_CHOOSE_GAMESDIR, T_FOUND, T_SCANNING, T_APPSDIR, T_CHOOSE_APPSDIR, T_GUIDE, T_GUIDE_NONE,
-  T_GUIDE_MISSING, T_PUT_IN, T_CLOSE,
+  T_GUIDE_MISSING, T_PUT_IN, T_CLOSE, T_RESTART,
   T_COUNT
 };
 
@@ -115,7 +115,8 @@ static const char *const texts[3][T_COUNT] = {
     "%d games found in %s.", "Looking for your games...",
     "Programs drawer", "Drawer of your installed programs",
     "How to start", "Nothing to add: the game is ready to start after the installation.",
-    "The guide is not downloaded yet - press Refresh.", "Into the drawer %s:", "Close"
+    "The guide is not downloaded yet - press Refresh.", "Into the drawer %s:", "Close",
+    "WARP HUB %s is installed.\nClose WARP HUB and start it again to use the new version."
   },
   { /* pl */
     "Odswiez", "Zainstaluj", "Aktualizuj", "Sprawdz pliki", "Przerwij", "Zainstalowana %s",
@@ -136,7 +137,8 @@ static const char *const texts[3][T_COUNT] = {
     "Znalezione gry: %d w %s.", "Szukam zainstalowanych gier...",
     "Katalog programow", "Szuflada z zainstalowanymi programami",
     "Instrukcja uruchomienia", "Nic nie trzeba dokladac: po instalacji gra jest gotowa do uruchomienia.",
-    "Instrukcja nie jest jeszcze pobrana - nacisnij Odswiez.", "Do szuflady %s:", "Zamknij"
+    "Instrukcja nie jest jeszcze pobrana - nacisnij Odswiez.", "Do szuflady %s:", "Zamknij",
+    "WARP HUB %s jest zainstalowany.\nZamknij WARP HUB i uruchom go ponownie, zeby uzywac nowej wersji."
   },
   { /* de */
     "Aktualisieren", "Installieren", "Update", "Dateien pr\xfc" "fen", "Abbrechen",
@@ -158,7 +160,8 @@ static const char *const texts[3][T_COUNT] = {
     "Programm-Schublade", "Schublade der installierten Programme",
     "Startanleitung", "Nichts hinzuzuf\xfc" "gen: das Spiel ist nach der Installation startbereit.",
     "Die Anleitung ist noch nicht geladen - Aktualisieren dr\xfc" "cken.", "In die Schublade %s:",
-    "Schlie\xdf" "en"
+    "Schlie\xdf" "en",
+    "WARP HUB %s ist installiert.\nWARP HUB schlie\xdf" "en und neu starten, um die neue Version zu nutzen."
   }
 };
 
@@ -947,6 +950,26 @@ static int scan_games_dir(const char *dir, int save, int only_new)
   return found;
 }
 
+/* WARP HUB itself is an entry of the catalog (group Programs, key "warphub"):
+ * when it runs from its own drawer <dir>/WarpHub, that is its installation -
+ * the version is this program's, so the catalog shows "installed" or "update"
+ * and the update replaces this drawer's files (the old program goes to old/;
+ * WarpHub.prefs and cache/ are not in the catalog and stay). */
+#define SELF_KEY "warphub"
+
+static void note_self(void)
+{
+  char path[256];
+  BPTR dir = GetProgramDir();
+  STRPTR part;
+  if (dir == 0 || !NameFromLock(dir, (STRPTR)path, sizeof(path))) return;
+  if (Stricmp(FilePart((STRPTR)path), (CONST_STRPTR)"WarpHub") != 0) return;
+  part = PathPart((STRPTR)path);
+  if (part == (STRPTR)path) return;               /* "SYS:" alone - no parent */
+  *part = 0;
+  hub_prefs_set_installed(&prefs, SELF_KEY, WARPHUB_VERSION, path);
+}
+
 /* at every start: the games drawer and every drawer a game was installed to,
  * looked at again - the player may have added, removed or updated a game
  * without WARP HUB. Needs the catalog (cached one, or the first download). */
@@ -1220,7 +1243,12 @@ static void worker_news(void)
       }
       set_status(a);
       set_progress(0, 0);
-      if (g->readmes > 0 && work.plan.files > 0 && !test_dir[0]) {
+      if (strcmp(g->key, SELF_KEY) == 0 && work.plan.files > 0 && !test_dir[0]) {
+        char r[300];
+        snprintf(r, sizeof(r), TX(T_RESTART), v);
+        refresh_all();
+        ask(r, TX(T_OK));
+      } else if (g->readmes > 0 && work.plan.files > 0 && !test_dir[0]) {
         refresh_all();
         show_guide();           /* what to add and where */
       }
@@ -1595,6 +1623,7 @@ int main(void)
     snprintf(a, sizeof(a), TX(T_FOUND), n, test_gamesdir);
     set_status(a);
   }
+  note_self();
   rescan_games(0);
   refresh_all();
 
