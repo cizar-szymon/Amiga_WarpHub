@@ -1,11 +1,10 @@
 # WARP HUB: The Settlers (format: tools/game_files.py)
 NAME en The Settlers
-NAME pl The Settlers
 NAME de Die Siedler
 DESC en Freeserf port of The Settlers: build an economy, roads and an army. Game against the computer and over the LAN.
 DESC pl Port Freeserf gry The Settlers: budowa gospodarki, dróg i armii. Gra z komputerem i przez sieć lokalną.
 DESC de Freeserf-Portierung von Die Siedler: Wirtschaft, Straßen und Armee aufbauen. Spiel gegen den Computer und im Netzwerk.
-TAGS warp1260,warp1240,warp7060
+TAGS warp1260,warp1240,warp1260x,warp7060
 REQ en 68040 / 68060
 REQ en 100 MHz recommended
 REQ en 32 MB Fast RAM
