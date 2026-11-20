@@ -42,7 +42,15 @@
 #include <proto/space.h>
 #include <proto/scroller.h>
 #include <proto/fuelgauge.h>
+#include <proto/string.h>
+#include <proto/checkbox.h>
+#include <proto/label.h>
+#include <intuition/imageclass.h>
+#include <intuition/classes.h>
 #include <classes/window.h>
+#include <gadgets/string.h>
+#include <gadgets/checkbox.h>
+#include <images/label.h>
 #include <gadgets/layout.h>
 #include <gadgets/button.h>
 #include <gadgets/chooser.h>
@@ -53,6 +61,7 @@
 #include <reaction/reaction_macros.h>   /* RA_OpenWindow, RA_HandleInput */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "hub_mem.h"
@@ -85,6 +94,8 @@ static int TILE_W = 224, TILE_H = 140;
 struct Library *WindowBase = NULL, *LayoutBase = NULL, *ButtonBase = NULL,
     *ChooserBase = NULL, *ListBrowserBase = NULL, *SpaceBase = NULL, *ScrollerBase = NULL,
     *FuelGaugeBase = NULL;
+/* only for the login window (opened there) */
+struct Library *StringBase = NULL, *CheckBoxBase = NULL, *LabelBase = NULL;
 
 /* --- texts --------------------------------------------------------------- */
 
@@ -95,7 +106,9 @@ enum {
   T_READY, T_CHECKING, T_OK, T_NO_CATALOG, T_ADD_YOURSELF, T_FILES, T_IN, T_NO_NET, T_SOON,
   T_NOT_PUBLIC, T_EMPTY, T_NEW_SHORT, T_REQ, T_GAMESDIR, T_CHOOSE_GAMESDIR, T_FOUND, T_SCANNING, T_APPSDIR, T_CHOOSE_APPSDIR, T_GUIDE, T_GUIDE_NONE,
   T_GUIDE_MISSING, T_PUT_IN, T_CLOSE, T_RESTART, T_RUN, T_RUNNING,
-  T_RUN_FAILED,
+  T_RUN_FAILED, T_PRIV_TITLE, T_SERVER, T_PASSWORD, T_REMEMBER, T_LOGIN, T_LOGOUT,
+  T_CANCEL, T_CONNECTING, T_CERT_ASK, T_TRUST, T_PRIV_OK, T_PRIV_BAD, T_PRIV_BLOCKED,
+  T_PRIV_ERR, T_FULL, T_LOGGED_OUT, T_BAD_SERVER, T_NOT_TRUSTED, T_BUSY,
   T_COUNT
 };
 
@@ -121,7 +134,17 @@ static const char *const texts[3][T_COUNT] = {
     "How to start", "Nothing to add: the game is ready to start after the installation.",
     "The guide is not downloaded yet - press Refresh.", "Into the drawer %s:", "Close",
     "WARP HUB %s is installed.\nClose WARP HUB and start it again to use the new version.",
-    "Run", "Starting %s...", "Cannot start %s (%s)."
+    "Run", "Starting %s...", "Cannot start %s (%s).",
+    "Private source", "Server (address:port)", "Password", "Remember on this Amiga",
+    "Log in", "Log out", "Cancel", "Connecting to %s...",
+    "First connection to %s.\nIts certificate: %s\n\n"
+    "Is this your server? The server shows the same\ncharacters when it starts.",
+    "Yes, my server|No",
+    "Private source: %d full packages.", "Private source: wrong password.",
+    "Private source: too many wrong passwords - try again in 15 minutes.",
+    "Private source: %s", "Full package (private source)",
+    "Logged out of the private source.", "Server: address:port, e.g. 192.168.1.20:6831",
+    "Certificate not accepted - not connected.", "Wait until the current job ends."
   },
   { /* pl */
     "Odswiez", "Zainstaluj", "Aktualizuj", "Sprawdz pliki", "Przerwij", "Zainstalowana %s",
@@ -144,7 +167,17 @@ static const char *const texts[3][T_COUNT] = {
     "Instrukcja uruchomienia", "Nic nie trzeba dokladac: po instalacji gra jest gotowa do uruchomienia.",
     "Instrukcja nie jest jeszcze pobrana - nacisnij Odswiez.", "Do szuflady %s:", "Zamknij",
     "WARP HUB %s jest zainstalowany.\nZamknij WARP HUB i uruchom go ponownie, zeby uzywac nowej wersji.",
-    "Uruchom", "Uruchamiam %s...", "Nie mozna uruchomic %s (%s)."
+    "Uruchom", "Uruchamiam %s...", "Nie mozna uruchomic %s (%s).",
+    "Prywatne zrodlo", "Serwer (adres:port)", "Haslo", "Zapamietaj na tej Amidze",
+    "Zaloguj", "Wyloguj", "Anuluj", "Lacze z %s...",
+    "Pierwsze polaczenie z %s.\nJego certyfikat: %s\n\n"
+    "Czy to Twoj serwer? Serwer pokazuje te same\nznaki przy starcie.",
+    "Tak, moj serwer|Nie",
+    "Prywatne zrodlo: pelnych paczek: %d.", "Prywatne zrodlo: zle haslo.",
+    "Prywatne zrodlo: za duzo zlych hasel - sprobuj za 15 minut.",
+    "Prywatne zrodlo: %s", "Pelna paczka (prywatne zrodlo)",
+    "Wylogowano z prywatnego zrodla.", "Serwer: adres:port, np. 192.168.1.20:6831",
+    "Certyfikat nie przyjety - bez polaczenia.", "Poczekaj, az skonczy sie obecne zadanie."
   },
   { /* de */
     "Aktualisieren", "Installieren", "Update", "Dateien pr\xfc" "fen", "Abbrechen",
@@ -168,7 +201,17 @@ static const char *const texts[3][T_COUNT] = {
     "Die Anleitung ist noch nicht geladen - Aktualisieren dr\xfc" "cken.", "In die Schublade %s:",
     "Schlie\xdf" "en",
     "WARP HUB %s ist installiert.\nWARP HUB schlie\xdf" "en und neu starten, um die neue Version zu nutzen.",
-    "Starten", "Starte %s...", "%s kann nicht gestartet werden (%s)."
+    "Starten", "Starte %s...", "%s kann nicht gestartet werden (%s).",
+    "Private Quelle", "Server (Adresse:Port)", "Passwort", "Auf diesem Amiga merken",
+    "Anmelden", "Abmelden", "Abbrechen", "Verbinde mit %s...",
+    "Erste Verbindung mit %s.\nSein Zertifikat: %s\n\n"
+    "Ist das dein Server? Der Server zeigt beim Start\ndieselben Zeichen.",
+    "Ja, mein Server|Nein",
+    "Private Quelle: %d volle Pakete.", "Private Quelle: falsches Passwort.",
+    "Private Quelle: zu viele falsche Passw\xf6rter - in 15 Minuten noch einmal.",
+    "Private Quelle: %s", "Volles Paket (private Quelle)",
+    "Von der privaten Quelle abgemeldet.", "Server: Adresse:Port, z.B. 192.168.1.20:6831",
+    "Zertifikat nicht angenommen - keine Verbindung.", "Warte, bis die laufende Aufgabe endet."
   }
 };
 
@@ -193,7 +236,7 @@ static char test_key[32], test_dir[256], test_gamesdir[256];
 /* --- state --------------------------------------------------------------- */
 
 enum { GID_LANG = 1, GID_REFRESH, GID_GALLERY, GID_SCROLL, GID_PAGE, GID_INSTALL, GID_STOP,
-       GID_NOTES, GID_PROGRESS, GID_REQ, GID_GAMESDIR, GID_APPSDIR, GID_UPDATE, GID_GUIDE, GID_RUN, GID_FILTER };     /* GID_FILTER + 0..FILTERS-1 */
+       GID_NOTES, GID_PROGRESS, GID_REQ, GID_GAMESDIR, GID_APPSDIR, GID_UPDATE, GID_GUIDE, GID_RUN, GID_LOCK, GID_FILTER };     /* GID_FILTER + 0..FILTERS-1 */
 
 typedef struct Tile {
   Object *dt;                /* the picture (datatype), NULL = none */
@@ -497,7 +540,8 @@ static void draw_page(struct RastPort *rp, struct IBox *box)
   snprintf(a, sizeof(a), TX(T_SIZE), c, (long)g->nfiles);
   {
     int n = (int)strlen(a);
-    snprintf(a + n, sizeof(a) - n, "  -  github.com/%s", g->repo);
+    if (g->priv) snprintf(a + n, sizeof(a) - n, "  -  %s", TX(T_FULL));
+    else snprintf(a + n, sizeof(a) - n, "  -  github.com/%s", g->repo);
   }
   p.pen = pens[P_DIM];
   page_line(&p, a, (int)strlen(a));
@@ -659,6 +703,7 @@ static void update_buttons(void)
     HubInstalled *in = installed(g);
     if (in == NULL) can_install = 1;
     else if (version_cmp(in->version, g->version) < 0) can_update = 1;
+    else if (g->priv) can_update = 1;     /* the data of the full package */
   }
   if (win == NULL) return;
   SetGadgetAttrs((struct Gadget *)g_guide, win, NULL, GA_Text, (ULONG)TX(T_GUIDE),
@@ -792,9 +837,48 @@ static void load_cached_catalog(void)
   }
 }
 
+/* --- the private source (padlock in the title bar) --------------------------- */
+
+static char sess_pass[64];          /* the password of this session ("" = none) */
+static int sess_on;                 /* logged in: the private games are shown */
+
+/* "host:port" -> host, port (6831 when missing); 0 on a bad one */
+static int parse_server(const char *s, char *host, int hostlen, int *port)
+{
+  const char *colon = strrchr(s, ':');
+  int n = colon != NULL ? (int)(colon - s) : (int)strlen(s);
+  *port = colon != NULL ? atoi(colon + 1) : 6831;
+  if (n <= 0 || n >= hostlen || *port <= 0 || *port > 65535 || strchr(s, ' ') != NULL) return 0;
+  memcpy(host, s, n);
+  host[n] = 0;
+  return 1;
+}
+
+/* the private fields of the job: with the password only when the
+ * certificate of the server is known (accepted by the user) */
+static void private_to_work(int probe)
+{
+  memset(work.priv_pass, 0, sizeof(work.priv_pass));
+  work.priv_host[0] = 0;
+  work.priv_pin[0] = 0;
+  if (prefs.priv[0] == 0 ||
+      !parse_server(prefs.priv, work.priv_host, sizeof(work.priv_host), &work.priv_port)) {
+    work.priv_host[0] = 0;
+    return;
+  }
+  if (probe) return;
+  if (strlen(prefs.priv_cert) != 64 || sess_pass[0] == 0) {
+    work.priv_host[0] = 0;
+    return;
+  }
+  strcpy(work.priv_pin, prefs.priv_cert);
+  strcpy(work.priv_pass, sess_pass);
+}
+
 static void start_refresh(void)
 {
   if (work.busy) return;
+  private_to_work(0);
   strncpy(work.catalog_src, prefs.catalog[0] ? prefs.catalog : CATALOG_URL,
           sizeof(work.catalog_src) - 1);
   work.job = HUB_JOB_REFRESH;
@@ -919,6 +1003,9 @@ static int scan_games_dir(const char *dir, int save, int only_new)
     ULONG best_size = 0;
     int here = 0;
     if (only_new && hub_prefs_installed(&prefs, g->key) != NULL) continue;
+    /* WARP HUB itself: where it runs is its installation (note_self) - an old
+     * cached catalog must not make it look elsewhere and forget itself */
+    if (strcmp(g->key, SELF_KEY) == 0) continue;
     for (j = 0; j < g->nfiles; j++) {
       const char *path = g->files[j].path;
       char name[300], ver[24];
@@ -1250,6 +1337,7 @@ static void start_install(void)
     snprintf(body, sizeof(body), TX(T_ASK_INSTALL), name, v, dir, sz);
     if (ask(body, TX(T_YES_NO)) != 1) return;
   }
+  private_to_work(0);
   strncpy(work.key, g->key, sizeof(work.key) - 1);
   strncpy(work.dir, dir, sizeof(work.dir) - 1);
   strncpy(work.old_version, in != NULL ? in->version : "", sizeof(work.old_version) - 1);
@@ -1259,6 +1347,328 @@ static void start_install(void)
   set_status(body);
   hub_worker_go(&work);
   update_buttons();
+}
+
+/* The padlock in the title bar: a gadget of our own next to the system
+ * gadgets (OS 3.2 window.class has no such gadget), with a small image class
+ * that draws the frame and the padlock (green when logged in). Added after
+ * the window opens, removed before it closes or is iconified. */
+static Class *lock_class;
+static Object *lock_img;
+static struct Gadget *lock_gad;
+static struct DrawInfo *dri;
+
+static ULONG lock_dispatch(Class *cl, Object *o, Msg msg)
+{
+  if (msg->MethodID == IM_DRAW || msg->MethodID == IM_DRAWFRAME) {
+    struct impDraw *d = (struct impDraw *)msg;
+    struct Image *im = (struct Image *)o;
+    struct RastPort *rp = d->imp_RPort;
+    UWORD *dp = dri != NULL ? dri->dri_Pens : NULL;
+    int x = d->imp_Offset.X + im->LeftEdge, y = d->imp_Offset.Y + im->TopEdge;
+    int w = im->Width, h = im->Height, sel = d->imp_State == IDS_SELECTED;
+    int active = d->imp_State == IDS_NORMAL || d->imp_State == IDS_SELECTED;
+    int bw, bh, bx, by, sw, sx, st;
+    if (dp == NULL) return 0;
+    SetDrMd(rp, JAM1);
+    SetAPen(rp, dp[active ? FILLPEN : BACKGROUNDPEN]);
+    RectFill(rp, x + 1, y + 1, x + w - 2, y + h - 2);
+    /* the frame as the system gadgets: light top left, dark bottom right */
+    SetAPen(rp, dp[sel ? SHADOWPEN : SHINEPEN]);
+    Move(rp, x, y + h - 1);
+    Draw(rp, x, y);
+    Draw(rp, x + w - 1, y);
+    SetAPen(rp, dp[sel ? SHINEPEN : SHADOWPEN]);
+    Move(rp, x + w - 1, y + 1);
+    Draw(rp, x + w - 1, y + h - 1);
+    Draw(rp, x + 1, y + h - 1);
+    /* the padlock: body below, shackle above */
+    bw = w * 2 / 5;
+    if (bw < 6) bw = 6;
+    bh = h * 3 / 8;
+    if (bh < 4) bh = 4;
+    bx = x + (w - bw) / 2;
+    by = y + h - 3 - bh;
+    sw = bw - 2 * (bw / 5);
+    sx = x + (w - sw) / 2;
+    st = y + 3;
+    SetAPen(rp, sess_on && pens[P_GREEN] >= 0 ? pens[P_GREEN] : dp[TEXTPEN]);
+    RectFill(rp, bx, by, bx + bw - 1, by + bh - 1);
+    RectFill(rp, sx, st, sx + 1, by - 1);              /* left of the shackle */
+    RectFill(rp, sx + sw - 2, st, sx + sw - 1, by - 1);  /* right */
+    RectFill(rp, sx, st, sx + sw - 1, st + 1);         /* top */
+    return 0;
+  }
+  return DoSuperMethodA(cl, o, msg);
+}
+
+static void lock_remove(void)
+{
+  if (lock_gad != NULL) {
+    if (win != NULL) RemoveGList(win, lock_gad, 1);
+    DisposeObject((Object *)lock_gad);
+    lock_gad = NULL;
+  }
+  if (lock_img != NULL) {
+    DisposeObject(lock_img);
+    lock_img = NULL;
+  }
+}
+
+static void lock_add(void)
+{
+  struct Gadget *g;
+  WORD left = 0, w = 0, h;
+  if (win == NULL) return;
+  lock_remove();
+  if (lock_class == NULL) {
+    lock_class = MakeClass(NULL, (ClassID)"imageclass", NULL, 0, 0);
+    if (lock_class == NULL) return;
+    lock_class->cl_Dispatcher.h_Entry = (HOOKFUNC)HookEntry;
+    lock_class->cl_Dispatcher.h_SubEntry = (HOOKFUNC)lock_dispatch;
+  }
+  if (dri == NULL) dri = GetScreenDrawInfo(scr);
+  /* left of the system gadgets on the right of the title bar */
+  /* (the system gadgets have no GACT_TOPBORDER: only their place counts) */
+  for (g = win->FirstGadget; g != NULL; g = g->NextGadget) {
+    if ((g->Flags & GFLG_RELRIGHT) && !(g->Flags & (GFLG_RELWIDTH | GFLG_RELBOTTOM)) &&
+        g->TopEdge >= 0 && g->TopEdge <= 1 && g->Height <= win->BorderTop + 1 &&
+        g->Width < 64) {
+      if (g->LeftEdge < left) left = g->LeftEdge;
+      if (w == 0 || g->Width < w) w = g->Width;
+    }
+  }
+  h = win->BorderTop;
+  if (w == 0) w = h + 4;
+  left = (left < 0 ? left : 0) - w + 1;
+  lock_img = NewObject(lock_class, NULL, IA_Width, w, IA_Height, h, TAG_DONE);
+  if (lock_img == NULL) return;
+  lock_gad = (struct Gadget *)NewObject(NULL, (ClassID)"buttongclass",
+      GA_ID, GID_LOCK, GA_RelVerify, TRUE, GA_TopBorder, TRUE,
+      GA_RelRight, left, GA_Top, 0, GA_Width, w, GA_Height, h,
+      GA_Image, (ULONG)lock_img, TAG_DONE);
+  if (lock_gad == NULL) {
+    lock_remove();
+    return;
+  }
+  AddGList(win, lock_gad, 0, 1, NULL);
+  RefreshGList(lock_gad, win, NULL, 1);
+}
+
+static void lock_redraw(void)
+{
+  if (win != NULL && lock_gad != NULL) RefreshGList(lock_gad, win, NULL, 1);
+}
+
+/* the login window: 1 log in, 2 log out, 0 cancel */
+static int login_window(char *server, int slen, char *pass, int plen, int *remember)
+{
+  Object *gw, *lay, *s_server, *s_pass, *c_rem;
+  struct Window *w2;
+  ULONG sig = 0, result, v;
+  UWORD code;
+  int done = -1;
+  StringBase = OpenLibrary((CONST_STRPTR)"gadgets/string.gadget", 44);
+  CheckBoxBase = OpenLibrary((CONST_STRPTR)"gadgets/checkbox.gadget", 44);
+  LabelBase = OpenLibrary((CONST_STRPTR)"images/label.image", 44);
+  if (StringBase == NULL || CheckBoxBase == NULL || LabelBase == NULL) goto out;
+  gw = NewObject(WINDOW_GetClass(), NULL,
+      WA_Title, (ULONG)TX(T_PRIV_TITLE),
+      WA_PubScreen, (ULONG)scr,
+      WA_DragBar, TRUE, WA_DepthGadget, TRUE, WA_CloseGadget, TRUE,
+      WA_Activate, TRUE,
+      WA_IDCMP, IDCMP_RAWKEY,
+      WINDOW_RefWindow, (ULONG)win,
+      WINDOW_Position, WPOS_CENTERWINDOW,
+      WINDOW_Layout, (ULONG)(lay = NewObject(LAYOUT_GetClass(), NULL, LAYOUT_Orientation, LAYOUT_ORIENT_VERT,
+        LAYOUT_SpaceOuter, TRUE,
+        LAYOUT_AddChild, (ULONG)(s_server = NewObject(STRING_GetClass(), NULL,
+          GA_ID, 1, GA_RelVerify, TRUE, GA_TabCycle, TRUE,
+          STRINGA_MaxChars, slen - 1, STRINGA_TextVal, (ULONG)server,
+          STRINGA_MinVisible, 24,
+        TAG_END)),
+        CHILD_Label, (ULONG)NewObject(LABEL_GetClass(), NULL, LABEL_Text, (ULONG)TX(T_SERVER), TAG_END),
+        LAYOUT_AddChild, (ULONG)(s_pass = NewObject(STRING_GetClass(), NULL,
+          GA_ID, 2, GA_RelVerify, TRUE, GA_TabCycle, TRUE,
+          STRINGA_MaxChars, plen - 1, STRINGA_TextVal, (ULONG)pass,
+          STRINGA_HookType, SHK_PASSWORD,
+        TAG_END)),
+        CHILD_Label, (ULONG)NewObject(LABEL_GetClass(), NULL, LABEL_Text, (ULONG)TX(T_PASSWORD), TAG_END),
+        LAYOUT_AddChild, (ULONG)(c_rem = NewObject(CHECKBOX_GetClass(), NULL,
+          GA_ID, 3, GA_Text, (ULONG)TX(T_REMEMBER), GA_Selected, *remember,
+        TAG_END)),
+        LAYOUT_AddChild, (ULONG)(NewObject(LAYOUT_GetClass(), NULL,
+          LAYOUT_Orientation, LAYOUT_ORIENT_HORIZ, LAYOUT_EvenSize, TRUE,
+          LAYOUT_AddChild, (ULONG)NewObject(BUTTON_GetClass(), NULL,
+            GA_ID, 10, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_LOGIN), TAG_END),
+          LAYOUT_AddChild, (ULONG)NewObject(BUTTON_GetClass(), NULL,
+            GA_ID, 11, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_LOGOUT),
+            GA_Disabled, !sess_on, TAG_END),
+          LAYOUT_AddChild, (ULONG)NewObject(BUTTON_GetClass(), NULL,
+            GA_ID, 12, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_CANCEL), TAG_END),
+        TAG_END)),
+        CHILD_WeightedHeight, 0,
+      TAG_END)),
+    TAG_END);
+  if (gw == NULL) goto out;
+  SetAttrs(win_obj, WA_BusyPointer, TRUE, TAG_DONE);
+  w2 = (struct Window *)RA_OpenWindow(gw);
+  if (w2 != NULL) {
+    GetAttr(WINDOW_SigMask, gw, &sig);
+    ActivateLayoutGadget((struct Gadget *)lay, w2, NULL, (ULONG)(server[0] ? s_pass : s_server));
+  }
+  while (w2 != NULL && done < 0) {
+    ULONG s = Wait(sig | SIGBREAKF_CTRL_C);
+    if (s & SIGBREAKF_CTRL_C) {
+      SetSignal(SIGBREAKF_CTRL_C, SIGBREAKF_CTRL_C);
+      done = 0;
+    }
+    while ((result = RA_HandleInput(gw, &code)) != WMHI_LASTMSG) {
+      switch (result & WMHI_CLASSMASK) {
+        case WMHI_CLOSEWINDOW: done = 0; break;
+        case WMHI_RAWKEY: if (code == 0x45) done = 0; break;     /* Esc */
+        case WMHI_GADGETUP:
+          switch (result & WMHI_GADGETMASK) {
+            case 10: done = 1; break;
+            case 11: done = 2; break;
+            case 12: done = 0; break;
+          }
+          break;
+      }
+    }
+  }
+  if (done > 0) {
+    v = 0;
+    GetAttr(STRINGA_TextVal, s_server, &v);
+    strncpy(server, v ? (char *)v : "", slen - 1);
+    server[slen - 1] = 0;
+    v = 0;
+    GetAttr(STRINGA_TextVal, s_pass, &v);
+    strncpy(pass, v ? (char *)v : "", plen - 1);
+    pass[plen - 1] = 0;
+    v = 0;
+    GetAttr(GA_Selected, c_rem, &v);
+    *remember = v != 0;
+  }
+  if (done < 0) done = 0;
+  DisposeObject(gw);
+  SetAttrs(win_obj, WA_BusyPointer, FALSE, TAG_DONE);
+  while (RA_HandleInput(win_obj, &code) != WMHI_LASTMSG) {
+  }
+out:
+  if (StringBase != NULL) CloseLibrary(StringBase);
+  if (CheckBoxBase != NULL) CloseLibrary(CheckBoxBase);
+  if (LabelBase != NULL) CloseLibrary(LabelBase);
+  StringBase = CheckBoxBase = LabelBase = NULL;
+  return done;
+}
+
+static void login(void)
+{
+  char server[160], pass[64], host[128];
+  int remember = prefs.priv_pass[0] != 0, r, port;
+  if (work.busy) {
+    set_status(TX(T_BUSY));
+    return;
+  }
+  strcpy(server, prefs.priv);
+  strcpy(pass, sess_pass[0] ? sess_pass : prefs.priv_pass);
+  r = login_window(server, sizeof(server), pass, sizeof(pass), &remember);
+  if (r == 2) {                              /* log out */
+    memset(sess_pass, 0, sizeof(sess_pass));
+    sess_on = 0;
+    if (!remember) prefs.priv_pass[0] = 0;
+    hub_prefs_save(&prefs, PREFS_FILE);
+    lock_redraw();
+    start_refresh();                          /* the public catalog only */
+    set_status(TX(T_LOGGED_OUT));
+  } else if (r == 1) {
+    if (!parse_server(server, host, sizeof(host), &port) || pass[0] == 0) {
+      ask(TX(T_BAD_SERVER), TX(T_OK));
+      memset(pass, 0, sizeof(pass));
+      return;
+    }
+    if (strcmp(server, prefs.priv) != 0) prefs.priv_cert[0] = 0;    /* another server */
+    strcpy(prefs.priv, server);
+    strcpy(prefs.priv_pass, remember ? pass : "");
+    hub_prefs_save(&prefs, PREFS_FILE);
+    strcpy(sess_pass, pass);
+    if (strlen(prefs.priv_cert) != 64) {
+      /* the first time: only the certificate, without the password */
+      char a[300];
+      private_to_work(1);
+      work.job = HUB_JOB_PROBE;
+      snprintf(a, sizeof(a), TX(T_CONNECTING), server);
+      set_status(a);
+      hub_worker_go(&work);
+      update_buttons();
+    } else {
+      start_refresh();
+    }
+  }
+  memset(pass, 0, sizeof(pass));
+}
+
+/* after a refresh with the private source */
+static void private_result(void)
+{
+  char a[300];
+  int i, n = 0;
+  if (work.priv_host[0] == 0) return;
+  switch (work.priv_status) {
+    case HUB_PRIV_OK:
+      sess_on = 1;
+      for (i = 0; cat != NULL && i < cat->ngames; i++) n += cat->games[i].priv;
+      snprintf(a, sizeof(a), TX(T_PRIV_OK), n);
+      set_status(a);
+      break;
+    case HUB_PRIV_BAD_PASSWORD:
+    case HUB_PRIV_BLOCKED:
+      sess_on = 0;
+      memset(sess_pass, 0, sizeof(sess_pass));
+      if (prefs.priv_pass[0]) {
+        prefs.priv_pass[0] = 0;
+        hub_prefs_save(&prefs, PREFS_FILE);
+      }
+      set_status(TX(work.priv_status == HUB_PRIV_BLOCKED ? T_PRIV_BLOCKED : T_PRIV_BAD));
+      ask(TX(work.priv_status == HUB_PRIV_BLOCKED ? T_PRIV_BLOCKED : T_PRIV_BAD), TX(T_OK));
+      break;
+    case HUB_PRIV_ERROR:
+      sess_on = 0;
+      snprintf(a, sizeof(a), TX(T_PRIV_ERR), work.priv_msg);
+      set_status(a);
+      break;
+  }
+  memset(work.priv_pass, 0, sizeof(work.priv_pass));
+  lock_redraw();
+}
+
+/* the first connection: is it the server of the user? */
+static void probe_result(void)
+{
+  char a[600], fp[24];
+  int i, o = 0;
+  if (!work.ok || work.priv_status != HUB_PRIV_PROBED) {
+    memset(sess_pass, 0, sizeof(sess_pass));
+    snprintf(a, sizeof(a), TX(T_PRIV_ERR), work.msg[0] ? work.msg : work.priv_msg);
+    set_status(a);
+    return;
+  }
+  for (i = 0; i < 16; i++) {
+    char ch = work.priv_peer[i];
+    if (i > 0 && i % 4 == 0) fp[o++] = ' ';
+    fp[o++] = ch >= 'a' && ch <= 'f' ? ch - 32 : ch;
+  }
+  fp[o] = 0;
+  snprintf(a, sizeof(a), TX(T_CERT_ASK), prefs.priv, fp);
+  if (ask(a, TX(T_TRUST)) == 1) {
+    strcpy(prefs.priv_cert, work.priv_peer);
+    hub_prefs_save(&prefs, PREFS_FILE);
+    start_refresh();
+  } else {
+    memset(sess_pass, 0, sizeof(sess_pass));
+    set_status(TX(T_NOT_TRUSTED));
+  }
 }
 
 /* --- the network process tells something ------------------------------------ */
@@ -1282,6 +1692,7 @@ static void worker_news(void)
       work.new_cat = NULL;
       rescan_games(1);          /* new games of the catalog (or all on a first start) */
       ready_status(work.msg[0] ? work.msg : NULL);
+      private_result();
     } else {
       snprintf(a, sizeof(a), TX(T_CACHE_ONLY), work.msg);
       if (cat == NULL) snprintf(a, sizeof(a), TX(T_NO_NET), work.msg);
@@ -1295,6 +1706,11 @@ static void worker_news(void)
       refresh_all();
       start_install();
     }
+    return;
+  } else if (work.finished == HUB_JOB_PROBE) {
+    work.finished = 0;
+    update_buttons();
+    probe_result();
     return;
   } else if (work.finished == HUB_JOB_INSTALL) {
     HubGame *g = hub_catalog_find(cat, work.key);
@@ -1427,7 +1843,7 @@ static Object *make_window(void)
       /* as low as the layout allows: the history of releases then ends with
        * the last button (the user wants them the same height) */
       WA_InnerHeight, 50,
-      WA_IDCMP, IDCMP_MOUSEBUTTONS | IDCMP_RAWKEY,
+      WA_IDCMP, IDCMP_MOUSEBUTTONS | IDCMP_RAWKEY | IDCMP_GADGETUP,
       WINDOW_Position, WPOS_CENTERSCREEN,
       WINDOW_IconifyGadget, TRUE,
       WINDOW_IconTitle, (ULONG)"WARP HUB",
@@ -1688,6 +2104,11 @@ int main(void)
     goto out;
   }
   SetGadgetAttrs((struct Gadget *)g_lang, win, NULL, CHOOSER_Selected, lang, TAG_DONE);
+  lock_add();
+  /* "remember" chosen: logged in to the private source at the start */
+  if (prefs.priv[0] && strlen(prefs.priv_cert) == 64 && prefs.priv_pass[0]) {
+    strcpy(sess_pass, prefs.priv_pass);
+  }
   ready_status(NULL);
   if (test_gamesdir[0]) {
     char a[400];
@@ -1720,12 +2141,17 @@ int main(void)
             done = 1;
             break;
           case WMHI_ICONIFY:
+            lock_remove();
             RA_Iconify(win_obj);
             win = NULL;
             break;
           case WMHI_UNICONIFY:
             win = (struct Window *)RA_OpenWindow(win_obj);
-            if (win == NULL) done = 1; else refresh_all();
+            if (win == NULL) done = 1;
+            else {
+              lock_add();
+              refresh_all();
+            }
             break;
           case WMHI_NEWSIZE:
             refresh_all();
@@ -1763,6 +2189,7 @@ int main(void)
               case GID_GAMESDIR: choose_games_dir(0); break;
               case GID_GUIDE: show_guide(); break;
               case GID_RUN: run_game(); break;
+              case GID_LOCK: login(); break;
               case GID_APPSDIR: choose_games_dir(1); break;
               case GID_FILTER: case GID_FILTER + 1: case GID_FILTER + 2: case GID_FILTER + 3:
               case GID_FILTER + 4: case GID_FILTER + 5: case GID_FILTER + 6: case GID_FILTER + 7:
@@ -1807,6 +2234,10 @@ out:
     hub_prefs_save(&prefs, PREFS_FILE);
   }
   hub_worker_quit(&work);
+  memset(sess_pass, 0, sizeof(sess_pass));
+  lock_remove();
+  if (lock_class != NULL) FreeClass(lock_class);
+  if (dri != NULL) FreeScreenDrawInfo(scr, dri);
   if (win_obj != NULL) DisposeObject(win_obj);
   free_tiles();
   hub_catalog_free(cat);

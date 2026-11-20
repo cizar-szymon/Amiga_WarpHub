@@ -193,6 +193,7 @@ HubCatalog *hub_catalog_parse(char *text, char *err, int errlen)
       g->flat = 1;
     } else if (strcmp(cmd, "SOURCE") == 0 && rest != NULL) {
       g->local = strcmp(rest, "local") == 0;
+      g->priv = strcmp(rest, "private") == 0;
     } else if (strcmp(cmd, "VERSION") == 0 && rest != NULL) {
       g->version = rest;
     } else if (strcmp(cmd, "ZIP") == 0 && rest != NULL) {
@@ -235,6 +236,24 @@ HubCatalog *hub_catalog_parse(char *text, char *err, int errlen)
         snprintf(err, errlen, "Catalog: game %s incomplete.", x->key);
         hub_catalog_free(cat);
         return NULL;
+      }
+    }
+  }
+  {
+    /* the same game twice (the private catalog after the public one): the
+     * later one takes the place of the earlier one */
+    int i, j;
+    for (j = 1; j < cat->ngames; j++) {
+      for (i = 0; i < j; i++) {
+        if (strcmp(cat->games[i].key, cat->games[j].key) == 0) {
+          hub_free(cat->games[i].files);
+          cat->games[i] = cat->games[j];
+          memmove(&cat->games[j], &cat->games[j + 1],
+                  (cat->ngames - j - 1) * sizeof(HubGame));
+          cat->ngames--;
+          j--;
+          break;
+        }
       }
     }
   }

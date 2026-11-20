@@ -148,6 +148,12 @@ void hub_prefs_load(HubPrefs *p, const char *file)
       strncpy(p->gamesdir, line + 9, sizeof(p->gamesdir) - 1);
     } else if (strncmp(line, "APPSDIR ", 8) == 0) {
       strncpy(p->appsdir, line + 8, sizeof(p->appsdir) - 1);
+    } else if (strncmp(line, "PRIVATE ", 8) == 0) {
+      strncpy(p->priv, line + 8, sizeof(p->priv) - 1);
+    } else if (strncmp(line, "PRIVATE-CERT ", 13) == 0) {
+      strncpy(p->priv_cert, line + 13, sizeof(p->priv_cert) - 1);
+    } else if (strncmp(line, "PRIVATE-PASS ", 13) == 0) {
+      strncpy(p->priv_pass, line + 13, sizeof(p->priv_pass) - 1);
     } else if (strncmp(line, "CATALOG ", 8) == 0) {
       strncpy(p->catalog, line + 8, sizeof(p->catalog) - 1);
     } else if (sscanf(line, "INSTALLED %31s %23s %255[^\n]", a, b, c) == 3) {
@@ -159,12 +165,15 @@ void hub_prefs_load(HubPrefs *p, const char *file)
 
 int hub_prefs_save(const HubPrefs *p, const char *file)
 {
-  char buf[256 * 5 + HUB_MAX_INSTALLED * 330];
+  char buf[256 * 5 + 320 + HUB_MAX_INSTALLED * 330];
   int n = 0, i;
   if (p->language[0]) n += snprintf(buf + n, sizeof(buf) - n, "LANGUAGE %s\n", p->language);
   if (p->catalog[0]) n += snprintf(buf + n, sizeof(buf) - n, "CATALOG %s\n", p->catalog);
   if (p->gamesdir[0]) n += snprintf(buf + n, sizeof(buf) - n, "GAMESDIR %s\n", p->gamesdir);
   if (p->appsdir[0]) n += snprintf(buf + n, sizeof(buf) - n, "APPSDIR %s\n", p->appsdir);
+  if (p->priv[0]) n += snprintf(buf + n, sizeof(buf) - n, "PRIVATE %s\n", p->priv);
+  if (p->priv_cert[0]) n += snprintf(buf + n, sizeof(buf) - n, "PRIVATE-CERT %s\n", p->priv_cert);
+  if (p->priv_pass[0]) n += snprintf(buf + n, sizeof(buf) - n, "PRIVATE-PASS %s\n", p->priv_pass);
   for (i = 0; i < p->ninst && n < (int)sizeof(buf); i++) {
     n += snprintf(buf + n, sizeof(buf) - n, "INSTALLED %s %s %s\n", p->inst[i].key,
                   p->inst[i].version, p->inst[i].dir);

@@ -26,6 +26,10 @@ void hub_plan(HubGame *g, const char *dest, HubPlan *plan);
 int hub_install(HubGame *g, const char *dest, const char *old_version,
                 HubProgress progress, void *user, char *err, int errlen);
 
+/* The private source for games with SOURCE private (host, port, SHA-256 of
+ * its certificate, password); host "" = none. */
+void hub_install_private(const char *host, int port, const char *pin, const char *password);
+
 /* The drawer of the game: the first part of its paths ("Settlers"). */
 void hub_game_dir(HubGame *g, char *out, int outlen);
 /* where a file of the catalog lies under the chosen drawer: its path, or for a

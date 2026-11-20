@@ -11,7 +11,11 @@
 #include "hub_catalog.h"
 #include "hub_install.h"
 
-enum { HUB_JOB_NONE, HUB_JOB_REFRESH, HUB_JOB_INSTALL, HUB_JOB_QUIT };
+enum { HUB_JOB_NONE, HUB_JOB_REFRESH, HUB_JOB_INSTALL, HUB_JOB_PROBE, HUB_JOB_QUIT };
+
+/* the private source after a job */
+enum { HUB_PRIV_NONE, HUB_PRIV_OK, HUB_PRIV_BAD_PASSWORD, HUB_PRIV_BLOCKED,
+       HUB_PRIV_ERROR, HUB_PRIV_PROBED };
 
 typedef struct HubWork {
   /* the job (written by the window while the process is idle) */
@@ -22,6 +26,12 @@ typedef struct HubWork {
   char catalog_src[256];     /* refresh: https URL or a file */
   char cache[64];            /* "PROGDIR:cache" */
   HubCatalog *cat;           /* install: the catalog of the window */
+  /* the private source ("" = none): refresh adds its catalog, install takes
+   * SOURCE private games from it; probe only connects and gives priv_peer */
+  char priv_host[128];
+  int priv_port;
+  char priv_pin[65];         /* SHA-256 of its certificate (64 hex) */
+  char priv_pass[64];
 
   /* the state (written by the process) */
   volatile int busy;
@@ -33,6 +43,9 @@ typedef struct HubWork {
   HubCatalog *new_cat;       /* refresh: the new catalog, the window takes it */
   HubPlan plan;              /* install: what was downloaded */
   char net_info[160];        /* TLS, time from NTP ... */
+  int priv_status;           /* HUB_PRIV_... */
+  char priv_peer[65];        /* probe: SHA-256 of the certificate of the server */
+  char priv_msg[160];        /* why the private source failed */
 } HubWork;
 
 /* Starts the process; signal: the bit the window waits on. 0 on failure. */

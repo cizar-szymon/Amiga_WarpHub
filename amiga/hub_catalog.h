@@ -25,6 +25,8 @@ typedef struct HubGame {
   const char *version;
   const char *tags;        /* "pc,new" - groups of the filter buttons, or NULL */
   int local;               /* SOURCE local: repo not public yet (test catalog) */
+  int priv;                /* SOURCE private: the full package from the private
+                              source (files/<key>/<path> there, after a login) */
   int flat;                /* FLAT: the files of <Root>/ go straight into the
                               chosen drawer (a program such as WARP HUB) */
   const char *zip;

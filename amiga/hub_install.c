@@ -20,6 +20,16 @@
 #define BUF_SIZE 32768
 
 static UBYTE *buf;
+static char priv_host[128], priv_pin[65], priv_pass[64];
+static int priv_port;
+
+void hub_install_private(const char *host, int port, const char *pin, const char *password)
+{
+  strncpy(priv_host, host, sizeof(priv_host) - 1);
+  priv_port = port;
+  strncpy(priv_pin, pin, sizeof(priv_pin) - 1);
+  strncpy(priv_pass, password, sizeof(priv_pass) - 1);
+}
 
 static int full_name(char *out, int outlen, const char *dest, const char *path,
                      const char *suffix)
@@ -179,7 +189,11 @@ static int fetch_one(HubConn *c, HubGame *g, const char *dest, HubFile *file,
   Fetch f;
   int status;
 
-  snprintf(raw, sizeof(raw), "/%s/%s/releases/amiga/%s", g->repo, g->branch, file->path);
+  if (g->priv) {
+    snprintf(raw, sizeof(raw), "/files/%s/%s", g->key, file->path);
+  } else {
+    snprintf(raw, sizeof(raw), "/%s/%s/releases/amiga/%s", g->repo, g->branch, file->path);
+  }
   hub_url_path(url, sizeof(url), raw);
   make_dirs(dest, hub_local_path(g, file->path));
   if (!full_name(name, sizeof(name), dest, hub_local_path(g, file->path), ".upd")) {
@@ -313,10 +327,18 @@ int hub_install(HubGame *g, const char *dest, const char *old_version,
   for (i = 0; i < g->nfiles; i++) {
     if (g->files[i].need) total += g->files[i].size;
   }
-  c = hub_conn_new(RAW_HOST, 443);
+  if (g->priv && (priv_host[0] == 0 || strlen(priv_pin) != 64)) {
+    snprintf(err, errlen, "Log in to the private source first.");
+    return 0;
+  }
+  c = g->priv ? hub_conn_new(priv_host, priv_port) : hub_conn_new(RAW_HOST, 443);
   if (c == NULL) {
     snprintf(err, errlen, "No memory.");
     return 0;
+  }
+  if (g->priv) {
+    hub_conn_pin(c, priv_pin);
+    hub_conn_auth(c, priv_pass);
   }
   for (i = 0; i < g->nfiles; i++) {
     if (!g->files[i].need) continue;

@@ -21,6 +21,15 @@ void hub_https_cleanup(void);
 HubConn *hub_conn_new(const char *host, int port);
 void hub_conn_free(HubConn *c);
 
+/* The private source (own certificate): c trusts only the certificate with
+ * this SHA-256 (64 hex digits), not the chain nor the host name; pin "":
+ * any certificate, its SHA-256 is then in hub_conn_peer (first login - ask
+ * the user before a password goes over it). */
+void hub_conn_pin(HubConn *c, const char *pin);
+const char *hub_conn_peer(HubConn *c);
+/* Every request of c with "Authorization: Basic" of this password. */
+void hub_conn_auth(HubConn *c, const char *password);
+
 /* GET path (already URL-encoded) on c. Returns the HTTP status (200 ...) or
  * -1 on a network / TLS error (err says why). The body goes to sink.
  * location (if not NULL) gets the Location header of a redirect. */

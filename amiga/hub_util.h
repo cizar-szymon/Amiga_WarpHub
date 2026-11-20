@@ -38,6 +38,9 @@ typedef struct HubPrefs {
   char catalog[256];         /* "" = the default URL */
   char gamesdir[256];        /* the drawer of the installed games ("Work:Games") */
   char appsdir[256];         /* the drawer of the installed programs ("Work:Programs") */
+  char priv[160];            /* the private source "host:port" ("" = none) */
+  char priv_cert[65];        /* SHA-256 of its certificate, from the first login */
+  char priv_pass[64];        /* its password, only when "remember" was chosen */
   HubInstalled inst[HUB_MAX_INSTALLED];
   int ninst;
 } HubPrefs;

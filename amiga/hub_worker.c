@@ -178,11 +178,93 @@ static void base_of(const char *src, char *out, int outlen)
   if (slash != NULL) slash[1] = 0; else out[0] = 0;
 }
 
+/* --- the private source ---------------------------------------------------- */
+
+static HubConn *priv_conn(HubWork *w, int with_password)
+{
+  HubConn *c = hub_conn_new(w->priv_host, w->priv_port);
+  if (c == NULL) return NULL;
+  hub_conn_pin(c, with_password ? w->priv_pin : "");
+  if (with_password) hub_conn_auth(c, w->priv_pass);
+  return c;
+}
+
+/* path of the private source -> memory; NULL with priv_status and err */
+static char *get_private(HubWork *w, HubConn *c, const char *path, ULONG max, ULONG *len)
+{
+  char p[600];
+  int status;
+  Mem m = {NULL, 0, 0, 0};
+  m.max = max;
+  hub_url_path(p, sizeof(p), path);
+  status = hub_get(c, p, mem_sink, &m, NULL, 0, err, sizeof(err));
+  if (status == 200) {
+    if (m.data == NULL) mem_sink(&m, (const UBYTE *)"", 0);
+    if (len != NULL) *len = m.len;
+    return m.data;
+  }
+  hub_free(m.data);
+  if (status == 401) {
+    w->priv_status = HUB_PRIV_BAD_PASSWORD;
+  } else if (status == 403) {
+    w->priv_status = HUB_PRIV_BLOCKED;
+  } else {
+    w->priv_status = HUB_PRIV_ERROR;
+    if (status > 0) snprintf(err, sizeof(err), "HTTP %d: %s", status, path);
+  }
+  snprintf(w->priv_msg, sizeof(w->priv_msg), "%s", err);
+  return NULL;
+}
+
+/* the same as to_cache, from the private source (path on the server) */
+static int priv_to_cache(HubWork *w, HubConn *c, const char *path, const char *name,
+                         ULONG size, const char *sha)
+{
+  ULONG len;
+  char hex[65];
+  char *data;
+  if (cached(name, size, sha)) return 1;
+  if (c == NULL) return 0;
+  data = get_private(w, c, path, size, &len);
+  if (data == NULL) return 0;
+  sha_of(data, len, hex);
+  if (len != size || strcmp(hex, sha) != 0) {
+    snprintf(err, sizeof(err), "Wrong SHA-256: %s", path);
+    hub_free(data);
+    return 0;
+  }
+  len = hub_write_file(name, data, len);
+  hub_free(data);
+  return (int)len;
+}
+
+/* first contact: the certificate of the server, without the password */
+static void job_probe(HubWork *w)
+{
+  HubConn *c = priv_conn(w, 0);
+  char *data;
+  if (c == NULL) {
+    snprintf(w->msg, sizeof(w->msg), "No memory.");
+    return;
+  }
+  data = get_private(w, c, "/catalog.txt", 4UL << 20, NULL);
+  hub_free(data);
+  strcpy(w->priv_peer, hub_conn_peer(c));
+  hub_conn_free(c);
+  if (strlen(w->priv_peer) == 64) {
+    w->priv_status = HUB_PRIV_PROBED;
+    w->ok = 1;
+  } else {
+    snprintf(w->msg, sizeof(w->msg), "%s", w->priv_msg);
+  }
+}
+
 static void job_refresh(HubWork *w)
 {
-  char *text, *copy, base[300], src[700], name[300];
-  ULONG len;
+  char *text, *copy, base[300], src[700], name[300], *ptext = NULL;
+  ULONG len, plen = 0;
   HubCatalog *cat;
+  HubConn *pc = NULL;
   int i, lang, missing = 0;
 
   text = get_any(w->catalog_src, 4UL << 20, &len);
@@ -190,19 +272,36 @@ static void job_refresh(HubWork *w)
     snprintf(w->msg, sizeof(w->msg), "%s", err);
     return;
   }
-  copy = (char *)hub_malloc(len + 1);
+  if (w->priv_host[0] && strlen(w->priv_pin) == 64) {
+    pc = priv_conn(w, 1);
+    if (pc != NULL) ptext = get_private(w, pc, "/catalog.txt", 4UL << 20, &plen);
+    if (ptext != NULL) w->priv_status = HUB_PRIV_OK;
+  }
+  /* the public catalog, then the private one: its games take the place of
+   * the same public ones (hub_catalog_parse) */
+  copy = (char *)hub_malloc(len + plen + 2);
   if (copy == NULL) {
     hub_free(text);
+    hub_free(ptext);
+    hub_conn_free(pc);
     snprintf(w->msg, sizeof(w->msg), "No memory.");
     return;
   }
   memcpy(copy, text, len + 1);
+  if (ptext != NULL) {
+    copy[len] = '\n';
+    memcpy(copy + len + 1, ptext, plen + 1);
+    hub_free(ptext);
+  }
   cat = hub_catalog_parse(copy, err, sizeof(err));
   if (cat == NULL) {
     hub_free(text);
+    hub_conn_free(pc);
     snprintf(w->msg, sizeof(w->msg), "%s", err);
     return;
   }
+  /* only the public catalog goes to the cache: without a login (or the
+   * network) the private games are not shown */
   snprintf(name, sizeof(name), "%s/catalog.txt", w->cache);
   hub_write_file(name, text, len);
   hub_free(text);
@@ -212,6 +311,30 @@ static void job_refresh(HubWork *w)
     HubGame *g = &cat->games[i];
     snprintf(w->file, sizeof(w->file), "%s", g->key);
     tell_window();
+    if (g->priv) {
+      /* from the private source: the same cache files, checked the same way */
+      HubFile *gf[HUB_MAX_README];
+      int k, ng;
+      if (g->image != NULL) {
+        snprintf(src, sizeof(src), "/%s", g->image);
+        hub_cache_image(w, g->key, name, sizeof(name));
+        if (!priv_to_cache(w, pc, src, name, g->image_size, g->image_sha)) missing++;
+      }
+      for (lang = 0; lang < HUB_LANGS; lang++) {
+        HubFile *f = hub_game_file(g, g->notes[lang]);
+        if (f == NULL) continue;
+        snprintf(src, sizeof(src), "/files/%s/%s", g->key, f->path);
+        hub_cache_notes(w, g->key, lang, name, sizeof(name));
+        if (!priv_to_cache(w, pc, src, name, f->size, f->sha)) missing++;
+      }
+      ng = hub_guide_files(g, gf, HUB_MAX_README);
+      for (k = 0; k < ng; k++) {
+        snprintf(src, sizeof(src), "/files/%s/%s", g->key, gf[k]->path);
+        hub_cache_guide(w, g->key, k, name, sizeof(name));
+        if (!priv_to_cache(w, pc, src, name, gf[k]->size, gf[k]->sha)) missing++;
+      }
+      continue;
+    }
     if (g->image != NULL) {
       snprintf(src, sizeof(src), "%s%s", base, g->image);
       hub_cache_image(w, g->key, name, sizeof(name));
@@ -246,6 +369,7 @@ static void job_refresh(HubWork *w)
       }
     }
   }
+  hub_conn_free(pc);
   w->new_cat = cat;
   w->ok = 1;
   if (missing) {
@@ -331,12 +455,17 @@ static void net_main(void)
     w->msg[0] = 0;
     w->file[0] = 0;
     w->done = w->total = 0;
+    w->priv_status = HUB_PRIV_NONE;
+    w->priv_msg[0] = 0;
+    hub_install_private(w->priv_host, w->priv_port, w->priv_pin, w->priv_pass);
     if (!net_ok) {
       snprintf(w->msg, sizeof(w->msg), "%s", w->net_info);
     } else if (w->job == HUB_JOB_REFRESH) {
       job_refresh(w);
     } else if (w->job == HUB_JOB_INSTALL) {
       job_install(w);
+    } else if (w->job == HUB_JOB_PROBE) {
+      job_probe(w);
     }
     if (hub_break && !w->ok) snprintf(w->msg, sizeof(w->msg), "Stopped.");
     if (hub_conn_cipher(NULL)[0]) {

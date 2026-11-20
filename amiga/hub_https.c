@@ -57,6 +57,10 @@ struct HubConn {
   UBYTE *in;
   LONG in_pos, in_len;
   char cipher[80];
+  int pinned;             /* the private source: own certificate */
+  char pin[65];           /* its SHA-256 ("" = not known yet) */
+  char peer[65];          /* SHA-256 of the certificate of this connection */
+  char auth[120];         /* base64 of "warphub:<password>" or "" */
 };
 
 static void set_err(char *err, int errlen, const char *what)
@@ -177,6 +181,58 @@ HubConn *hub_conn_new(const char *host, int port)
   return c;
 }
 
+void hub_conn_pin(HubConn *c, const char *pin)
+{
+  c->pinned = 1;
+  strncpy(c->pin, pin, sizeof(c->pin) - 1);
+  c->pin[sizeof(c->pin) - 1] = 0;
+}
+
+const char *hub_conn_peer(HubConn *c)
+{
+  return c->peer;
+}
+
+void hub_conn_auth(HubConn *c, const char *password)
+{
+  static const char b64[] =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  char plain[90];
+  int n, i, o = 0;
+  n = snprintf(plain, sizeof(plain), "warphub:%s", password);
+  if (n >= (int)sizeof(plain)) n = sizeof(plain) - 1;
+  for (i = 0; i < n && o < (int)sizeof(c->auth) - 5; i += 3) {
+    ULONG v = (ULONG)(UBYTE)plain[i] << 16;
+    if (i + 1 < n) v |= (ULONG)(UBYTE)plain[i + 1] << 8;
+    if (i + 2 < n) v |= (UBYTE)plain[i + 2];
+    c->auth[o++] = b64[(v >> 18) & 63];
+    c->auth[o++] = b64[(v >> 12) & 63];
+    c->auth[o++] = i + 1 < n ? b64[(v >> 6) & 63] : '=';
+    c->auth[o++] = i + 2 < n ? b64[v & 63] : '=';
+  }
+  c->auth[o] = 0;
+  memset(plain, 0, sizeof(plain));
+}
+
+/* SHA-256 of the certificate of the server, as 64 hex digits */
+static int peer_sha(SSL *ssl, char hex[65])
+{
+  static const char digits[] = "0123456789abcdef";
+  unsigned char md[EVP_MAX_MD_SIZE];
+  unsigned int n = 0, i;
+  X509 *x = SSL_get1_peer_certificate(ssl);
+  hex[0] = 0;
+  if (x == NULL) return 0;
+  if (!X509_digest(x, EVP_sha256(), md, &n) || n != 32) n = 0;
+  X509_free(x);
+  for (i = 0; i < n; i++) {
+    hex[i * 2] = digits[md[i] >> 4];
+    hex[i * 2 + 1] = digits[md[i] & 15];
+  }
+  hex[n * 2] = 0;
+  return n == 32;
+}
+
 static void conn_close(HubConn *c)
 {
   if (c->ssl != NULL) {
@@ -196,6 +252,7 @@ void hub_conn_free(HubConn *c)
 {
   if (c == NULL) return;
   conn_close(c);
+  memset(c->auth, 0, sizeof(c->auth));
   hub_free(c->in);
   hub_free(c);
 }
@@ -254,8 +311,13 @@ static int conn_open(HubConn *c, char *err, int errlen)
     return 0;
   }
   SSL_set_fd(c->ssl, c->sock);
-  SSL_set_tlsext_host_name(c->ssl, c->host);
-  SSL_set1_host(c->ssl, c->host);
+  if (c->pinned) {
+    /* own certificate: checked below by its SHA-256 (no date, no chain) */
+    SSL_set_verify(c->ssl, SSL_VERIFY_NONE, NULL);
+  } else {
+    SSL_set_tlsext_host_name(c->ssl, c->host);
+    SSL_set1_host(c->ssl, c->host);
+  }
   r = SSL_connect(c->ssl);
   if (r != 1) {
     long v = SSL_get_verify_result(c->ssl);
@@ -267,6 +329,19 @@ static int conn_open(HubConn *c, char *err, int errlen)
     }
     conn_close(c);
     return 0;
+  }
+  if (c->pinned) {
+    if (!peer_sha(c->ssl, c->peer)) {
+      snprintf(err, errlen, "No certificate from %s.", c->host);
+      conn_close(c);
+      return 0;
+    }
+    if (c->pin[0] && strcmp(c->pin, c->peer) != 0) {
+      snprintf(err, errlen, "The certificate of %s is not the remembered one "
+               "(%.16s): not connected.", c->host, c->peer);
+      conn_close(c);
+      return 0;
+    }
   }
   snprintf(c->cipher, sizeof(c->cipher), "%s %s", SSL_get_version(c->ssl),
            SSL_CIPHER_get_name(SSL_get_current_cipher(c->ssl)));
@@ -354,7 +429,7 @@ static int request(HubConn *c, const char *path, HubSink sink, void *user,
                    char *location, int loclen, char *err, int errlen,
                    int *retry)
 {
-  char line[512];
+  char line[1024];
   int status, chunked = 0, close_after = 0, n, len;
   LONG length = -1;
 
@@ -362,8 +437,9 @@ static int request(HubConn *c, const char *path, HubSink sink, void *user,
   if (c->ssl == NULL && !conn_open(c, err, errlen)) return -1;
   len = snprintf(line, sizeof(line),
                  "GET %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: WarpHub/0.1 (Amiga)\r\n"
-                 "Accept-Encoding: identity\r\nConnection: keep-alive\r\n\r\n",
-                 path, c->host);
+                 "Accept-Encoding: identity\r\nConnection: keep-alive\r\n%s%s%s\r\n",
+                 path, c->host, c->auth[0] ? "Authorization: Basic " : "", c->auth,
+                 c->auth[0] ? "\r\n" : "");
   if (len >= (int)sizeof(line)) {
     snprintf(err, errlen, "Path too long.");
     return -1;
