@@ -22,7 +22,9 @@ import game_files  # noqa: E402
 
 W, H = 224, 140
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-GAMES_DIR = os.path.dirname(HERE)          # C:\Workprojects\AmigaGAMES
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import paths  # noqa: E402
+GAMES_DIR = paths.GAMES                   # C:\Workprojects\AmigaGAMES
 
 
 def fit(im, pixel):

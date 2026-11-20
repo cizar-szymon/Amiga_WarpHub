@@ -76,13 +76,18 @@ repository is needed to save).
 
 GitHub Actions (`.github/workflows/catalog.yml`) then builds `catalog/catalog.txt` from the
 game files and the newest releases in the games' repositories, and brings the pictures to
-224x140 / 256 colours - after every change and once a day. The same on the PC:
+224x140 / 256 colours - after every change and every hour. The same on the PC:
 
 ```
 python tools/make_catalog.py          # GITHUB_TOKEN raises the GitHub API limit
 python tools/make_images.py           # pictures from IMAGE-SOURCE (PC only)
 python -m unittest discover -s tools/tests
 ```
+
+## Your port in WARP HUB
+
+Authors of Amiga ports on GitHub: how to prepare a release so that WARP HUB can install and
+update it, and how to get it added - **[docs/FOR_PORT_AUTHORS.md](docs/FOR_PORT_AUTHORS.md)**.
 
 ## Building
 

@@ -23,7 +23,9 @@ import sys
 import zipfile
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-GAMES = os.path.dirname(HERE)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import paths  # noqa: E402
+GAMES = paths.GAMES
 OUT = os.path.join(HERE, 'releases', 'amiga')
 ROOT = 'WarpHub'
 # the icons of the doc drawer and of the texts (MultiView), from OpenDUNE

@@ -27,7 +27,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from icon_to_png import unpack  # noqa: E402
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DRAWER = os.path.join(os.path.dirname(HERE), 'WARP-drawer.info')
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import paths  # noqa: E402
+DRAWER = os.path.join(paths.GAMES, 'WARP-drawer.info')
 LOGO = os.path.join(HERE, 'amiga', 'icon', 'src', 'warp-logo-002.png')
 W = H = 46
 ORANGE = (255, 163, 26)

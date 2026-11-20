@@ -25,7 +25,7 @@ UTF-8 text, one item per line, "#" starts a comment:
     LOCAL <drawer>            PC only: the project drawer (test catalog)
     IMAGE-SOURCE <path> [x0 y0 x1 y1] [pixel]
                               PC only: where make_images.py cuts the picture
-                              from (path from the AmigaGAMES drawer)
+                              from (path from the AmigaGAMES drawer, tools/paths.py)
 
 The picture itself is catalog/images/<key>.png.
 """

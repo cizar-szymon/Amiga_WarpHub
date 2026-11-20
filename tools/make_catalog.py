@@ -66,6 +66,7 @@ import zipfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import game_files  # noqa: E402
+import paths  # noqa: E402
 
 API = 'https://api.github.com'
 RAW = 'https://raw.githubusercontent.com'
@@ -427,7 +428,7 @@ def main(argv=None):
             # the others from their local release ZIPs
             g = public.get(game['key'])
             if g is None and game.get('local'):
-                g = build_local(game, os.path.dirname(here))
+                g = build_local(game, paths.GAMES)
         else:
             g = build_game(gh, game)
         if g:

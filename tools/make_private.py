@@ -2,7 +2,7 @@
 """Prepare the private source of WARP HUB: the full packages (with the data of
 the games) for the Amigas of the owner, served by tools/private_server.py.
 
-    python tools/make_private.py [--root ../WarpHub-private] [--only settlers,vastar]
+    python tools/make_private.py [--root ../WarpHub-private (next to WarpHub)] [--only settlers,vastar]
 
 For every game of catalog/games/ with a LOCAL project drawer it takes the
 newest private/<Name>-<version>-full.zip of that project (not the -pc-full
@@ -30,6 +30,7 @@ import zipfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import game_files  # noqa: E402
 import make_catalog  # noqa: E402
+import paths  # noqa: E402
 
 FULL = re.compile(r'^(.+)-(\d+(?:\.\d+)*)-full\.zip$')
 CHUNK = 1 << 20
@@ -136,9 +137,9 @@ def build(game, projects, www, log):
 
 def main(argv=None):
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    projects = os.path.dirname(here)
+    projects = paths.GAMES
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-    ap.add_argument('--root', default=os.path.join(projects, 'WarpHub-private'))
+    ap.add_argument('--root', default=os.path.join(os.path.dirname(here), 'WarpHub-private'))
     ap.add_argument('--games', default=os.path.join(here, 'catalog', 'games'))
     ap.add_argument('--only', help='comma separated keys')
     args = ap.parse_args(argv)
