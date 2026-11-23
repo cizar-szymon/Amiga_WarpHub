@@ -1,3 +1,6 @@
 # the release tree is kept byte for byte as in the release ZIP: WARP HUB
 # downloads these files one by one from git
 releases/** -text
+
+# shell scripts run on Linux (RP4) and in Git Bash: LF always
+*.sh text eol=lf

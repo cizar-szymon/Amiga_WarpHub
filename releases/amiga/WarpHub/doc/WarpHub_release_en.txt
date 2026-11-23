@@ -1,11 +1,19 @@
 WARP HUB - releases
 ===================
 
-Reporting bugs: the release number is in the screen title ("WARP HUB 0.5")
+Reporting bugs: the release number is in the screen title ("WARP HUB 0.7")
 and in the Shell: Version SYS:WarpApps/WarpHub. Describe what
 happened and give the release number:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.7 (24.11.2026, beta release)
+------------------------------
+- Padlock in the title bar: log in to your own private source of full
+  packages (server address and password; the certificate of the server is
+  confirmed once and remembered). "Remember" logs in at the start.
+- Refresh looks at the game drawers again: a game added, deleted or moved
+  while WARP HUB is open is shown right away.
 
 0.5 (19.11.2026, beta release)
 ------------------------------

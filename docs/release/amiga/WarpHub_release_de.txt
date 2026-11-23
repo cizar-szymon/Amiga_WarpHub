@@ -1,11 +1,20 @@
 WARP HUB - Versionen
 ====================
 
-Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.5")
+Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.7")
 und in der Shell: Version SYS:WarpApps/WarpHub. Beschreibe, was
 passiert ist, mit der Versionsnummer:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.7 (24.11.2026, Beta)
+----------------------
+- Schloss in der Titelleiste: Anmeldung an einer eigenen, privaten Quelle
+  der vollen Pakete (Serveradresse und Passwort; das Zertifikat des Servers
+  wird einmal bestaetigt und gemerkt). "Merken" meldet beim Start an.
+- Aktualisieren prueft die Spiele-Schubladen neu: ein Spiel, das bei
+  offenem WARP HUB hinzugefuegt, geloescht oder verschoben wurde, wird
+  sofort richtig angezeigt.
 
 0.5 (19.11.2026, Beta)
 ----------------------

@@ -1,10 +1,18 @@
 WARP HUB - wydania
 ==================
 
-Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.5") i w
+Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.7") i w
 Shellu: Version SYS:WarpApps/WarpHub. Opisz, co sie stalo, i podaj
 numer wydania: https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.7 (24.11.2026, wydanie beta)
+------------------------------
+- Klodka w pasku tytulu: logowanie do wlasnego, prywatnego zrodla pelnych
+  paczek (adres serwera i haslo; certyfikat serwera potwierdzany raz
+  i zapamietany). Opcja "zapamietaj" loguje przy starcie.
+- Odswiez sprawdza od nowa szuflady gier: gra dodana, usunieta albo
+  przeniesiona przy otwartym WARP HUB jest od razu pokazana poprawnie.
 
 0.5 (19.11.2026, wydanie beta)
 ------------------------------

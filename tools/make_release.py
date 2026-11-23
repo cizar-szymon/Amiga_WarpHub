@@ -80,8 +80,11 @@ def main():
                     os.path.join(tree, 'WarpHub.info'))
     shutil.copyfile(os.path.join(ICONS, 'doc.info'), os.path.join(tree, 'doc.info'))
     for name, icon in TEXTS:
-        shutil.copyfile(os.path.join(HERE, 'docs', 'release', 'amiga', name),
-                        os.path.join(tree, 'doc', name))
+        # Amiga line ends (LF), whatever git on Windows checked out (CRLF)
+        with open(os.path.join(HERE, 'docs', 'release', 'amiga', name), 'rb') as f:
+            text = f.read().replace(b'\r\n', b'\n')
+        with open(os.path.join(tree, 'doc', name), 'wb') as f:
+            f.write(text)
         shutil.copyfile(os.path.join(ICONS, icon), os.path.join(tree, 'doc', name + '.info'))
     shutil.copyfile(os.path.join(GAMES, 'WARP-drawer.info'), os.path.join(OUT, ROOT + '.info'))
 

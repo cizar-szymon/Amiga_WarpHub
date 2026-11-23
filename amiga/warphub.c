@@ -71,7 +71,7 @@
 
 extern struct WBStartup *_WBenchMsg;
 
-#define WARPHUB_VERSION "0.5"   /* tools/make_release.py reads it */
+#define WARPHUB_VERSION "0.7"   /* tools/make_release.py reads it */
 const char version_tag[] = "$VER: WarpHub " WARPHUB_VERSION " (19.11.2026)";
 
 unsigned long __stack = 65536;
@@ -1069,14 +1069,14 @@ static void note_self(void)
  * without WARP HUB. Needs the catalog (cached one, or the first download). */
 static int games_scanned;
 
-/* at the start all games; after a refresh (only_new) the games that came
- * with the new catalog */
-static void rescan_games(int only_new)
+/* at the start (once; the test drawer may have done it already) and after
+ * every refresh: all games again - one the player deleted or moved while
+ * WARP HUB was open is no longer shown as installed */
+static void rescan_games(int at_start)
 {
   char dirs[HUB_MAX_INSTALLED + 2][256];
   int ndirs = 0, i, k;
-  if (cat == NULL || (games_scanned && !only_new)) return;
-  if (!games_scanned) only_new = 0;
+  if (cat == NULL || (at_start && games_scanned)) return;
   games_scanned = 1;
   for (i = -2; i < prefs.ninst; i++) {
     const char *d = i == -2 ? prefs.gamesdir : i == -1 ? prefs.appsdir : prefs.inst[i].dir;
@@ -1090,7 +1090,7 @@ static void rescan_games(int only_new)
   }
   if (ndirs == 0) return;
   set_status(TX(T_SCANNING));
-  for (k = 0; k < ndirs; k++) scan_games_dir(dirs[k], 0, only_new);
+  for (k = 0; k < ndirs; k++) scan_games_dir(dirs[k], 0, 0);
   hub_prefs_save(&prefs, PREFS_FILE);
   set_status("");
 }
@@ -1690,12 +1690,13 @@ static void worker_news(void)
     if (work.new_cat != NULL) {
       take_catalog(work.new_cat);
       work.new_cat = NULL;
-      rescan_games(1);          /* new games of the catalog (or all on a first start) */
+      rescan_games(0);          /* all drawers again: new, deleted, updated games */
       ready_status(work.msg[0] ? work.msg : NULL);
       private_result();
     } else {
       snprintf(a, sizeof(a), TX(T_CACHE_ONLY), work.msg);
       if (cat == NULL) snprintf(a, sizeof(a), TX(T_NO_NET), work.msg);
+      rescan_games(0);          /* the drawers also without the network */
       set_status(a);
       set_progress(0, 0);
     }
@@ -2121,7 +2122,7 @@ int main(void)
     set_status(a);
   }
   note_self();
-  rescan_games(0);
+  rescan_games(1);
   refresh_all();
 
   work_mask = 1UL << work_signal;

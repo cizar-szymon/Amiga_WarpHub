@@ -650,3 +650,30 @@ Settlers z okna.
   - Hasło trzymane tylko w pamięci do zamknięcia programu; opcja „zapamiętaj na tej Amidze”
     (zapis w `WarpHub.prefs`) dla wygody na maszynach użytkownika.
   - Odrzucone: hasło sprawdzane przez sam program (jawny kod – do obejścia w kilka minut).
+
+### Serwer na RP4 (23.11.2026)
+- RP4 (Debian 13, Python 3.13), po kablu; WiFi wyłączone (`nmcli radio wifi off`). Adres
+  tylko w pamięci agenta / `CLAUDE.md`, nie w repo.
+- **`tools/push_private.sh user@host [--no-www]`** (adres z linii poleceń albo `PRIVATE_HOST`):
+  wysyła `private_server.py`, `cert.pem`, `key.pem`, `server.cfg` (z `WarpHub-private` na PC)
+  i `www/` do `~/warphub-private` (nowe `www` obok starego, podmiana jednym `mv`), robi
+  `run.sh` (restart serwera po 10 s, gdy padnie) i wpis `@reboot` w crontabie użytkownika –
+  bez roota (port 6831 > 1024, `sudo` nie jest potrzebne). Na koniec restart i sprawdzenie.
+- Certyfikat i hasło przeniesione z PC: odcisk `2FCB 9FDF 6356 5006…` taki sam, Amigi,
+  które logowały się do serwera na PC, zmieniają tylko adres.
+- Sprawdzone z PC: `www/` na RP4 = PC (209 plików, SHA-256 każdego), bez hasła i ze złym
+  hasłem 401, zły login w `server.log`.
+- Po nowym wydaniu gry: `python tools/make_private.py`, potem `sh tools/push_private.sh …`.
+- WARP HUB z kłódką = **0.6** (numer podniesiony 23.11.2026, jeszcze bez wydania w
+  `releases/`); wgrany na Amigę 1 do `SYS:WarpApps/WarpHub`, poprzedni jako `WarpHub-0.5`.
+- Test 24.11.2026 (Amiga 1, WARP HUB 0.6): logowanie kłódką przez **adres publiczny**
+  przeszło (przekierowanie portu działa; w logu jako adres routera – złe hasła z sieci
+  domowej przez adres publiczny liczą się wspólnie), „Private source: 4 full packages”.
+- Pełny Vastar z RP4 (przez adres publiczny) zainstalowany na Amidze 1 w `Work:Games`:
+  30 plików (program, doc, 19 ROM-ów) pobranych z Amigi bajt w bajt jak na serwerze,
+  `Version` = Vastar 0.1, program `rwed`.
+- **0.7:** „Odśwież” sprawdza od nowa wszystkie szuflady gier (także bez sieci) – gra
+  usunięta przy otwartym WARP HUB nie jest już pokazywana jako zainstalowana (w 0.6 tylko
+  po ponownym starcie programu; zgłoszenie użytkownika: usunięty Vastar dalej zielony).
+- Do zrobienia: test z Amigi (logowanie kłódką, instalacja pełnej gry), przekierowanie
+  portu na routerze (użytkownik) i test z zewnątrz, stały adres RP4 w DHCP routera.
