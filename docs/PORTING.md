@@ -664,7 +664,7 @@ Settlers z okna.
 - Sprawdzone z PC: `www/` na RP4 = PC (209 plików, SHA-256 każdego), bez hasła i ze złym
   hasłem 401, zły login w `server.log`.
 - Po nowym wydaniu gry: `python tools/make_private.py`, potem `sh tools/push_private.sh …`.
-- WARP HUB z kłódką = **0.6** (numer podniesiony 23.11.2026, jeszcze bez wydania w
+- WARP HUB z kłódką = **0.6** (numer podniesiony 23.11.2026, wydany jako **0.7** 24.11.2026 w
   `releases/`); wgrany na Amigę 1 do `SYS:WarpApps/WarpHub`, poprzedni jako `WarpHub-0.5`.
 - Test 24.11.2026 (Amiga 1, WARP HUB 0.6): logowanie kłódką przez **adres publiczny**
   przeszło (przekierowanie portu działa; w logu jako adres routera – złe hasła z sieci
