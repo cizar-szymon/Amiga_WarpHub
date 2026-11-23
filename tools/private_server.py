@@ -7,7 +7,8 @@
     python tools/private_server.py password [--root DIR]  a new password
 
 Extra passwords (codes) besides the main one, each with a name:
-    code NAME [--game KEY ...] [--days N | --hours N]   a new code, printed once
+    code NAME [--game KEY ...] [--days N | --hours N] [--length N]
+                                                        a new code, printed once
          --game: only these games (the catalog shows only them, other files 403)
          --days / --hours: valid until then (the server refuses it afterwards)
     codes                                               the list of the codes
@@ -140,7 +141,7 @@ def cmd_password(args):
 
 # --- codes: extra passwords for some games and / or for a while ---------------
 # One salt for all codes: a login costs one PBKDF2, not one per code (the codes
-# are random, 12 characters of 31 - no two people pick the same).
+# are random, 8-12+ characters of 31 - no two people pick the same).
 
 CODE_ALPHABET = 'abcdefghjkmnpqrstuvwxyz23456789'
 
@@ -212,7 +213,9 @@ def cmd_code(args):
     data = load_codes(args.root)
     if any(c['name'] == args.name for c in data['codes']):
         sys.exit('a code %r is there already (revoke %s first)' % (args.name, args.name))
-    code = args.password or ''.join(secrets.choice(CODE_ALPHABET) for _ in range(12))
+    if args.length < 8:
+        sys.exit('--length: 8 characters at least')
+    code = args.password or ''.join(secrets.choice(CODE_ALPHABET) for _ in range(args.length))
     now = time.time()
     seconds = args.days * 86400 + args.hours * 3600
     entry = {'name': args.name, 'hash': hash_password(code, data['salt'])[1],
@@ -513,6 +516,7 @@ def main(argv=None):
     ap.add_argument('--game', action='append', default=[], help='code: only this game (key)')
     ap.add_argument('--days', type=int, default=0, help='code: valid for N days')
     ap.add_argument('--hours', type=int, default=0, help='code: valid for N hours')
+    ap.add_argument('--length', type=int, default=12, help='code: characters (8+, default 12)')
     ap.add_argument('--expired', action='store_true', help='revoke: all expired codes')
     ap.add_argument('--password', help=argparse.SUPPRESS)   # tests only
     args = ap.parse_args(argv)
