@@ -675,5 +675,25 @@ Settlers z okna.
 - **0.7:** „Odśwież” sprawdza od nowa wszystkie szuflady gier (także bez sieci) – gra
   usunięta przy otwartym WARP HUB nie jest już pokazywana jako zainstalowana (w 0.6 tylko
   po ponownym starcie programu; zgłoszenie użytkownika: usunięty Vastar dalej zielony).
+- **Hasła dodatkowe (kody), 24.11.2026, decyzja użytkownika: tylko dla jego Amig.** Obok
+  hasła głównego kody z nazwą: na wybrane gry (`--game`, można kilka) i / albo na czas
+  (`--days` / `--hours`). Na PC:
+  ```
+  python tools/private_server.py code amiga2-vastar --game vastar
+  python tools/private_server.py code dzien --days 1
+  python tools/private_server.py codes            # lista
+  python tools/private_server.py revoke NAZWA     # albo revoke --expired
+  sh tools/push_private.sh <user@host> --codes    # tylko codes.json, bez restartu
+  ```
+  - Kod wypisywany tylko raz; w `codes.json` sam skrót (PBKDF2, wspólna sól kodów – jedno
+    PBKDF2 na logowanie). Kod bez gry i bez czasu nie istnieje (to jest hasło główne).
+  - Kod na gry: katalog tylko z tymi grami (WARP HUB pokazuje „1 full package”, reszta
+    z publicznego katalogu), inne pliki i obrazki 403. Kod po terminie: 401 „code expired”,
+    nie liczy się do blokady (to nie zgadywanie). Serwer czyta `codes.json` po zmianie.
+  - Log: `login <ip> code <nazwa>`, `files <gra> <ip> code <nazwa>` (raz na grę na
+    logowanie), `expired code <nazwa> <ip>`.
+  - Testy: `tools/tests/test_private_server.py` (prawdziwy serwer na PC, 8 testów). Na RP4:
+    kod na Vastara – katalog tylko `vastar`, plik Vastara 200, OpenDUNE 403; kod 1 h – 4 gry;
+    po `revoke` + `--codes` 401 bez restartu.
 - Do zrobienia: test z Amigi (logowanie kłódką, instalacja pełnej gry), przekierowanie
   portu na routerze (użytkownik) i test z zewnątrz, stały adres RP4 w DHCP routera.

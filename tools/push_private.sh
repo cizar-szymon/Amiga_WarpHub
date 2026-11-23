@@ -4,10 +4,13 @@
 # www/ (tools/make_private.py) and (re)starts the server.
 #
 #   sh tools/push_private.sh user@host [--no-www]
+#   sh tools/push_private.sh user@host --codes    only codes.json (no restart:
+#                                                 the server reads it again)
 #
 # The address is never in the repo: give it on the command line or in PRIVATE_HOST.
 # On the server (in ~/warphub-private):
-#   private_server.py, cert.pem, key.pem, server.cfg, www/, server.log (kept)
+#   private_server.py, cert.pem, key.pem, server.cfg, codes.json, www/,
+#   server.log (kept)
 #   run.sh        restarts the server when it stops (10 s pause)
 #   crontab       @reboot run.sh - starts after a reboot without root
 # www/ is unpacked next to the old one and swapped in one step, so a running
@@ -18,7 +21,7 @@ HOST=${1:-${PRIVATE_HOST:-}}
 WWW=1
 [ "${2:-}" = "--no-www" ] && WWW=0
 if [ -z "$HOST" ]; then
-    echo "usage: sh tools/push_private.sh user@host [--no-www]" >&2
+    echo "usage: sh tools/push_private.sh user@host [--no-www | --codes]" >&2
     exit 2
 fi
 
@@ -31,10 +34,19 @@ for f in cert.pem key.pem server.cfg www/catalog.txt; do
     [ -f "$ROOT/$f" ] || { echo "missing $ROOT/$f (tools/private_server.py setup, tools/make_private.py)" >&2; exit 1; }
 done
 
+if [ "${2:-}" = "--codes" ]; then
+    [ -f "$ROOT/codes.json" ] || { echo "no $ROOT/codes.json (private_server.py code ...)" >&2; exit 1; }
+    tar -C "$ROOT" -cf - codes.json | $SSH "$HOST" "tar -C $DIR -xf - && chmod 600 $DIR/codes.json"
+    echo "codes.json sent; the server takes it at the next login"
+    exit 0
+fi
+
 echo "== files of the server"
 $SSH "$HOST" "mkdir -p $DIR && chmod 700 $DIR"
 tar -C "$HERE/tools" -cf - private_server.py | $SSH "$HOST" "tar -C $DIR -xf -"
-tar -C "$ROOT" -cf - cert.pem key.pem server.cfg | $SSH "$HOST" "tar -C $DIR -xf - && chmod 600 $DIR/key.pem $DIR/server.cfg"
+CODES=
+[ -f "$ROOT/codes.json" ] && CODES=codes.json
+tar -C "$ROOT" -cf - cert.pem key.pem server.cfg $CODES | $SSH "$HOST" "tar -C $DIR -xf - && chmod 600 $DIR/key.pem $DIR/server.cfg"
 
 if [ $WWW = 1 ]; then
     echo "== www/ ($(du -sh "$ROOT/www" | cut -f1))"

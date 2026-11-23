@@ -6,8 +6,18 @@
     python tools/private_server.py run   [--root DIR] [--port 6831]
     python tools/private_server.py password [--root DIR]  a new password
 
+Extra passwords (codes) besides the main one, each with a name:
+    code NAME [--game KEY ...] [--days N | --hours N]   a new code, printed once
+         --game: only these games (the catalog shows only them, other files 403)
+         --days / --hours: valid until then (the server refuses it afterwards)
+    codes                                               the list of the codes
+    revoke NAME | revoke --expired                      remove codes
+The codes are in codes.json (the hash only); the running server reads the
+file again when it changes - no restart needed (tools/push_private.sh --codes).
+
 <root> (default ../WarpHub-private, never in a repo):
     server.cfg        port, the salted hash of the password (PBKDF2-SHA256)
+    codes.json        the codes: name, hash, games, valid until
     cert.pem key.pem  its own certificate (EC P-256, 20 years); WARP HUB
                       remembers its SHA-256 on the first login and from then
                       on talks only to a server with this certificate
@@ -27,6 +37,7 @@ import getpass
 import hashlib
 import hmac
 import http.server
+import json
 import os
 import secrets
 import socketserver
@@ -127,6 +138,129 @@ def cmd_password(args):
     print('password changed (restart the server)')
 
 
+# --- codes: extra passwords for some games and / or for a while ---------------
+# One salt for all codes: a login costs one PBKDF2, not one per code (the codes
+# are random, 12 characters of 31 - no two people pick the same).
+
+CODE_ALPHABET = 'abcdefghjkmnpqrstuvwxyz23456789'
+
+
+def codes_path(root):
+    return os.path.join(root, 'codes.json')
+
+
+def load_codes(root):
+    try:
+        with open(codes_path(root), encoding='utf-8') as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        data = {}
+    data.setdefault('salt', secrets.token_hex(16))
+    data.setdefault('codes', [])
+    return data
+
+
+def save_codes(root, data):
+    path = codes_path(root)
+    with open(path + '.tmp', 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=1)
+    os.replace(path + '.tmp', path)
+    try:
+        os.chmod(path, 0o600)
+    except OSError:
+        pass
+
+
+def catalog_games(root):
+    keys = []
+    try:
+        with open(os.path.join(root, 'www', 'catalog.txt'), encoding='utf-8') as f:
+            for line in f:
+                if line.startswith('GAME '):
+                    keys.append(line.split()[1])
+    except FileNotFoundError:
+        pass
+    return keys
+
+
+def show_time(t):
+    return time.strftime('%Y-%m-%d %H:%M', time.localtime(t))
+
+
+def describe_code(c, now=None):
+    now = now or time.time()
+    games = ', '.join(c['games']) if c['games'] else 'all games'
+    if not c['expires']:
+        until = 'no time limit'
+    elif c['expires'] <= now:
+        until = 'EXPIRED %s' % show_time(c['expires'])
+    else:
+        until = 'until %s' % show_time(c['expires'])
+    return '%-16s %-30s %s' % (c['name'], games, until)
+
+
+def cmd_code(args):
+    if not args.name or not args.name.replace('-', '').replace('_', '').isalnum():
+        sys.exit('code NAME: letters, digits, - and _ (the name is in the log)')
+    if not args.game and not args.days and not args.hours:
+        sys.exit('a code is for some games (--game) and / or for a while (--days, --hours);'
+                 ' full access without a limit is the main password')
+    known = catalog_games(args.root)
+    for g in args.game:
+        if g not in known:
+            sys.exit('no game %r in www/catalog.txt (there: %s)' % (g, ', '.join(known)))
+    data = load_codes(args.root)
+    if any(c['name'] == args.name for c in data['codes']):
+        sys.exit('a code %r is there already (revoke %s first)' % (args.name, args.name))
+    code = args.password or ''.join(secrets.choice(CODE_ALPHABET) for _ in range(12))
+    now = time.time()
+    seconds = args.days * 86400 + args.hours * 3600
+    entry = {'name': args.name, 'hash': hash_password(code, data['salt'])[1],
+             'games': sorted(set(args.game)), 'expires': int(now + seconds) if seconds else 0,
+             'created': int(now)}
+    data['codes'].append(entry)
+    save_codes(args.root, data)
+    print('code:  %s' % code)
+    print(describe_code(entry))
+    print('Shown only now. To the server: sh tools/push_private.sh user@host --codes')
+
+
+def cmd_codes(args):
+    data = load_codes(args.root)
+    if not data['codes']:
+        print('no codes')
+    for c in data['codes']:
+        print(describe_code(c))
+
+
+def cmd_revoke(args):
+    data = load_codes(args.root)
+    now = time.time()
+    if args.expired:
+        gone = [c for c in data['codes'] if c['expires'] and c['expires'] <= now]
+    else:
+        gone = [c for c in data['codes'] if c['name'] == args.name]
+        if not gone:
+            sys.exit('no code %r' % args.name)
+    data['codes'] = [c for c in data['codes'] if c not in gone]
+    save_codes(args.root, data)
+    for c in gone:
+        print('removed: %s' % describe_code(c, now))
+
+
+def filter_catalog(text, games):
+    """The catalog with only these games (the lines before the first GAME stay)."""
+    out, keep = [], True
+    for line in text.splitlines(keepends=True):
+        if line.startswith('GAME '):
+            keep = line.split()[1] in games
+        if keep:
+            out.append(line)
+        if line.rstrip('\r\n') == 'END':
+            keep = False             # until the next GAME decides
+    return ''.join(out)
+
+
 class State:
     def __init__(self, root, salt, digest):
         self.root = root
@@ -136,8 +270,12 @@ class State:
         self.bad = {}            # ip -> (count, first time)
         self.blocked = {}        # ip -> until
         self.lock = threading.Lock()
-        self.good = set()        # quick keys of passwords already checked
+        self.good = {}           # quick key of a password already checked -> who
         self.log_path = os.path.join(root, 'server.log')
+        self.codes = {}          # hash -> code (codes.json)
+        self.codes_salt = ''
+        self.codes_mtime = None
+        self.seen = set()        # (who, ip, game) already in the log
 
     def log(self, text):
         line = '%s %s' % (time.strftime('%Y-%m-%d %H:%M:%S'), text)
@@ -145,17 +283,49 @@ class State:
         with self.lock, open(self.log_path, 'a', encoding='utf-8') as f:
             f.write(line + '\n')
 
-    def password_ok(self, password):
+    def reload_codes(self):
+        # codes.json read again when it changed (a new or revoked code)
+        try:
+            mtime = os.stat(codes_path(self.root)).st_mtime_ns
+        except FileNotFoundError:
+            mtime = None
+        with self.lock:
+            if mtime == self.codes_mtime:
+                return
+            data = load_codes(self.root) if mtime is not None else {'salt': '', 'codes': []}
+            self.codes = {c['hash']: c for c in data['codes']}
+            self.codes_salt = data['salt']
+            self.codes_mtime = mtime
+            self.good = {q: w for q, w in self.good.items() if w == 'main'}
+        self.log('codes: %d' % len(self.codes))
+
+    def check(self, password):
+        """None for a wrong password, else who it is: the main password (all
+        games, no limit) or a code (its games, maybe expired)."""
+        self.reload_codes()
         # PBKDF2 once (slow on purpose); then a quick key in memory, so the
         # hundreds of files of a game do not each cost the slow check
         quick = hashlib.sha256((self.salt + ':' + password).encode('utf-8')).digest()
-        if quick in self.good:
-            return True
-        _, digest = hash_password(password, self.salt)
-        if hmac.compare_digest(digest, self.digest):
-            self.good.add(quick)
-            return True
-        return False
+        with self.lock:
+            hit = self.good.get(quick)
+        if hit is None:
+            if hmac.compare_digest(hash_password(password, self.salt)[1], self.digest):
+                hit = 'main'
+            elif self.codes:
+                digest = hash_password(password, self.codes_salt)[1]
+                if digest in self.codes:
+                    hit = digest
+            if hit is None:
+                return None
+            with self.lock:
+                self.good[quick] = hit
+        if hit == 'main':
+            return {'who': 'main', 'games': None, 'expired': False}
+        code = self.codes.get(hit)
+        if code is None:                     # revoked meanwhile
+            return None
+        return {'who': 'code ' + code['name'], 'games': set(code['games']) or None,
+                'expired': bool(code['expires']) and code['expires'] <= time.time()}
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
@@ -209,11 +379,22 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if password is None:
             self.reply(401, b'password needed\n')
             return False
-        if st.password_ok(password):
+        grant = st.check(password)
+        if grant is not None and grant['expired']:
+            # a real code, only too late: not a guess, no block
+            if self.path == '/catalog.txt':
+                st.log('expired %s %s' % (grant['who'], ip))
+            self.reply(401, b'code expired\n')
+            return False
+        if grant is not None:
+            self.grant = grant
             with st.lock:
                 was_bad = st.bad.pop(ip, None)
             if self.path == '/catalog.txt':
-                st.log('login %s%s' % (ip, ' (after %d bad)' % was_bad[0] if was_bad else ''))
+                with st.lock:
+                    st.seen = {s for s in st.seen if s[:2] != (grant['who'], ip)}
+                st.log('login %s%s%s' % (ip, '' if grant['who'] == 'main' else ' ' + grant['who'],
+                                         ' (after %d bad)' % was_bad[0] if was_bad else ''))
             return True
         with st.lock:
             count, first = st.bad.get(ip, (0, now))
@@ -244,6 +425,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def do_HEAD(self):
         self.do_GET()
 
+    def game_of(self):
+        """files/<key>/... and images/<key>.png belong to a game; None else."""
+        parts = [p for p in urllib.parse.unquote(urllib.parse.urlsplit(self.path).path).split('/')
+                 if p]
+        if len(parts) >= 3 and parts[0] == 'files':
+            return parts[1]
+        if len(parts) == 2 and parts[0] == 'images':
+            return os.path.splitext(parts[1])[0]
+        return None
+
     def do_GET(self):
         if not self.authorized():
             return
@@ -251,6 +442,30 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if full is None:
             self.reply(404, b'not found\n')
             return
+        games = self.grant['games']
+        game = self.game_of()
+        if games is not None and full == os.path.join(self.state.www, 'catalog.txt'):
+            with open(full, encoding='utf-8', newline='') as f:
+                body = filter_catalog(f.read(), games).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/octet-stream')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            if self.command != 'HEAD':
+                self.wfile.write(body)
+            return
+        if games is not None and game not in games:
+            self.reply(403, b'not for this code\n')
+            return
+        if game is not None and self.path.startswith('/files/'):
+            st = self.state
+            key = (self.grant['who'], self.client_address[0], game)
+            with st.lock:
+                new = key not in st.seen
+                st.seen.add(key)
+            if new:
+                st.log('files %s %s%s' % (game, key[1],
+                                          '' if key[0] == 'main' else ' ' + key[0]))
         size = os.path.getsize(full)
         self.send_response(200)
         self.send_header('Content-Type', 'application/octet-stream')
@@ -291,14 +506,22 @@ def cmd_run(args):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-    ap.add_argument('command', choices=('setup', 'run', 'password'))
+    ap.add_argument('command', choices=('setup', 'run', 'password', 'code', 'codes', 'revoke'))
+    ap.add_argument('name', nargs='?', help='code / revoke: the name of the code')
     ap.add_argument('--root', default=default_root())
     ap.add_argument('--port', type=int, default=0)
+    ap.add_argument('--game', action='append', default=[], help='code: only this game (key)')
+    ap.add_argument('--days', type=int, default=0, help='code: valid for N days')
+    ap.add_argument('--hours', type=int, default=0, help='code: valid for N hours')
+    ap.add_argument('--expired', action='store_true', help='revoke: all expired codes')
     ap.add_argument('--password', help=argparse.SUPPRESS)   # tests only
     args = ap.parse_args(argv)
     if args.command == 'setup' and not args.port:
         args.port = 6831
-    {'setup': cmd_setup, 'run': cmd_run, 'password': cmd_password}[args.command](args)
+    if args.command == 'revoke' and not args.name and not args.expired:
+        ap.error('revoke NAME or revoke --expired')
+    {'setup': cmd_setup, 'run': cmd_run, 'password': cmd_password, 'code': cmd_code,
+     'codes': cmd_codes, 'revoke': cmd_revoke}[args.command](args)
 
 
 if __name__ == '__main__':
