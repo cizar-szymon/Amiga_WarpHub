@@ -19,5 +19,4 @@ REQ de AmigaOS 3.2, Picasso96, RTG 8-Bit
 REPO cizar-szymon/Amiga_Game_CommandConquer
 ORDER 30
 LOCAL CommandConquer
-FULLNAME TiberianDawn
 IMAGE-SOURCE CommandConquer/tools/release/icon/cover-td.jpg 20 0 740 450

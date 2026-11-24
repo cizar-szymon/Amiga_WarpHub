@@ -20,5 +20,4 @@ REPO cizar-szymon/Amiga_Game_CommandConquer
 BRANCH release-ra
 ORDER 31
 LOCAL CommandConquer
-FULLNAME RedAlert
 IMAGE-SOURCE CommandConquer/tools/release/icon/cover-ra.jpg 33 60 606 420
