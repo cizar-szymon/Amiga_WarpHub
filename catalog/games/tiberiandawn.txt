@@ -1,5 +1,5 @@
-# WARP HUB: Command & Conquer: Tiberian Dawn (format: tools/game_files.py)
-NAME en Command & Conquer: Tiberian Dawn
+# WARP HUB: C&C: Tiberian Dawn (format: tools/game_files.py)
+NAME en C&C: Tiberian Dawn
 DESC en Tiberian Dawn, the first Command & Conquer, on the Vanilla Conquer engine. 640x400 on RTG, game movies with sound, bug reports from the game.
 DESC pl Tiberian Dawn, pierwszy Command & Conquer, na silniku Vanilla Conquer. 640x400 na RTG, filmy z dzwiekiem, zgloszenia bledow z gry.
 DESC de Tiberian Dawn, das erste Command & Conquer, mit der Vanilla-Conquer-Engine. 640x400 auf RTG, Filme mit Ton, Fehlermeldungen aus dem Spiel.
