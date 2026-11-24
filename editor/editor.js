@@ -108,7 +108,7 @@ function parse(key, text) {
     } else if (word === 'FLAT' && !rest) {
       g.flat = true;
     } else if (word === 'LOCAL' || word === 'FULLNAME' || word === 'IMAGE-SOURCE') {
-      g.fixed.push(line);          // PC only: kept as it is
+      g.fixed.push(line);          // PC only (LOCAL, FULLNAME, IMAGE-SOURCE): kept as it is
     } else {
       throw new Error(`${key}: nieznana linia: ${line}`);
     }
