@@ -430,6 +430,98 @@ FILE 26082 bbbc8b4dd2ac7f2a76855e087c70639b17aea1282efc7f7a410d8dcbae4f98c9 N Di
 FILE 237573 f12980a91c94931342bd111da00b4adabe8061264cb8ecbdb7fb3a82895c1514 N DiabloWarp/mods/hf/ui_art/supportw.clx
 FILE 84 3e58d8ec63d245ace37079c6800169b992cf1965217e9cf369ca307f477157e0 N DiabloWarp/save/ReadMe.txt
 END
+GAME tiberiandawn
+NAME en Command & Conquer: Tiberian Dawn
+DESC en Tiberian Dawn, the first Command & Conquer, on the Vanilla Conquer engine. 640x400 on RTG, game movies with sound, bug reports from the game.
+DESC pl Tiberian Dawn, pierwszy Command & Conquer, na silniku Vanilla Conquer. 640x400 na RTG, filmy z dzwiekiem, zgloszenia bledow z gry.
+DESC de Tiberian Dawn, das erste Command & Conquer, mit der Vanilla-Conquer-Engine. 640x400 auf RTG, Filme mit Ton, Fehlermeldungen aus dem Spiel.
+TAGS warp1260,warp1240,warp1260x,warp7060
+REQ en 68040 / 68060
+REQ en 100 MHz recommended
+REQ en 32 MB Fast RAM
+REQ en AmigaOS 3.2, Picasso96, RTG 8-bit
+REQ pl 68040 / 68060
+REQ pl 100 MHz (zalecane)
+REQ pl 32 MB Fast RAM
+REQ pl AmigaOS 3.2, Picasso96, RTG 8-bit
+REQ de 68040 / 68060
+REQ de 100 MHz empfohlen
+REQ de 32 MB Fast RAM
+REQ de AmigaOS 3.2, Picasso96, RTG 8-Bit
+REPO cizar-szymon/Amiga_Game_CommandConquer
+BRANCH main
+VERSION 0.2
+ZIP TiberianDawn-0.2.zip 803188
+SIZE 1935238
+IMAGE 24768 a4bfc21ccf5aa9e0402f319ffa5c0de091f3b56b42c68177bf9cce881e43def6 images/tiberiandawn.png
+NOTES en TiberianDawn/doc/TiberianDawn_release_en.txt
+NOTES pl TiberianDawn/doc/TiberianDawn_release.txt
+README TiberianDawn/data/ReadMe.txt
+README TiberianDawn/user/ReadMe.txt
+FILE 6862 ea64fde17ae4daeac0823985da76ba69e9dd13132b8a7c1eb13c57cd533b5b74 K TiberianDawn.info
+FILE 1857780 2777d44883214e4325027e618f637c92a79637f537770e347961c7a4e7b2e221 N TiberianDawn/TiberianDawn
+FILE 4451 6f346c9a8b6ae8820090289801cf58c1789b224968b949b73135be051aa0d7bb K TiberianDawn/TiberianDawn.info
+FILE 922 117e72ee6164b2de982ef09bc084bc0894bdeb2cb65e891dd2a975decbdfd13a N TiberianDawn/data/ReadMe.txt
+FILE 2514 40a9f307f7de340bd324734098f4edb73e61c0dd1f1fc355554de827049f812b N TiberianDawn/doc.info
+FILE 37528 69162534e6d1bd22f953883d24d7763b73db81f726b03993b655db39ce28086c N TiberianDawn/doc/COPYING
+FILE 560 a51979e8f913a282807cf046317296def5d355feb13f8fa5e3370fe6f591ea3d N TiberianDawn/doc/Install.txt
+FILE 3218 659bf5badbbfbd9f045a97fdeaddc68fa6d6e4b39c935d70b9f69388e1f6dcdb N TiberianDawn/doc/Install.txt.info
+FILE 2957 10b67dfd67c170ba97d3559caafacc7f700d4385a99432195d9380e4df2dd149 N TiberianDawn/doc/TiberianDawn.txt
+FILE 3308 f6ca3a09267f0c9baa2abf16f3de2d17a5f179720c777543c34a3558b69f26eb N TiberianDawn/doc/TiberianDawn.txt.info
+FILE 3152 038df7d44cb602879c523db2360b273cd1b49d419204e9d56f276448bc13524e N TiberianDawn/doc/TiberianDawn_en.txt
+FILE 3354 f5d26b5dd3e1a7f7ac3872afe846b7298ed9203498da702caec9468fa7bb3832 N TiberianDawn/doc/TiberianDawn_en.txt.info
+FILE 855 6cf2dab19e334b021e446a1475947f4c2a8594ec10ffe65559fbdfdd826c2a0a N TiberianDawn/doc/TiberianDawn_release.txt
+FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e N TiberianDawn/doc/TiberianDawn_release.txt.info
+FILE 961 e8d4a75a271d9f3d13746b077f6c6944a7aab14fb81629bdf6667cb86115de61 N TiberianDawn/doc/TiberianDawn_release_en.txt
+FILE 3354 b476e8587b9ec2cb2764412450168cc1473eb08f4c3bc1dffd7001589c51deb7 N TiberianDawn/doc/TiberianDawn_release_en.txt.info
+FILE 154 52a59885ea3499d609e18586829798bd30fc0a9763c55c2a777fc8ab2f29b8e6 N TiberianDawn/user/ReadMe.txt
+END
+GAME redalert
+NAME en Command & Conquer: Red Alert
+DESC en Red Alert on the Vanilla Conquer engine. 640x400 on RTG, Allied and Soviet campaigns, game movies with sound, bug reports from the game.
+DESC pl Red Alert na silniku Vanilla Conquer. 640x400 na RTG, kampanie Aliantow i Sowietow, filmy z dzwiekiem, zgloszenia bledow z gry.
+DESC de Red Alert mit der Vanilla-Conquer-Engine. 640x400 auf RTG, Kampagnen der Allierten und Sowjets, Filme mit Ton, Fehlermeldungen aus dem Spiel.
+TAGS warp1260,warp1240,warp1260x,warp7060
+REQ en 68040 / 68060
+REQ en 100 MHz recommended
+REQ en 32 MB Fast RAM
+REQ en AmigaOS 3.2, Picasso96, RTG 8-bit
+REQ pl 68040 / 68060
+REQ pl 100 MHz (zalecane)
+REQ pl 32 MB Fast RAM
+REQ pl AmigaOS 3.2, Picasso96, RTG 8-bit
+REQ de 68040 / 68060
+REQ de 100 MHz empfohlen
+REQ de 32 MB Fast RAM
+REQ de AmigaOS 3.2, Picasso96, RTG 8-Bit
+REPO cizar-szymon/Amiga_Game_CommandConquer
+BRANCH release-ra
+VERSION 0.2
+ZIP RedAlert-0.2.zip 1034731
+SIZE 2644958
+IMAGE 23627 a2a2a20fb8f49c6be35a54324c4705e9c253d89801806f5d2c05092d0bc836e5 images/redalert.png
+NOTES en RedAlert/doc/RedAlert_release_en.txt
+NOTES pl RedAlert/doc/RedAlert_release.txt
+README RedAlert/data/ReadMe.txt
+README RedAlert/user/ReadMe.txt
+FILE 6862 ea64fde17ae4daeac0823985da76ba69e9dd13132b8a7c1eb13c57cd533b5b74 K RedAlert.info
+FILE 2566068 342a1d140e3c55f0e54726b84bb2be120b5d39bdf3cc9dbfc23828b5542e4f4e N RedAlert/RedAlert
+FILE 6521 53297fadbbbb820286bf40b3e3b0e8755369002c85183f5e87622573c5fa327a K RedAlert/RedAlert.info
+FILE 633 b275711c808aeb06d30552b6c503ca6e89c7f0329148abb6d7464b742e2285bd N RedAlert/data/ReadMe.txt
+FILE 2514 40a9f307f7de340bd324734098f4edb73e61c0dd1f1fc355554de827049f812b N RedAlert/doc.info
+FILE 37528 69162534e6d1bd22f953883d24d7763b73db81f726b03993b655db39ce28086c N RedAlert/doc/COPYING
+FILE 532 d2319db835511ac5a37fccebcb84d5cb924b2957de24d808a7a61e2162f96a0d N RedAlert/doc/Install.txt
+FILE 3218 659bf5badbbfbd9f045a97fdeaddc68fa6d6e4b39c935d70b9f69388e1f6dcdb N RedAlert/doc/Install.txt.info
+FILE 2790 d0a3cfc7415cd8711a2b8b81453823f2bdf4f5f41cd9433c9204a3c00c8e201f N RedAlert/doc/RedAlert.txt
+FILE 3308 f6ca3a09267f0c9baa2abf16f3de2d17a5f179720c777543c34a3558b69f26eb N RedAlert/doc/RedAlert.txt.info
+FILE 3006 7e03be7c50ef6fc9efc52addf019a43381b61457b6d712b455f6336fe9b11547 N RedAlert/doc/RedAlert_en.txt
+FILE 3354 f5d26b5dd3e1a7f7ac3872afe846b7298ed9203498da702caec9468fa7bb3832 N RedAlert/doc/RedAlert_en.txt.info
+FILE 853 4487999ec9857f4003e5b670d2a914e0de1ac7de1e602c9230e15c8ed76f356d N RedAlert/doc/RedAlert_release.txt
+FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e N RedAlert/doc/RedAlert_release.txt.info
+FILE 955 da0008e6964a185ce97c59c6a3b0731ccea50f2e7abb24d5a85b32cde9993c66 N RedAlert/doc/RedAlert_release_en.txt
+FILE 3354 b476e8587b9ec2cb2764412450168cc1473eb08f4c3bc1dffd7001589c51deb7 N RedAlert/doc/RedAlert_release_en.txt.info
+FILE 154 52a59885ea3499d609e18586829798bd30fc0a9763c55c2a777fc8ab2f29b8e6 N RedAlert/user/ReadMe.txt
+END
 GAME syndwars
 NAME en Syndicate Wars
 DESC en Syndicate Wars on the SyndWarsFX engine: cyborg agents in a 3D city.
