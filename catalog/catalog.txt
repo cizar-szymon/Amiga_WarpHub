@@ -20,29 +20,29 @@ REQ de AmiSSL 5 (WarpSSL)
 REQ de TCP/IP, Internet
 REPO cizar-szymon/Amiga_WarpHub
 BRANCH main
-VERSION 0.9
+VERSION 0.10
 FLAT
-ZIP WarpHub-0.9.zip 77599
-SIZE 88896
+ZIP WarpHub-0.10.zip 81468
+SIZE 96136
 IMAGE 2485 e4c6fcc78037abd22d90858afbae99e98f8ac59fe96be8cd324f5c6d7de4cf86 images/warphub.png
 NOTES en WarpHub/doc/WarpHub_release_en.txt
 NOTES pl WarpHub/doc/WarpHub_release.txt
 NOTES de WarpHub/doc/WarpHub_release_de.txt
 FILE 6862 ea64fde17ae4daeac0823985da76ba69e9dd13132b8a7c1eb13c57cd533b5b74 X WarpHub.info
-FILE 85576 4e8444c1f3b100f8f6ff81ebc02c09c5c61dbff36f5aa576838f0c73ada557d9 N WarpHub/WarpHub
+FILE 92816 08b53264276278c99a5957346c1318af954132e530c6c896bf40714494e8f9d4 N WarpHub/WarpHub
 FILE 3320 ec8027ba82761c6c5ee4058c742bea0f7b7a44f393d1a2beb5ca325df12211f8 K WarpHub/WarpHub.info
 FILE 2514 40a9f307f7de340bd324734098f4edb73e61c0dd1f1fc355554de827049f812b X WarpHub/doc.info
-FILE 3402 7e2b845b721f439101888a5c3be75ddf8fc005f919725b67a342ca9785ae357a X WarpHub/doc/WarpHub.txt
+FILE 3612 9e58a221fea71e6331c02055e52d94d3ac5fab07818c79d16065bcf1f879f9ca X WarpHub/doc/WarpHub.txt
 FILE 3308 f6ca3a09267f0c9baa2abf16f3de2d17a5f179720c777543c34a3558b69f26eb X WarpHub/doc/WarpHub.txt.info
-FILE 3720 058859366f247495999c2624a0c96cc0bfd48ead7c41ae1444bffbbf3fd01de6 X WarpHub/doc/WarpHub_de.txt
+FILE 3935 02af9b29cc6c606914cfc6c25708436f5e8fbe0aa475da1198c040405344c18d X WarpHub/doc/WarpHub_de.txt
 FILE 3218 659bf5badbbfbd9f045a97fdeaddc68fa6d6e4b39c935d70b9f69388e1f6dcdb X WarpHub/doc/WarpHub_de.txt.info
-FILE 3472 d703d71b8124d2da04856fb4233da58ef38723899964adac50af308a5708990f X WarpHub/doc/WarpHub_en.txt
+FILE 3665 3955581061cf3e45e651df77244fb914f095d90f16d5e3fa68f9288d64043c72 X WarpHub/doc/WarpHub_en.txt
 FILE 3354 f5d26b5dd3e1a7f7ac3872afe846b7298ed9203498da702caec9468fa7bb3832 X WarpHub/doc/WarpHub_en.txt.info
-FILE 2550 e1c3ba8426962cb55a133ebd73998c75e04d137b99be8e5240241332e8abb429 X WarpHub/doc/WarpHub_release.txt
+FILE 3041 671c0f3c3d68032628e4385a6f0520c8f2470abd40f65cd88b3d7621b9cb64d7 X WarpHub/doc/WarpHub_release.txt
 FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e X WarpHub/doc/WarpHub_release.txt.info
-FILE 2717 078cc96b6d5fee3c5184f5205deff407f12be0477c705f2b2b83c987ef88b9d1 X WarpHub/doc/WarpHub_release_de.txt
+FILE 3253 ce88f382d26eaa5b4ea58138ecedbd90dd03dab3e35d79b8b9910fbd4ed2a849 X WarpHub/doc/WarpHub_release_de.txt
 FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e X WarpHub/doc/WarpHub_release_de.txt.info
-FILE 2587 b6c0620a95b3354ecddad63f74d27c6f8a3ae716bd475c961f9916c73a7a7b24 X WarpHub/doc/WarpHub_release_en.txt
+FILE 3097 b0a033acacc40e54b17130f4c2ed923fe77dbc7f9c714b8ad679f3459fe34cac X WarpHub/doc/WarpHub_release_en.txt
 FILE 3354 b476e8587b9ec2cb2764412450168cc1473eb08f4c3bc1dffd7001589c51deb7 X WarpHub/doc/WarpHub_release_en.txt.info
 END
 GAME settlers
