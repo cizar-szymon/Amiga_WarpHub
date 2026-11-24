@@ -71,7 +71,7 @@
 
 extern struct WBStartup *_WBenchMsg;
 
-#define WARPHUB_VERSION "0.8"   /* tools/make_release.py reads it */
+#define WARPHUB_VERSION "0.9"   /* tools/make_release.py reads it */
 const char version_tag[] = "$VER: WarpHub " WARPHUB_VERSION " (19.11.2026)";
 
 unsigned long __stack = 65536;
@@ -110,7 +110,7 @@ enum {
   T_CANCEL, T_CONNECTING, T_CERT_ASK, T_TRUST, T_PRIV_OK, T_PRIV_BAD, T_PRIV_BLOCKED,
   T_PRIV_ERR, T_FULL, T_LOGGED_OUT, T_BAD_SERVER, T_NOT_TRUSTED, T_BUSY,
   T_UNINSTALL, T_ASK_UNINSTALL, T_UNINSTALL_BTNS, T_UNINSTALLED, T_UNINSTALLED_LEFT,
-  T_UNINSTALL_FAILED,
+  T_UNINSTALL_FAILED, T_CHECK_PROGRESS, T_LOADING_GAMES, T_STOPPED,
   T_COUNT
 };
 
@@ -151,7 +151,8 @@ static const char *const texts[3][T_COUNT] = {
     "Uninstall %s from %s?\n\nThe files that WARP HUB installed are deleted (program, texts, data).\n"
     "Saved games and reports in the drawer user stay.",
     "Uninstall|Cancel", "%s uninstalled (%d files).",
-    "%s uninstalled (%d files). Your own files stay in %s.", "Not uninstalled: %s"
+    "%s uninstalled (%d files). Your own files stay in %s.", "Not uninstalled: %s",
+    "Checking files: %d of %d, %s (%ld%%)", "Loading pictures and texts: %d of %d (%s)", "Stopped."
   },
   { /* pl */
     "Odswiez", "Zainstaluj", "Aktualizuj", "Sprawdz pliki", "Przerwij", "Zainstalowana %s",
@@ -189,7 +190,8 @@ static const char *const texts[3][T_COUNT] = {
     "Odinstalowac %s z %s?\n\nUsuniete zostana pliki zainstalowane przez WARP HUB (program, teksty, dane).\n"
     "Zapisy gry i zgloszenia bledow w szufladzie user zostaja.",
     "Odinstaluj|Anuluj", "%s odinstalowana (plikow: %d).",
-    "%s odinstalowana (plikow: %d). Twoje wlasne pliki zostaja w %s.", "Nie odinstalowano: %s"
+    "%s odinstalowana (plikow: %d). Twoje wlasne pliki zostaja w %s.", "Nie odinstalowano: %s",
+    "Sprawdzanie plikow: %d z %d, %s (%ld%%)", "Wczytywanie obrazkow i opisow: %d z %d (%s)", "Przerwano."
   },
   { /* de */
     "Aktualisieren", "Installieren", "Update", "Dateien pr\xfc" "fen", "Abbrechen",
@@ -228,7 +230,8 @@ static const char *const texts[3][T_COUNT] = {
     "%s aus %s deinstallieren?\n\nDie von WARP HUB installierten Dateien werden gel\xf6" "scht (Programm, Texte, Daten).\n"
     "Spielst\xe4" "nde und Meldungen in der Schublade user bleiben.",
     "Deinstallieren|Abbrechen", "%s deinstalliert (%d Dateien).",
-    "%s deinstalliert (%d Dateien). Deine eigenen Dateien bleiben in %s.", "Nicht deinstalliert: %s"
+    "%s deinstalliert (%d Dateien). Deine eigenen Dateien bleiben in %s.", "Nicht deinstalliert: %s",
+    "Pr\xfc" "fe Dateien: %d von %d, %s (%ld%%)", "Lade Bilder und Texte: %d von %d (%s)", "Abgebrochen."
   }
 };
 
@@ -1736,6 +1739,23 @@ static void worker_news(void)
 {
   char a[400];
   if (work.busy) {
+    if (work.loading_games && work.chk_count > 0) {
+      /* the refresh loads the picture and the texts of every game: which one, how far */
+      snprintf(a, sizeof(a), TX(T_LOADING_GAMES), (int)work.chk_index, (int)work.chk_count, work.file);
+      strncpy(status_text, a, sizeof(status_text) - 1);
+      status_text[sizeof(status_text) - 1] = 0;
+      set_progress((ULONG)work.chk_index, (ULONG)work.chk_count);
+      return;
+    }
+    if (work.checking) {
+      /* the files on the disk are checked (SHA-256 of each): which one, how far */
+      long pct = work.total > 0 ? (long)(((work.done >> 8) * 100UL) / ((work.total >> 8) + 1)) : 0;
+      snprintf(a, sizeof(a), TX(T_CHECK_PROGRESS), (int)work.chk_index, (int)work.chk_count, work.file, pct);
+      strncpy(status_text, a, sizeof(status_text) - 1);
+      status_text[sizeof(status_text) - 1] = 0;
+      set_progress(work.done, work.total);
+      return;
+    }
     if (work.total > 0) {
       long pct = (long)(((work.done >> 8) * 100UL) / ((work.total >> 8) + 1));
       snprintf(a, sizeof(a), TX(T_DOWNLOADING), work.file, pct);
@@ -1799,10 +1819,16 @@ static void worker_news(void)
       }
       (void)i;
     } else {
-      snprintf(a, sizeof(a), TX(T_FAILED), work.msg);
-      set_status(a);
-      set_progress(0, 0);
-      if (!test_dir[0]) ask(a, TX(T_OK));
+      if (strncmp(work.msg, "Stopped", 7) == 0) {
+        /* stopped by the user (the Stop button or Ctrl-C): not an error, nothing to confirm */
+        set_status(TX(T_STOPPED));
+        set_progress(0, 0);
+      } else {
+        snprintf(a, sizeof(a), TX(T_FAILED), work.msg);
+        set_status(a);
+        set_progress(0, 0);
+        if (!test_dir[0]) ask(a, TX(T_OK));
+      }
     }
     refresh_all();
   }

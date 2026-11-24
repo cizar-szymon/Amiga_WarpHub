@@ -709,3 +709,13 @@ Settlers z okna.
   (nazwa przycisku, pytanie, kliknięcie) sprawdza użytkownik – AmiAgent nie ma myszy.
 - Znane: przy „Aktualizuj” gry z dużymi danymi (490 MB) WARP HUB kilka minut liczy sumy SHA-256 i pokazuje tylko
   „Sprawdzanie plików…” (wygląda jak zawieszenie); postęp sprawdzania do dodania.
+
+## 0.9: every process says what it does (24.11.2026)
+- Rule of the user (24.11.2026, for all programs and games, also in `PORTING_PLAN.md`): every longer process is described on the bar of the window, so one can see that the program works.
+  Found when "Aktualizuj" of a game with 490 MB of data showed only "Sprawdzanie plikow ..." for 7 minutes.
+- `hub_plan_progress()` (hub_install.c): the check of the files calls back about every 256 KB of the file that is read and at the start of every file (file, number of count, bytes of all); `hub_plan()` is the same without a callback
+  (WarpHubCLI). The Stop button / Ctrl-C (`hub_break`) ends it (plan.files = -1, the job says "Stopped.").
+- The process of the network (`hub_worker.c`) gives it to the window in `chk_index`, `chk_count`, `file`, `done`, `total` (+ `checking`); the refresh does the same for the pictures and texts of the games (`loading_games`). `worker_news()`
+  in `warphub.c` writes "Checking files: N of M, FILE (xx%)" / "Loading pictures and texts: N of M (game)" and moves the progress bar. A stop by the user is "Stopped." without a requester (`T_STOPPED`).
+- Not needed: the removal of a game (a few files, instant), the scan of the drawers (it has its own text).
+- Tested by the user on Amiga 2 (`RAM:WarpHub09`): looks good.

@@ -1,11 +1,19 @@
 WARP HUB - Versionen
 ====================
 
-Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.8")
+Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.9")
 und in der Shell: Version SYS:WarpApps/WarpHub. Beschreibe, was
 passiert ist, mit der Versionsnummer:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.9 (24.11.2026, Beta)
+----------------------
+- Jeder laengere Vorgang sagt in der Leiste, was er tut: Das Pruefen der
+  Dateien eines Spiels (z.B. "Pruefe Dateien: 12 von 33, DESERT.MIX (41%)")
+  und Aktualisieren ("Lade Bilder und Texte: 5 von 13") zeigen Datei und
+  Fortschritt, wie das Laden. Der Knopf Abbrechen stoppt auch das Pruefen der
+  Dateien; das Abbrechen gibt die Meldung "Abgebrochen." ohne Fenster.
 
 0.8 (24.11.2026, Beta)
 ----------------------

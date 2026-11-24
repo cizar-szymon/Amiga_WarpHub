@@ -1,10 +1,18 @@
 WARP HUB - wydania
 ==================
 
-Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.8") i w
+Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.9") i w
 Shellu: Version SYS:WarpApps/WarpHub. Opisz, co sie stalo, i podaj
 numer wydania: https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.9 (24.11.2026, wydanie beta)
+------------------------------
+- Kazdy dluzszy proces opisuje na pasku, co robi: Sprawdzanie plikow gry
+  (np. "Sprawdzanie plikow: 12 z 33, DESERT.MIX (41%)") i Odswiez
+  ("Wczytywanie obrazkow i opisow: 5 z 13") pokazuja plik i postep, jak
+  pobieranie. Przycisk Przerwij zatrzymuje takze sprawdzanie plikow;
+  przerwanie daje komunikat "Przerwano." bez okienka.
 
 0.8 (24.11.2026, wydanie beta)
 ------------------------------

@@ -19,6 +19,13 @@ typedef void (*HubProgress)(void *user, const HubFile *f, ULONG done, ULONG tota
  * <Game>/ (e.g. "Work:Games"). */
 void hub_plan(HubGame *g, const char *dest, HubPlan *plan);
 
+/* The same with progress: called about every 256 KB of the file that is being read, and when a file starts.
+ * index/count: the file and the number of files that are read; all_done/all_total: bytes of all of them.
+ * Ctrl-C / the Stop button (hub_break) ends it with plan->files = -1. */
+typedef void (*HubCheckProgress)(void *user, const HubFile *f, int index, int count,
+                                 ULONG all_done, ULONG all_total);
+void hub_plan_progress(HubGame *g, const char *dest, HubPlan *plan, HubCheckProgress cb, void *user);
+
 /* Downloads the needed files into <file>.upd, checks size and SHA-256,
  * and only when all came whole puts them in place; a program that is
  * replaced goes to <Game>/old/<name>-<old_version>. Returns 1 or 0 with err

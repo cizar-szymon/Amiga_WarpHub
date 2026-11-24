@@ -39,6 +39,9 @@ typedef struct HubWork {
   int ok;
   char msg[256];
   volatile ULONG done, total;
+  volatile int loading_games; /* refresh: the pictures and texts of the games are being loaded (chk_*) */
+  volatile int checking;     /* install: the files are being checked (chk_*), not downloaded */
+  volatile int chk_index, chk_count;
   char file[128];
   HubCatalog *new_cat;       /* refresh: the new catalog, the window takes it */
   HubPlan plan;              /* install: what was downloaded */

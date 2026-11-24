@@ -310,6 +310,10 @@ static void job_refresh(HubWork *w)
   for (i = 0; i < cat->ngames && !hub_break; i++) {
     HubGame *g = &cat->games[i];
     snprintf(w->file, sizeof(w->file), "%s", g->key);
+    w->chk_index = i + 1;
+    w->chk_count = cat->ngames;
+    w->loading_games = 1;
+    tell_window();
     tell_window();
     if (g->priv) {
       /* from the private source: the same cache files, checked the same way */
@@ -394,6 +398,19 @@ static void progress(void *user, const HubFile *f, ULONG done, ULONG total)
   }
 }
 
+static void check_progress(void *user, const HubFile *f, int index, int count, ULONG all_done, ULONG all_total)
+{
+  HubWork *w = (HubWork *)user;
+  w->chk_index = index;
+  w->chk_count = count;
+  w->done = all_done;
+  w->total = all_total;
+  if (f != NULL) {
+    snprintf(w->file, sizeof(w->file), "%s", f->path);
+  }
+  tell_window();
+}
+
 static void job_install(HubWork *w)
 {
   HubGame *g = hub_catalog_find(w->cat, w->key);
@@ -401,7 +418,17 @@ static void job_install(HubWork *w)
     snprintf(w->msg, sizeof(w->msg), "No game %s.", w->key);
     return;
   }
-  hub_plan(g, w->dir, &w->plan);
+  w->checking = 1;
+  w->chk_index = 0;
+  w->chk_count = 0;
+  hub_plan_progress(g, w->dir, &w->plan, check_progress, w);
+  w->checking = 0;
+  if (w->plan.files < 0) {
+    snprintf(w->msg, sizeof(w->msg), "Stopped.");
+    w->plan.files = 0;
+    w->ok = 0;
+    return;
+  }
   w->total = w->plan.bytes;
   w->done = 0;
   tell_window();
@@ -471,6 +498,8 @@ static void net_main(void)
     if (hub_conn_cipher(NULL)[0]) {
       snprintf(w->net_info, sizeof(w->net_info), "%s", hub_conn_cipher(NULL));
     }
+    w->loading_games = 0;
+    w->checking = 0;
     w->finished = w->job;
     w->job = HUB_JOB_NONE;
     w->busy = 0;

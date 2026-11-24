@@ -70,8 +70,17 @@ void hub_game_dir(HubGame *g, char *out, int outlen)
 }
 
 /* size and SHA-256 of a local file; 0 when there is none */
-static int local_file(const char *name, ULONG want_size, ULONG *size, char sha[65])
+typedef struct CheckCtx {
+  HubCheckProgress cb;
+  void *user;
+  const HubFile *f;
+  int index, count;
+  ULONG base, all_total;      /* bytes of the files before this one, of all files */
+} CheckCtx;
+
+static int local_file(const char *name, ULONG want_size, ULONG *size, char sha[65], CheckCtx *ctx)
 {
+  ULONG last_report = 0;
   BPTR fh;
   LONG n;
   HubSha *s;
@@ -96,6 +105,11 @@ static int local_file(const char *name, ULONG want_size, ULONG *size, char sha[6
   while ((n = Read(fh, buf, BUF_SIZE)) > 0) {
     hub_sha_add(s, buf, n);
     *size += n;
+    if (ctx != NULL && ctx->cb != NULL && *size - last_report >= 262144UL) {
+      last_report = *size;
+      ctx->cb(ctx->user, ctx->f, ctx->index, ctx->count, ctx->base + *size, ctx->all_total);
+    }
+    if (hub_break) break;
   }
   Close(fh);
   hub_sha_end(s, sha);
@@ -108,12 +122,25 @@ static int alloc_buf(void)
   return buf != NULL;
 }
 
-void hub_plan(HubGame *g, const char *dest, HubPlan *plan)
+void hub_plan_progress(HubGame *g, const char *dest, HubPlan *plan, HubCheckProgress cb, void *user)
 {
   char name[NAME_LEN], sha[65];
-  int i;
+  int i, count = 0;
+  ULONG all_total = 0, base = 0;
+  CheckCtx ctx;
   memset(plan, 0, sizeof(*plan));
   if (!alloc_buf()) return;
+  for (i = 0; i < g->nfiles; i++) {
+    if (g->files[i].flag != 'X') {
+      count++;
+      all_total += g->files[i].size;
+    }
+  }
+  ctx.cb = cb;
+  ctx.user = user;
+  ctx.count = count;
+  ctx.all_total = all_total;
+  count = 0;
   for (i = 0; i < g->nfiles; i++) {
     HubFile *f = &g->files[i];
     ULONG size = 0;
@@ -123,7 +150,20 @@ void hub_plan(HubGame *g, const char *dest, HubPlan *plan)
       f->need = 0;
       continue;
     }
-    here = local_file(name, f->size, &size, sha);
+    if (hub_break) {
+      plan->files = -1;
+      return;
+    }
+    ctx.f = f;
+    ctx.index = ++count;
+    ctx.base = base;
+    if (cb != NULL) cb(user, f, ctx.index, ctx.count, base, all_total);
+    here = local_file(name, f->size, &size, sha, &ctx);
+    base += f->size;
+    if (hub_break) {
+      plan->files = -1;
+      return;
+    }
     if (f->flag == 'K') {
       f->need = !here;
       if (here) plan->kept++;
@@ -135,6 +175,12 @@ void hub_plan(HubGame *g, const char *dest, HubPlan *plan)
       plan->bytes += f->size;
     }
   }
+  if (cb != NULL) cb(user, NULL, count, ctx.count, all_total, all_total);
+}
+
+void hub_plan(HubGame *g, const char *dest, HubPlan *plan)
+{
+  hub_plan_progress(g, dest, plan, NULL, NULL);
 }
 
 static void make_dirs(const char *dest, const char *path)

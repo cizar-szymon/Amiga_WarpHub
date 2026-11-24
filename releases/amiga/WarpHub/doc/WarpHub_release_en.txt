@@ -1,11 +1,19 @@
 WARP HUB - releases
 ===================
 
-Reporting bugs: the release number is in the screen title ("WARP HUB 0.8")
+Reporting bugs: the release number is in the screen title ("WARP HUB 0.9")
 and in the Shell: Version SYS:WarpApps/WarpHub. Describe what
 happened and give the release number:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.9 (24.11.2026, beta release)
+------------------------------
+- Every longer process says on the bar what it is doing: Checking the files
+  of a game (e.g. "Checking files: 12 of 33, DESERT.MIX (41%)") and Refresh
+  ("Loading pictures and texts: 5 of 13") show the file and the progress, like
+  downloading. The Stop button also stops the check of the files; stopping
+  gives the message "Stopped." without a window.
 
 0.8 (24.11.2026, beta release)
 ------------------------------
