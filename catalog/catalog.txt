@@ -477,7 +477,7 @@ FILE 3354 b476e8587b9ec2cb2764412450168cc1473eb08f4c3bc1dffd7001589c51deb7 N Tib
 FILE 154 52a59885ea3499d609e18586829798bd30fc0a9763c55c2a777fc8ab2f29b8e6 N TiberianDawn/user/ReadMe.txt
 END
 GAME redalert
-NAME en Command & Conquer: Red Alert
+NAME en C&C: Red Alert
 DESC en Red Alert on the Vanilla Conquer engine. 640x400 on RTG, Allied and Soviet campaigns, game movies with sound, bug reports from the game.
 DESC pl Red Alert na silniku Vanilla Conquer. 640x400 na RTG, kampanie Aliantow i Sowietow, filmy z dzwiekiem, zgloszenia bledow z gry.
 DESC de Red Alert mit der Vanilla-Conquer-Engine. 640x400 auf RTG, Kampagnen der Allierten und Sowjets, Filme mit Ton, Fehlermeldungen aus dem Spiel.
