@@ -107,7 +107,7 @@ function parse(key, text) {
       g.order = parseInt(rest, 10);
     } else if (word === 'FLAT' && !rest) {
       g.flat = true;
-    } else if (word === 'LOCAL' || word === 'IMAGE-SOURCE') {
+    } else if (word === 'LOCAL' || word === 'FULLNAME' || word === 'IMAGE-SOURCE') {
       g.fixed.push(line);          // PC only: kept as it is
     } else {
       throw new Error(`${key}: nieznana linia: ${line}`);
@@ -128,8 +128,9 @@ function write(g) {
   if (g.flat) out.push('FLAT');
   out.push('ORDER ' + g.order);
   const local = g.fixed.filter((l) => l.startsWith('LOCAL '));
+  const full = g.fixed.filter((l) => l.startsWith('FULLNAME '));
   const src = g.fixed.filter((l) => l.startsWith('IMAGE-SOURCE '));
-  out.push(...local, ...src);
+  out.push(...local, ...full, ...src);
   return out.join('\n') + '\n';
 }
 
