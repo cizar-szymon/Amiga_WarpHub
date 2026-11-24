@@ -1,5 +1,5 @@
-# WARP HUB: Command & Conquer: Red Alert (format: tools/game_files.py)
-NAME en Command & Conquer: Red Alert
+# WARP HUB: C&C: Red Alert (format: tools/game_files.py)
+NAME en C&C: Red Alert
 DESC en Red Alert on the Vanilla Conquer engine. 640x400 on RTG, Allied and Soviet campaigns, game movies with sound, bug reports from the game.
 DESC pl Red Alert na silniku Vanilla Conquer. 640x400 na RTG, kampanie Aliantow i Sowietow, filmy z dzwiekiem, zgloszenia bledow z gry.
 DESC de Red Alert mit der Vanilla-Conquer-Engine. 640x400 auf RTG, Kampagnen der Allierten und Sowjets, Filme mit Ton, Fehlermeldungen aus dem Spiel.
