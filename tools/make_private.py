@@ -36,7 +36,7 @@ FULL = re.compile(r'^(.+)-(\d+(?:\.\d+)*)-full\.zip$')
 CHUNK = 1 << 20
 
 
-def newest_full(private_dir):
+def newest_full(private_dir, name=None):
     best = None
     try:
         names = os.listdir(private_dir)
@@ -45,6 +45,8 @@ def newest_full(private_dir):
     for n in names:
         m = FULL.match(n)
         if m is None or m.group(1).endswith('-pc'):
+            continue
+        if name and m.group(1) != name:
             continue
         key = make_catalog.version_key(m.group(2))
         if best is None or key > best[0]:
@@ -99,7 +101,7 @@ def unpack(zip_path, dest, extra, log):
 
 def build(game, projects, www, log):
     local = os.path.join(projects, *game['local'].split('/'))
-    found = newest_full(os.path.join(local, 'private'))
+    found = newest_full(os.path.join(local, 'private'), game.get('fullname'))
     if found is None:
         log('%s: no private/*-full.zip, left out' % game['key'])
         return None
@@ -111,6 +113,8 @@ def build(game, projects, www, log):
         root = tops.pop()
     extra = {}
     icon = os.path.join(local, 'releases', 'amiga', root + '.info')
+    if not os.path.exists(icon):
+        icon = os.path.join(local, 'releases-ra', 'amiga', root + '.info')
     if os.path.exists(icon):
         with open(icon, 'rb') as f:
             extra[root + '.info'] = f.read()

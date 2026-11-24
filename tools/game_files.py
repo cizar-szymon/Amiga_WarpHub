@@ -23,6 +23,7 @@ UTF-8 text, one item per line, "#" starts a comment:
                               the window, not installed
     ORDER <number>            place in the gallery (smaller first)
     LOCAL <drawer>            PC only: the project drawer (test catalog)
+    FULLNAME <Name>           PC only: with LOCAL, takes private/<Name>-<v>-full.zip (two games in one project)
     IMAGE-SOURCE <path> [x0 y0 x1 y1] [pixel]
                               PC only: where make_images.py cuts the picture
                               from (path from the AmigaGAMES drawer, tools/paths.py)
@@ -69,6 +70,8 @@ def parse(key, text):
             g['order'] = int(rest)
         elif word == 'LOCAL':
             g['local'] = rest
+        elif word == 'FULLNAME':
+            g['fullname'] = rest
         elif word == 'IMAGE-SOURCE':
             # the path may contain spaces ("Miner 2049er/..."): the crop
             # numbers and "pixel" are taken from the end
@@ -129,6 +132,8 @@ def write(g):
     out.append('ORDER %d' % g.get('order', 1000))
     if g.get('local'):
         out.append('LOCAL ' + g['local'])
+    if g.get('fullname'):
+        out.append('FULLNAME ' + g['fullname'])
     if g.get('image'):
         s = g['image']
         line = 'IMAGE-SOURCE ' + s['src']
