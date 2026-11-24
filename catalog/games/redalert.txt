@@ -21,4 +21,4 @@ BRANCH release-ra
 ORDER 31
 LOCAL CommandConquer
 IMAGE-SOURCE CommandConquer/tools/release/icon/cover-ra.jpg 33 60 606 420
-# release 0.3 on GitHub (24.11.2026)
+# release 0.4 on GitHub (24.11.2026)
