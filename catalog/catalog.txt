@@ -451,15 +451,15 @@ REQ de AmigaOS 3.2, Picasso96, RTG 8-Bit
 REPO cizar-szymon/Amiga_Game_CommandConquer
 BRANCH main
 VERSION 0.4
-ZIP TiberianDawn-0.4.zip 803687
-SIZE 1936604
+ZIP TiberianDawn-0.4.zip 804070
+SIZE 1937699
 IMAGE 24768 a4bfc21ccf5aa9e0402f319ffa5c0de091f3b56b42c68177bf9cce881e43def6 images/tiberiandawn.png
 NOTES en TiberianDawn/doc/TiberianDawn_release_en.txt
 NOTES pl TiberianDawn/doc/TiberianDawn_release.txt
 README TiberianDawn/data/ReadMe.txt
 README TiberianDawn/user/ReadMe.txt
 FILE 6862 ea64fde17ae4daeac0823985da76ba69e9dd13132b8a7c1eb13c57cd533b5b74 K TiberianDawn.info
-FILE 1861440 080d57956ed743effa0c2b9391da505abe533c232f5eee1b71937245fe80f8fd N TiberianDawn/TiberianDawn
+FILE 1862408 17b022902055785d730958caf3ef6f8616df1554783ea8cd4803c4fdd5fe100d N TiberianDawn/TiberianDawn
 FILE 4451 6f346c9a8b6ae8820090289801cf58c1789b224968b949b73135be051aa0d7bb K TiberianDawn/TiberianDawn.info
 FILE 922 117e72ee6164b2de982ef09bc084bc0894bdeb2cb65e891dd2a975decbdfd13a N TiberianDawn/data/ReadMe.txt
 FILE 2514 40a9f307f7de340bd324734098f4edb73e61c0dd1f1fc355554de827049f812b N TiberianDawn/doc.info
@@ -470,9 +470,9 @@ FILE 3013 21586019b7d4bbb42362a4218ffd27b87b4cc3563d61a9d2dfdf356e60f56dbb N Tib
 FILE 3308 f6ca3a09267f0c9baa2abf16f3de2d17a5f179720c777543c34a3558b69f26eb N TiberianDawn/doc/TiberianDawn.txt.info
 FILE 3242 619a9113cd40ecee469aedf5192a948cc30beb0663ac6be2a073e48650a93f19 N TiberianDawn/doc/TiberianDawn_en.txt
 FILE 3354 f5d26b5dd3e1a7f7ac3872afe846b7298ed9203498da702caec9468fa7bb3832 N TiberianDawn/doc/TiberianDawn_en.txt.info
-FILE 1321 b78719a27405e9605a5b44d79535c4b57879633f99277784351b41dc310f8004 N TiberianDawn/doc/TiberianDawn_release.txt
+FILE 1381 b129811732daf91a045c3d34243755be89fb848be7f546c398dff91a1f5cb353 N TiberianDawn/doc/TiberianDawn_release.txt
 FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e N TiberianDawn/doc/TiberianDawn_release.txt.info
-FILE 1409 b8412c583583215a73ccdc59eeb78da0fc2d314ab3a94602c48ac960c1080559 N TiberianDawn/doc/TiberianDawn_release_en.txt
+FILE 1476 a8eb60e71c4a33c830f60b9c95ff05f1eecdc3bd7089fd269d6b61c81f325d8a N TiberianDawn/doc/TiberianDawn_release_en.txt
 FILE 154 52a59885ea3499d609e18586829798bd30fc0a9763c55c2a777fc8ab2f29b8e6 N TiberianDawn/user/ReadMe.txt
 END
 GAME redalert
@@ -496,15 +496,15 @@ REQ de AmigaOS 3.2, Picasso96, RTG 8-Bit
 REPO cizar-szymon/Amiga_Game_CommandConquer
 BRANCH release-ra
 VERSION 0.4
-ZIP RedAlert-0.4.zip 1036701
-SIZE 2649606
+ZIP RedAlert-0.4.zip 1037356
+SIZE 2650701
 IMAGE 23627 a2a2a20fb8f49c6be35a54324c4705e9c253d89801806f5d2c05092d0bc836e5 images/redalert.png
 NOTES en RedAlert/doc/RedAlert_release_en.txt
 NOTES pl RedAlert/doc/RedAlert_release.txt
 README RedAlert/data/ReadMe.txt
 README RedAlert/user/ReadMe.txt
 FILE 6862 ea64fde17ae4daeac0823985da76ba69e9dd13132b8a7c1eb13c57cd533b5b74 K RedAlert.info
-FILE 2569656 dc978da6642e561225f85f39b99054414a66ce14a1675f92b3a23a65677ed2ec N RedAlert/RedAlert
+FILE 2570624 17c16217591a7c3cf9cebf82bd9b5c90653ba3dedaa2a987e1a03025a29ce227 N RedAlert/RedAlert
 FILE 6521 53297fadbbbb820286bf40b3e3b0e8755369002c85183f5e87622573c5fa327a K RedAlert/RedAlert.info
 FILE 633 b275711c808aeb06d30552b6c503ca6e89c7f0329148abb6d7464b742e2285bd N RedAlert/data/ReadMe.txt
 FILE 2514 40a9f307f7de340bd324734098f4edb73e61c0dd1f1fc355554de827049f812b N RedAlert/doc.info
@@ -515,9 +515,9 @@ FILE 2846 17a33f4b2eaebd8819f1a9428c3603d7de2caa3dad1125bc66de9cd39120d88c N Red
 FILE 3308 f6ca3a09267f0c9baa2abf16f3de2d17a5f179720c777543c34a3558b69f26eb N RedAlert/doc/RedAlert.txt.info
 FILE 3096 80bc26af024bb9a9098f52aa7d14a1a9780cd87689e9cb875dbfbd91f1e3b21a N RedAlert/doc/RedAlert_en.txt
 FILE 3354 f5d26b5dd3e1a7f7ac3872afe846b7298ed9203498da702caec9468fa7bb3832 N RedAlert/doc/RedAlert_en.txt.info
-FILE 1319 70c88afda8e47d125eb523a4018a0f7c619977b02d5a3ee8db6d0c549179ab0a N RedAlert/doc/RedAlert_release.txt
+FILE 1379 28c2c46efc0043b8faa9cb9d872abe779e930e62945920e7ee8a4947ac3f8daa N RedAlert/doc/RedAlert_release.txt
 FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e N RedAlert/doc/RedAlert_release.txt.info
-FILE 1403 9a9c1c5a0f3da4516770f2e3f330d2f5abe04c0ed0691e40e3112ecc6a11cc00 N RedAlert/doc/RedAlert_release_en.txt
+FILE 1470 d4c9fa424e2aca9ce324fe04d64707dba41f7efab84901060a181d6f271deee5 N RedAlert/doc/RedAlert_release_en.txt
 FILE 3354 b476e8587b9ec2cb2764412450168cc1473eb08f4c3bc1dffd7001589c51deb7 N RedAlert/doc/RedAlert_release_en.txt.info
 FILE 154 52a59885ea3499d609e18586829798bd30fc0a9763c55c2a777fc8ab2f29b8e6 N RedAlert/user/ReadMe.txt
 END
