@@ -1,11 +1,20 @@
 WARP HUB - releases
 ===================
 
-Reporting bugs: the release number is in the screen title ("WARP HUB 0.9")
+Reporting bugs: the release number is in the screen title ("WARP HUB 0.10")
 and in the Shell: Version SYS:WarpApps/WarpHub. Describe what
 happened and give the release number:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.10 (24.11.2026, beta release)
+-------------------------------
+- Refresh (when the user presses it) also checks the chosen, installed game:
+  whether it has old versions (drawer old) and bug reports (drawers bugNNN in the
+  drawer user). When it has, a window of its own opens with the list, the sizes
+  and the buttons Delete old versions / Delete bug reports (each asks for
+  confirmation). Saved games and settings are not touched.
+- The windows with questions open in the middle of the WARP HUB window.
 
 0.9 (24.11.2026, beta release)
 ------------------------------

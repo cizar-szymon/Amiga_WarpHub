@@ -1,11 +1,21 @@
 WARP HUB - Versionen
 ====================
 
-Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.9")
+Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.10")
 und in der Shell: Version SYS:WarpApps/WarpHub. Beschreibe, was
 passiert ist, mit der Versionsnummer:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.10 (24.11.2026, Beta)
+-----------------------
+- Aktualisieren (wenn der Benutzer den Knopf druckt) prueft auch das gewaehlte,
+  installierte Spiel: ob es alte Versionen (Schublade old) und Fehlermeldungen
+  (Schubladen bugNNN in der Schublade user) hat. Wenn ja, oeffnet sich ein eigenes
+  Fenster mit der Liste, den Groessen und den Knoepfen Alte Versionen loeschen /
+  Fehlermeldungen loeschen (jeder fragt nach). Spielstaende und Einstellungen
+  bleiben.
+- Die Fenster mit Fragen oeffnen sich in der Mitte des WARP-HUB-Fensters.
 
 0.9 (24.11.2026, Beta)
 ----------------------

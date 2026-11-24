@@ -41,7 +41,10 @@ THE WINDOW
   Stop              - stops the download
   Games drawer      - the drawer of your installed games
   Programs drawer   - the drawer of your installed programs
-  Refresh           - gets the current list of games
+  Refresh           - gets the current list of games; for the chosen
+                      installed game it also checks for old versions and
+                      bug reports and lets you delete them in a window of
+                      its own
   Run               - starts the chosen installed game like its icon
                       (with its Tool Types)
   language          - English, Polish, German

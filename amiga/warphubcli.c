@@ -384,6 +384,22 @@ int main(void)
           printf("Not installed: %s\nNothing of the game was changed.\n", err);
         }
       }
+    } else if (stricmp(cmd, "CLEAN") == 0 || stricmp(cmd, "CLEANALL") == 0) {
+      static HubCleanItem items[400];
+      int count = hub_clean_list(g, dest, items, 400);
+      for (i = 0; i < count; i++) {
+        printf("%s  %s  %d files, %lu bytes\n", items[i].kind == HUB_CLEAN_OLD ? "old" : "bug", items[i].name, items[i].files,
+               items[i].bytes);
+      }
+      printf("%d items.\n", count);
+      if (stricmp(cmd, "CLEANALL") == 0) {
+        if (hub_clean_delete(g, dest, HUB_CLEAN_OLD | HUB_CLEAN_BUGS, err, sizeof(err))) {
+          printf("Deleted.\n");
+        } else {
+          printf("Not deleted: %s\n", err);
+        }
+      }
+      rc = RETURN_OK;
     } else if (stricmp(cmd, "UNINSTALL") == 0) {
       int removed = 0, left = 0;
       if (hub_uninstall(g, dest, &removed, &left, err, sizeof(err))) {

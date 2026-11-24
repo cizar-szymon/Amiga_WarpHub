@@ -457,3 +457,195 @@ int hub_uninstall(HubGame *g, const char *dest, int *removed, int *left,
   }
   return 1;
 }
+
+/* --- the old versions and the bug reports of a game ------------------------------------------------------------- */
+
+/* "bug" and at least three digits, then the end, a dot or a dash: bug007, bug007.txt, bug007-screen.bmp (not bugemail.txt) */
+static int bug_name(const char *n)
+{
+  int digits = 0;
+  if (strncmp(n, "bug", 3) != 0) return 0;
+  n += 3;
+  while (*n >= '0' && *n <= '9') {
+    n++;
+    digits++;
+  }
+  return digits >= 3 && (*n == 0 || *n == '.' || *n == '-');
+}
+
+typedef struct DirEntry {
+  char name[64];
+  int is_dir;
+  ULONG size;
+} DirEntry;
+
+/* The entries of a drawer into e[] (at most max); returns how many. */
+static int list_dir(const char *path, DirEntry *e, int max)
+{
+  struct FileInfoBlock *fib;
+  BPTR lock;
+  int n = 0;
+  lock = Lock((CONST_STRPTR)path, ACCESS_READ);
+  if (lock == 0) return 0;
+  fib = (struct FileInfoBlock *)AllocDosObject(DOS_FIB, NULL);
+  if (fib != NULL && Examine(lock, fib)) {
+    while (n < max && ExNext(lock, fib)) {
+      strncpy(e[n].name, (const char *)fib->fib_FileName, sizeof(e[n].name) - 1);
+      e[n].name[sizeof(e[n].name) - 1] = 0;
+      e[n].is_dir = fib->fib_DirEntryType > 0;
+      e[n].size = (ULONG)fib->fib_Size;
+      n++;
+    }
+  }
+  if (fib != NULL) FreeDosObject(DOS_FIB, fib);
+  UnLock(lock);
+  return n;
+}
+
+/* Files and bytes of everything below a drawer. */
+static void count_tree(const char *path, int depth, int *files, ULONG *bytes)
+{
+  DirEntry e[60];
+  char child[NAME_LEN];
+  int n, i;
+  if (depth > 3) return;
+  n = list_dir(path, e, 60);
+  for (i = 0; i < n; i++) {
+    if (e[i].is_dir) {
+      if (full_name(child, sizeof(child), path, e[i].name, "")) count_tree(child, depth + 1, files, bytes);
+    } else {
+      (*files)++;
+      *bytes += e[i].size;
+    }
+  }
+}
+
+/* Deletes everything below a drawer and the drawer itself. One entry at a time, listing again each time (deleting while
+ * listing confuses ExNext). */
+static int delete_tree(const char *path, int depth)
+{
+  struct FileInfoBlock *fib;
+  BPTR lock;
+  char name[64], child[NAME_LEN];
+  int guard = 0;
+  if (depth > 6) return 0;
+  fib = (struct FileInfoBlock *)AllocDosObject(DOS_FIB, NULL);
+  if (fib == NULL) return 0;
+  for (;;) {
+    int found = 0, is_dir = 0;
+    lock = Lock((CONST_STRPTR)path, ACCESS_READ);
+    if (lock == 0) break;
+    if (Examine(lock, fib) && ExNext(lock, fib)) {
+      found = 1;
+      is_dir = fib->fib_DirEntryType > 0;
+      strncpy(name, (const char *)fib->fib_FileName, sizeof(name) - 1);
+      name[sizeof(name) - 1] = 0;
+    }
+    UnLock(lock);
+    if (!found) break;
+    if (!full_name(child, sizeof(child), path, name, "") || ++guard > 5000) {
+      FreeDosObject(DOS_FIB, fib);
+      return 0;
+    }
+    if (is_dir) {
+      if (!delete_tree(child, depth + 1)) {
+        FreeDosObject(DOS_FIB, fib);
+        return 0;
+      }
+    } else {
+      SetProtection((CONST_STRPTR)child, 0);
+      if (!DeleteFile((CONST_STRPTR)child)) {
+        FreeDosObject(DOS_FIB, fib);
+        return 0;
+      }
+    }
+  }
+  FreeDosObject(DOS_FIB, fib);
+  SetProtection((CONST_STRPTR)path, 0);
+  return DeleteFile((CONST_STRPTR)path) != 0;
+}
+
+static int clean_paths(HubGame *g, const char *dest, char *old_dir, char *user_dir, int len)
+{
+  char dir[NAME_LEN], drawer[NAME_LEN];
+  hub_game_dir(g, dir, sizeof(dir));
+  if (dir[0] == 0 || g->flat) return 0;       /* a program in a shared drawer: nothing of its own to clean */
+  if (!full_name(drawer, sizeof(drawer), dest, dir, "")) return 0;
+  if (!full_name(old_dir, len, drawer, "old", "")) return 0;
+  return full_name(user_dir, len, drawer, "user", "");
+}
+
+#define CLEAN_ENTRIES 700
+
+int hub_clean_list(HubGame *g, const char *dest, HubCleanItem *items, int max)
+{
+  char old_dir[NAME_LEN], user_dir[NAME_LEN], child[NAME_LEN];
+  DirEntry *e;
+  int n, i, kind, count = 0;
+  if (!clean_paths(g, dest, old_dir, user_dir, NAME_LEN)) return 0;
+  e = (DirEntry *)hub_malloc(sizeof(DirEntry) * CLEAN_ENTRIES);
+  if (e == NULL) return 0;
+  for (kind = HUB_CLEAN_OLD; kind <= HUB_CLEAN_BUGS; kind++) {
+    const char *base = kind == HUB_CLEAN_OLD ? old_dir : user_dir;
+    n = list_dir(base, e, CLEAN_ENTRIES);
+    for (i = 0; i < n && count < max; i++) {
+      HubCleanItem *it;
+      if (kind == HUB_CLEAN_BUGS && !bug_name(e[i].name)) continue;
+      it = &items[count++];
+      it->kind = kind;
+      strncpy(it->name, e[i].name, sizeof(it->name) - 1);
+      it->name[sizeof(it->name) - 1] = 0;
+      it->files = 0;
+      it->bytes = 0;
+      if (e[i].is_dir) {
+        if (full_name(child, sizeof(child), base, e[i].name, "")) count_tree(child, 1, &it->files, &it->bytes);
+      } else {
+        it->files = 1;
+        it->bytes = e[i].size;
+      }
+    }
+  }
+  hub_free(e);
+  return count;
+}
+
+int hub_clean_delete(HubGame *g, const char *dest, int what, char *err, int errlen)
+{
+  char old_dir[NAME_LEN], user_dir[NAME_LEN], child[NAME_LEN];
+  DirEntry *e;
+  int n, i, kind;
+  if (!clean_paths(g, dest, old_dir, user_dir, NAME_LEN)) {
+    snprintf(err, errlen, "No drawer of its own.");
+    return 0;
+  }
+  e = (DirEntry *)hub_malloc(sizeof(DirEntry) * CLEAN_ENTRIES);
+  if (e == NULL) {
+    snprintf(err, errlen, "No memory.");
+    return 0;
+  }
+  for (kind = HUB_CLEAN_OLD; kind <= HUB_CLEAN_BUGS; kind++) {
+    const char *base = kind == HUB_CLEAN_OLD ? old_dir : user_dir;
+    if (!(what & kind)) continue;
+    n = list_dir(base, e, CLEAN_ENTRIES);
+    for (i = 0; i < n; i++) {
+      if (kind == HUB_CLEAN_BUGS && !bug_name(e[i].name)) continue;
+      if (!full_name(child, sizeof(child), base, e[i].name, "")) continue;
+      if (e[i].is_dir) {
+        if (!delete_tree(child, 0)) {
+          snprintf(err, errlen, "Cannot delete %s.", e[i].name);
+          hub_free(e);
+          return 0;
+        }
+      } else {
+        SetProtection((CONST_STRPTR)child, 0);
+        if (!DeleteFile((CONST_STRPTR)child)) {
+          snprintf(err, errlen, "Cannot delete %s.", e[i].name);
+          hub_free(e);
+          return 0;
+        }
+      }
+    }
+  }
+  hub_free(e);
+  return 1;
+}

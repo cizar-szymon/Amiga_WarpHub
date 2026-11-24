@@ -41,7 +41,10 @@ OKNO
   Przerwij                - przerywa pobieranie
   Katalog gier            - szuflada z zainstalowanymi grami
   Katalog programow       - szuflada z zainstalowanymi programami
-  Odswiez                 - pobiera aktualna liste gier
+  Odswiez                 - pobiera aktualna liste gier; przy wybranej
+                            zainstalowanej grze sprawdza tez, czy ma stare
+                            wersje i zgloszenia bledow, i w osobnym oknie
+                            pozwala je usunac
   Uruchom                 - uruchamia wybrana zainstalowana gre, jak jej
                             ikona (z jej Tool Types)
   jezyk                   - polski, angielski, niemiecki

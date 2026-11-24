@@ -1,10 +1,19 @@
 WARP HUB - wydania
 ==================
 
-Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.9") i w
+Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.10") i w
 Shellu: Version SYS:WarpApps/WarpHub. Opisz, co sie stalo, i podaj
 numer wydania: https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.10 (24.11.2026, wydanie beta)
+-------------------------------
+- Odswiez (przycisk wcisniety przez uzytkownika) sprawdza tez wybrana,
+  zainstalowana gre: czy ma stare wersje (szuflada old) i zgloszenia bledow
+  (szuflady bugNNN w szufladzie user). Gdy sa, otwiera sie osobne okno z lista,
+  rozmiarami i przyciskami Usun stare wersje / Usun zgloszenia (kazde z pytaniem
+  o potwierdzenie). Zapisy gry i ustawienia nie sa ruszane.
+- Okna z pytaniami otwieraja sie w srodku okna WARP HUB.
 
 0.9 (24.11.2026, wydanie beta)
 ------------------------------

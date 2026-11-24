@@ -50,4 +50,21 @@ const char *hub_local_path(const HubGame *g, const char *path);
 int hub_uninstall(HubGame *g, const char *dest, int *removed, int *left,
                   char *err, int errlen);
 
+/* What a game leaves in its drawer that WARP HUB can offer to delete (in a window of its own): the old versions
+ * (<Game>/old/) and the bug reports (<Game>/user/bugNNN/ and the files bugNNN.* of older releases). The saved games
+ * and the settings are never touched. */
+typedef struct HubCleanItem {
+  int kind;                   /* HUB_CLEAN_OLD or HUB_CLEAN_BUGS */
+  char name[64];
+  int files;
+  ULONG bytes;
+} HubCleanItem;
+#define HUB_CLEAN_OLD 1
+#define HUB_CLEAN_BUGS 2
+/* The items (one per entry of old/, per bug drawer, per loose bug file), at most max; 0 when there are none or the game has
+ * no drawer of its own (a program in a shared drawer). */
+int hub_clean_list(HubGame *g, const char *dest, HubCleanItem *items, int max);
+/* Deletes the items of the kinds in 'what' (HUB_CLEAN_*). Returns 1, or 0 with err. */
+int hub_clean_delete(HubGame *g, const char *dest, int what, char *err, int errlen);
+
 #endif

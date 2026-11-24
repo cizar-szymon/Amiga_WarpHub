@@ -45,6 +45,8 @@
 #include <proto/string.h>
 #include <proto/checkbox.h>
 #include <proto/label.h>
+#include <proto/requester.h>
+#include <classes/requester.h>
 #include <intuition/imageclass.h>
 #include <intuition/classes.h>
 #include <classes/window.h>
@@ -71,7 +73,7 @@
 
 extern struct WBStartup *_WBenchMsg;
 
-#define WARPHUB_VERSION "0.9"   /* tools/make_release.py reads it */
+#define WARPHUB_VERSION "0.10"   /* tools/make_release.py reads it */
 const char version_tag[] = "$VER: WarpHub " WARPHUB_VERSION " (19.11.2026)";
 
 unsigned long __stack = 65536;
@@ -93,7 +95,7 @@ static int TILE_W = 224, TILE_H = 140;
  * ("window.library failed to load") */
 struct Library *WindowBase = NULL, *LayoutBase = NULL, *ButtonBase = NULL,
     *ChooserBase = NULL, *ListBrowserBase = NULL, *SpaceBase = NULL, *ScrollerBase = NULL,
-    *FuelGaugeBase = NULL;
+    *FuelGaugeBase = NULL, *RequesterBase = NULL;
 /* only for the login window (opened there) */
 struct Library *StringBase = NULL, *CheckBoxBase = NULL, *LabelBase = NULL;
 
@@ -111,6 +113,8 @@ enum {
   T_PRIV_ERR, T_FULL, T_LOGGED_OUT, T_BAD_SERVER, T_NOT_TRUSTED, T_BUSY,
   T_UNINSTALL, T_ASK_UNINSTALL, T_UNINSTALL_BTNS, T_UNINSTALLED, T_UNINSTALLED_LEFT,
   T_UNINSTALL_FAILED, T_CHECK_PROGRESS, T_LOADING_GAMES, T_STOPPED,
+  T_CLEAN_TITLE, T_CLEAN_OLD_HEAD, T_CLEAN_BUG_HEAD, T_CLEAN_SAVES, T_CLEAN_B_OLD, T_CLEAN_B_BUGS,
+  T_CLEAN_SURE_OLD, T_CLEAN_SURE_BUGS, T_CLEAN_DELETED, T_CLEAN_FAILED,
   T_COUNT
 };
 
@@ -152,7 +156,12 @@ static const char *const texts[3][T_COUNT] = {
     "Saved games and reports in the drawer user stay.",
     "Uninstall|Cancel", "%s uninstalled (%d files).",
     "%s uninstalled (%d files). Your own files stay in %s.", "Not uninstalled: %s",
-    "Checking files: %d of %d, %s (%ld%%)", "Loading pictures and texts: %d of %d (%s)", "Stopped."
+    "Checking files: %d of %d, %s (%ld%%)", "Loading pictures and texts: %d of %d (%s)", "Stopped.",
+    "Clean up", "Old versions of the program (drawer old): %d files, %s",
+    "Bug reports (drawers bugNNN in the drawer user): %d items, %d files, %s",
+    "Saved games and settings are not touched.", "Delete old versions", "Delete bug reports",
+    "Delete the old versions of %s (%d files, %s)?",
+    "Delete the bug reports of %s (%d files, %s)? They cannot be restored.", "Deleted.", "Not deleted: %s"
   },
   { /* pl */
     "Odswiez", "Zainstaluj", "Aktualizuj", "Sprawdz pliki", "Przerwij", "Zainstalowana %s",
@@ -191,7 +200,12 @@ static const char *const texts[3][T_COUNT] = {
     "Zapisy gry i zgloszenia bledow w szufladzie user zostaja.",
     "Odinstaluj|Anuluj", "%s odinstalowana (plikow: %d).",
     "%s odinstalowana (plikow: %d). Twoje wlasne pliki zostaja w %s.", "Nie odinstalowano: %s",
-    "Sprawdzanie plikow: %d z %d, %s (%ld%%)", "Wczytywanie obrazkow i opisow: %d z %d (%s)", "Przerwano."
+    "Sprawdzanie plikow: %d z %d, %s (%ld%%)", "Wczytywanie obrazkow i opisow: %d z %d (%s)", "Przerwano.",
+    "Sprzatanie", "Stare wersje programu (szuflada old): plikow %d, %s",
+    "Zgloszenia bledow (szuflady bugNNN w szufladzie user): pozycji %d, plikow %d, %s",
+    "Zapisy gry i ustawienia zostaja.", "Usun stare wersje", "Usun zgloszenia",
+    "Usunac stare wersje %s (plikow: %d, %s)?",
+    "Usunac zgloszenia bledow %s (plikow: %d, %s)? Nie da sie ich odtworzyc.", "Usunieto.", "Nie usunieto: %s"
   },
   { /* de */
     "Aktualisieren", "Installieren", "Update", "Dateien pr\xfc" "fen", "Abbrechen",
@@ -231,7 +245,12 @@ static const char *const texts[3][T_COUNT] = {
     "Spielst\xe4" "nde und Meldungen in der Schublade user bleiben.",
     "Deinstallieren|Abbrechen", "%s deinstalliert (%d Dateien).",
     "%s deinstalliert (%d Dateien). Deine eigenen Dateien bleiben in %s.", "Nicht deinstalliert: %s",
-    "Pr\xfc" "fe Dateien: %d von %d, %s (%ld%%)", "Lade Bilder und Texte: %d von %d (%s)", "Abgebrochen."
+    "Pr\xfc" "fe Dateien: %d von %d, %s (%ld%%)", "Lade Bilder und Texte: %d von %d (%s)", "Abgebrochen.",
+    "Aufraeumen", "Alte Versionen des Programms (Schublade old): %d Dateien, %s",
+    "Fehlermeldungen (Schubladen bugNNN in der Schublade user): %d Eintraege, %d Dateien, %s",
+    "Spielstaende und Einstellungen bleiben.", "Alte Versionen loeschen", "Fehlermeldungen loeschen",
+    "Alte Versionen von %s loeschen (%d Dateien, %s)?",
+    "Fehlermeldungen von %s loeschen (%d Dateien, %s)? Sie lassen sich nicht wiederherstellen.", "Geloescht.", "Nicht geloescht: %s"
   }
 };
 
@@ -919,6 +938,31 @@ static void start_refresh(void)
 static int ask(const char *body, const char *buttons)
 {
   struct EasyStruct es;
+  if (RequesterBase != NULL && win != NULL) {
+    /* The ReAction requester opens in the middle of the window of the program; EasyRequest opens at the top left corner of
+     * the screen. The body text is a format string for it: a % in it is doubled. */
+    char text[1100];
+    char *d = text;
+    const char *p;
+    Object *rq;
+    for (p = body; *p && d < text + sizeof(text) - 3; p++) {
+      if (*p == '%') *d++ = '%';
+      *d++ = *p;
+    }
+    *d = 0;
+    rq = NewObject(REQUESTER_GetClass(), NULL,
+                   REQ_Type, REQTYPE_INFO,
+                   REQ_TitleText, (ULONG)"WARP HUB",
+                   REQ_BodyText, (ULONG)text,
+                   REQ_GadgetText, (ULONG)buttons,
+                   REQ_Image, (strchr(buttons, '|') != NULL ? REQIMAGE_QUESTION : REQIMAGE_INFO),
+                   TAG_END);
+    if (rq != NULL) {
+      LONG r = (LONG)DoMethod(rq, RM_OPENREQ, NULL, win, scr, TAG_END);
+      DisposeObject(rq);
+      return (int)r;
+    }
+  }
   es.es_StructSize = sizeof(es);
   es.es_Flags = 0;
   es.es_Title = (UBYTE *)"WARP HUB";
@@ -1411,6 +1455,172 @@ static void start_uninstall(void)
   update_buttons();
 }
 
+/* --- clean up: the old versions and the bug reports of a game, in a window of its own ------------------------------ */
+
+static HubCleanItem clean_items[400];
+static int clean_count;
+static int clean_after_refresh;
+
+static void clean_totals(int kind, int *items, int *files, ULONG *bytes)
+{
+  int k;
+  *items = 0;
+  *files = 0;
+  *bytes = 0;
+  for (k = 0; k < clean_count; k++) {
+    if (clean_items[k].kind != kind) continue;
+    (*items)++;
+    *files += clean_items[k].files;
+    *bytes += clean_items[k].bytes;
+  }
+}
+
+/* The lines of the list (guide_list): what there is, kind by kind, with sizes. */
+static void clean_fill_list(void)
+{
+  char a[300], sz[32];
+  int kind, k, items, files;
+  ULONG bytes;
+  NewList(&guide_list);
+  for (kind = HUB_CLEAN_OLD; kind <= HUB_CLEAN_BUGS; kind++) {
+    clean_totals(kind, &items, &files, &bytes);
+    if (items == 0) continue;
+    size_text(bytes, sz, sizeof(sz));
+    if (kind == HUB_CLEAN_OLD) snprintf(a, sizeof(a), TX(T_CLEAN_OLD_HEAD), files, sz);
+    else snprintf(a, sizeof(a), TX(T_CLEAN_BUG_HEAD), items, files, sz);
+    guide_add(&guide_list, a, (int)strlen(a));
+    for (k = 0; k < clean_count; k++) {
+      if (clean_items[k].kind != kind) continue;
+      size_text(clean_items[k].bytes, sz, sizeof(sz));
+      snprintf(a, sizeof(a), "     %s  (%s)", clean_items[k].name, sz);
+      guide_add(&guide_list, a, (int)strlen(a));
+    }
+    guide_add(&guide_list, "", 0);
+  }
+  snprintf(a, sizeof(a), "%s", TX(T_CLEAN_SAVES));
+  guide_add(&guide_list, a, (int)strlen(a));
+}
+
+static void show_cleanup(HubGame *g, const char *dir)
+{
+  Object *gw, *lb, *b_old, *b_bug;
+  struct Window *w2;
+  char title[200], name[96], a[500], sz[32], err[200];
+  ULONG sig = 0, result, bytes;
+  UWORD code;
+  int done = 0, ww, wh, items, files, has_old, has_bug;
+  if (win == NULL) return;
+  clean_count = hub_clean_list(g, dir, clean_items, 400);
+  if (clean_count == 0) return;
+  latin(hub_text(g->name, lang), name, sizeof(name));
+  snprintf(title, sizeof(title), "%s - %s", name, TX(T_CLEAN_TITLE));
+  clean_totals(HUB_CLEAN_OLD, &items, &files, &bytes);
+  has_old = items > 0;
+  clean_totals(HUB_CLEAN_BUGS, &items, &files, &bytes);
+  has_bug = items > 0;
+  ww = win->Width - 80;
+  wh = win->Height - 80;
+  clean_fill_list();
+  gw = NewObject(WINDOW_GetClass(), NULL,
+      WA_Title, (ULONG)title,
+      WA_PubScreen, (ULONG)scr,
+      WA_DragBar, TRUE, WA_DepthGadget, TRUE, WA_CloseGadget, TRUE, WA_SizeGadget, TRUE,
+      WA_Activate, TRUE,
+      WA_Left, win->LeftEdge + 40, WA_Top, win->TopEdge + 40,
+      WA_Width, ww, WA_Height, wh,
+      WA_IDCMP, IDCMP_RAWKEY,
+      WINDOW_Layout, (ULONG)(NewObject(LAYOUT_GetClass(), NULL, LAYOUT_Orientation, LAYOUT_ORIENT_VERT,
+        LAYOUT_SpaceOuter, TRUE,
+        LAYOUT_AddChild, (ULONG)(lb = NewObject(LISTBROWSER_GetClass(), NULL,
+          GA_ReadOnly, TRUE,
+          LISTBROWSER_Labels, (ULONG)&guide_list,
+          LISTBROWSER_ShowSelected, FALSE,
+        TAG_END)),
+        LAYOUT_AddChild, (ULONG)(NewObject(LAYOUT_GetClass(), NULL, LAYOUT_Orientation, LAYOUT_ORIENT_HORIZ,
+          LAYOUT_AddChild, (ULONG)(b_old = NewObject(BUTTON_GetClass(), NULL,
+            GA_ID, 1, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_CLEAN_B_OLD), GA_Disabled, !has_old,
+          TAG_END)),
+          LAYOUT_AddChild, (ULONG)(b_bug = NewObject(BUTTON_GetClass(), NULL,
+            GA_ID, 2, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_CLEAN_B_BUGS), GA_Disabled, !has_bug,
+          TAG_END)),
+          LAYOUT_AddChild, (ULONG)(NewObject(BUTTON_GetClass(), NULL,
+            GA_ID, 3, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_CLOSE),
+          TAG_END)),
+        TAG_END)),
+        CHILD_WeightedHeight, 0,
+      TAG_END)),
+    TAG_END);
+  if (gw != NULL) {
+    SetAttrs(win_obj, WA_BusyPointer, TRUE, TAG_DONE);
+    w2 = (struct Window *)RA_OpenWindow(gw);
+    if (w2 != NULL) GetAttr(WINDOW_SigMask, gw, &sig);
+    while (w2 != NULL && !done) {
+      ULONG s = Wait(sig | SIGBREAKF_CTRL_C);
+      if (s & SIGBREAKF_CTRL_C) {
+        SetSignal(SIGBREAKF_CTRL_C, SIGBREAKF_CTRL_C);   /* for the main loop too */
+        done = 1;
+      }
+      while ((result = RA_HandleInput(gw, &code)) != WMHI_LASTMSG) {
+        switch (result & WMHI_CLASSMASK) {
+          case WMHI_CLOSEWINDOW: done = 1; break;
+          case WMHI_RAWKEY:
+            if (code == 0x45) done = 1;                      /* Esc */
+            break;
+          case WMHI_GADGETUP: {
+            int id = (int)(result & WMHI_GADGETMASK);
+            if (id == 3) {
+              done = 1;
+            } else if (id == 1 || id == 2) {
+              int kind = id == 1 ? HUB_CLEAN_OLD : HUB_CLEAN_BUGS;
+              clean_totals(kind, &items, &files, &bytes);
+              size_text(bytes, sz, sizeof(sz));
+              snprintf(a, sizeof(a), TX(id == 1 ? T_CLEAN_SURE_OLD : T_CLEAN_SURE_BUGS), name, files, sz);
+              if (items > 0 && ask(a, TX(T_YES_NO)) == 1) {
+                if (hub_clean_delete(g, dir, kind, err, sizeof(err))) {
+                  set_status(TX(T_CLEAN_DELETED));
+                } else {
+                  snprintf(a, sizeof(a), TX(T_CLEAN_FAILED), err);
+                  set_status(a);
+                  ask(a, TX(T_OK));
+                }
+                /* the new list, and the buttons of what is gone */
+                clean_count = hub_clean_list(g, dir, clean_items, 400);
+                SetGadgetAttrs((struct Gadget *)lb, w2, NULL, LISTBROWSER_Labels, (ULONG)~0, TAG_DONE);
+                FreeListBrowserList(&guide_list);
+                clean_fill_list();
+                SetGadgetAttrs((struct Gadget *)lb, w2, NULL, LISTBROWSER_Labels, (ULONG)&guide_list, TAG_DONE);
+                clean_totals(HUB_CLEAN_OLD, &items, &files, &bytes);
+                SetGadgetAttrs((struct Gadget *)b_old, w2, NULL, GA_Disabled, items == 0, TAG_DONE);
+                clean_totals(HUB_CLEAN_BUGS, &items, &files, &bytes);
+                SetGadgetAttrs((struct Gadget *)b_bug, w2, NULL, GA_Disabled, items == 0, TAG_DONE);
+              }
+            }
+            break;
+          }
+        }
+      }
+    }
+    DisposeObject(gw);
+    SetAttrs(win_obj, WA_BusyPointer, FALSE, TAG_DONE);
+    while (RA_HandleInput(win_obj, &code) != WMHI_LASTMSG) {
+    }
+  }
+  FreeListBrowserList(&guide_list);
+}
+
+/* After "Refresh" (pressed by the user): when the chosen, installed game has old versions or bug reports, a window
+ * says so and offers to delete them. */
+static void offer_cleanup(void)
+{
+  HubGame *g;
+  HubInstalled *in;
+  if (cat == NULL || selected < 0) return;
+  g = &cat->games[selected];
+  in = installed(g);
+  if (in == NULL || g->local) return;
+  show_cleanup(g, in->dir);
+}
+
 /* The padlock in the title bar: a gadget of our own next to the system
  * gadgets (OS 3.2 window.class has no such gadget), with a small image class
  * that draws the frame and the padlock (green when logged in). Added after
@@ -1780,6 +1990,10 @@ static void worker_news(void)
       set_progress(0, 0);
     }
     refresh_all();
+    if (clean_after_refresh) {
+      clean_after_refresh = 0;
+      offer_cleanup();
+    }
     if (test_key[0] && cat != NULL && hub_catalog_find(cat, test_key) != NULL) {
       selected = (int)(hub_catalog_find(cat, test_key) - cat->games);
       test_key[0] = 0;
@@ -2070,6 +2284,7 @@ static void say_error(const char *what)
 static int open_classes(void)
 {
   WindowBase = OpenLibrary((CONST_STRPTR)"window.class", 44);
+  RequesterBase = OpenLibrary((CONST_STRPTR)"requester.class", 44);   /* optional: ask() has a fallback */
   LayoutBase = OpenLibrary((CONST_STRPTR)"gadgets/layout.gadget", 44);
   ButtonBase = OpenLibrary((CONST_STRPTR)"gadgets/button.gadget", 44);
   ChooserBase = OpenLibrary((CONST_STRPTR)"gadgets/chooser.gadget", 44);
@@ -2092,9 +2307,9 @@ static int open_classes(void)
 static void close_classes(void)
 {
   struct Library **l[] = {&WindowBase, &LayoutBase, &ButtonBase, &ChooserBase,
-                          &ListBrowserBase, &SpaceBase, &ScrollerBase, &FuelGaugeBase};
+                          &ListBrowserBase, &SpaceBase, &ScrollerBase, &FuelGaugeBase, &RequesterBase};
   int i;
-  for (i = 0; i < 8; i++) {
+  for (i = 0; i < 9; i++) {
     if (*l[i] != NULL) CloseLibrary(*l[i]);
     *l[i] = NULL;
   }
@@ -2271,7 +2486,10 @@ int main(void)
             break;
           case WMHI_GADGETUP:
             switch (result & WMHI_GADGETMASK) {
-              case GID_REFRESH: start_refresh(); break;
+              case GID_REFRESH:
+                if (!work.busy) clean_after_refresh = 1;
+                start_refresh();
+                break;
               case GID_GAMESDIR: choose_games_dir(0); break;
               case GID_GUIDE: show_guide(); break;
               case GID_RUN: run_game(); break;

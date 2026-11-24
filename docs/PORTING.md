@@ -719,3 +719,14 @@ Settlers z okna.
   in `warphub.c` writes "Checking files: N of M, FILE (xx%)" / "Loading pictures and texts: N of M (game)" and moves the progress bar. A stop by the user is "Stopped." without a requester (`T_STOPPED`).
 - Not needed: the removal of a game (a few files, instant), the scan of the drawers (it has its own text).
 - Tested by the user on Amiga 2 (`RAM:WarpHub09`): looks good.
+
+## 0.10: clean up old versions and bug reports (25.11.2026)
+- Request of the user: "Odswiez" also checks the chosen, installed game for old versions and for bug reports and offers to delete them, in a window of its own (not in the main window).
+- `hub_clean_list()` / `hub_clean_delete()` (hub_install.c): the items are the entries of `<Game>/old/` and the bug reports of `<Game>/user/` (drawers `bugNNN` and loose files `bugNNN.*` of the older releases of the
+  C&C ports; the name must be "bug" + at least three digits, so `bugemail.txt` and the saved games are never touched). Programs in a shared drawer (`flat`, WARP HUB itself) have none.
+  Deleting lists the drawer again after every entry (deleting while listing confuses ExNext). `WarpHubCLI CLEAN <game> TO=<drawer>` lists, `CLEANALL` also deletes (tested on Amiga 2 in RAM:).
+- Window (`show_cleanup()` in `warphub.c`, a window of its own like the guide): the list (heading with the number of files and the size, then every item with its size), the buttons "Delete old versions",
+  "Delete bug reports", "Close"; every deletion asks first (the bug reports cannot be restored) and the list and the buttons are updated. It opens only after "Odswiez" pressed by the user (`clean_after_refresh`), not at the start.
+- `ask()` uses the ReAction `requester.class` (47.9 on Amiga 2) so that every question opens in the middle of the WARP HUB window; `EasyRequest` opened at the top left corner of the screen. Fallback to `EasyRequest` when the class is missing;
+  a `%` in the body text is doubled (the body is a format string there).
+- Tested by the user on Amiga 2 (`RAM:WarpHub09`): works.
