@@ -20,4 +20,4 @@ REPO cizar-szymon/Amiga_Game_CommandConquer
 ORDER 30
 LOCAL CommandConquer
 IMAGE-SOURCE CommandConquer/tools/release/icon/cover-td.jpg 20 0 740 450
-# release 0.4 on GitHub (24.11.2026, with the sound fixes)
+# release 0.4 on GitHub (24.11.2026, with the bug drawers)
