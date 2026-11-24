@@ -36,4 +36,11 @@ void hub_game_dir(HubGame *g, char *out, int outlen);
  * FLAT entry the path without "<Root>/" */
 const char *hub_local_path(const HubGame *g, const char *path);
 
+/* Deletes the files of the game that the catalog lists, then the drawers that
+ * became empty. What the player made (saved games, ini files, reports, old/)
+ * stays. *left = 1 when the drawer of the game still holds something.
+ * Returns 1, or 0 with err. */
+int hub_uninstall(HubGame *g, const char *dest, int *removed, int *left,
+                  char *err, int errlen);
+
 #endif

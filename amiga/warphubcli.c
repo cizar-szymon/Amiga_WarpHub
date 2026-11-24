@@ -6,6 +6,7 @@
  *   WarpHubCLI INFO <game> [LANG=pl|en|de]
  *   WarpHubCLI CHECK <game> TO=<drawer>       what an update would download
  *   WarpHubCLI INSTALL <game> TO=<drawer>     install or update
+ *   WarpHubCLI UNINSTALL <game> TO=<drawer>   delete the files of the game (what the player made stays)
  *   WarpHubCLI TIME                           the clock and the SNTP time
  *
  *   CATALOG=<file or https URL>  another catalog (tests)
@@ -275,7 +276,7 @@ int main(void)
   if (rd == NULL) {
     PrintFault(IoErr(), (CONST_STRPTR)"WarpHubCLI");
     printf("Usage: WarpHubCLI LIST | INFO <game> | CHECK <game> TO=<drawer> |\n"
-           "       INSTALL <game> TO=<drawer> | TIME   [LANG=pl|en|de]\n");
+           "       INSTALL <game> TO=<drawer> | UNINSTALL <game> TO=<drawer> | TIME   [LANG=pl|en|de]\n");
     return RETURN_FAIL;
   }
   cmd = (const char *)args[A_CMD];
@@ -382,6 +383,15 @@ int main(void)
         } else {
           printf("Not installed: %s\nNothing of the game was changed.\n", err);
         }
+      }
+    } else if (stricmp(cmd, "UNINSTALL") == 0) {
+      int removed = 0, left = 0;
+      if (hub_uninstall(g, dest, &removed, &left, err, sizeof(err))) {
+        printf("Uninstalled %s: %d files deleted%s.\n", hub_text(g->name, lang), removed,
+               left ? ", the drawer of the game still holds your own files" : "");
+        rc = RETURN_OK;
+      } else {
+        printf("Not uninstalled: %s\n", err);
       }
     } else {
       printf("Unknown command %s.\n", cmd);

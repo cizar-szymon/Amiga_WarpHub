@@ -697,3 +697,15 @@ Settlers z okna.
     po `revoke` + `--codes` 401 bez restartu.
 - Do zrobienia: test z Amigi (logowanie kłódką, instalacja pełnej gry), przekierowanie
   portu na routerze (użytkownik) i test z zewnątrz, stały adres RP4 w DHCP routera.
+
+## 0.8: Odinstaluj (24.11.2026)
+- Przycisk **Zainstaluj** jest dla zainstalowanej gry (także w starej wersji) przyciskiem **Odinstaluj**, po osobnym pytaniu
+  „Odinstaluj|Anuluj”. WARP HUB sam siebie nie odinstalowuje. `hub_uninstall()` w `hub_install.c` usuwa **tylko pliki z katalogu
+  gry** (każda ścieżka sprawdzona `hub_path_ok`), potem szuflady, które opustoszały; zapisy, `bugNNN.*`, `old/` i obce pliki
+  zostają (komunikat mówi, że szuflada gry została). Bez zalogowania na kłódce usuwa tylko pliki publiczne – dane z prywatnego
+  źródła zostają w `data/`. `WarpHubCLI UNINSTALL <gra> TO=<szuflada>` do testów.
+- Test (Amiga 2, `RAM:UTEST`): instalacja TD, dopisany `user/bug001.txt` i obcy plik, UNINSTALL: 16 plików skasowanych
+  (tyle co w katalogu), `TiberianDawn.info`, `doc/`, `data/` zniknęły, `user/bug001.txt` i obcy plik zostały. Okno
+  (nazwa przycisku, pytanie, kliknięcie) sprawdza użytkownik – AmiAgent nie ma myszy.
+- Znane: przy „Aktualizuj” gry z dużymi danymi (490 MB) WARP HUB kilka minut liczy sumy SHA-256 i pokazuje tylko
+  „Sprawdzanie plików…” (wygląda jak zawieszenie); postęp sprawdzania do dodania.

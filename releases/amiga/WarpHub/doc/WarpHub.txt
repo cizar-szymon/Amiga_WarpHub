@@ -30,7 +30,12 @@ OKNO
 - Przyciski po prawej:
   Instrukcja uruchomienia - co trzeba dolozyc (np. dane oryginalnej gry)
                             i gdzie; otwiera sie tez sama po instalacji
-  Zainstaluj              - gra, ktorej nie ma; WARP HUB pyta o szuflade
+  Zainstaluj              - gra, ktorej nie ma; WARP HUB pyta o szuflade.
+                            Przy zainstalowanej grze (takze starej) ten
+                            przycisk to Odinstaluj: po potwierdzeniu
+                            usuwa pliki zainstalowane przez WARP HUB;
+                            zapisy gry i zgloszenia w szufladzie user
+                            zostaja
   Aktualizuj              - gdy jest nowsza wersja; pobiera tylko zmienione
                             pliki, stary program trafia do old/
   Przerwij                - przerywa pobieranie

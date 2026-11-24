@@ -31,7 +31,11 @@ THE WINDOW
 - The buttons on the right:
   How to start      - what you have to add (e.g. the data of the original
                       game) and where; also opens by itself after installing
-  Install           - a game you do not have; WARP HUB asks for a drawer
+  Install           - a game you do not have; WARP HUB asks for a drawer.
+                      For an installed game (also an old one) the button
+                      is Uninstall: after a confirmation it deletes the
+                      files that WARP HUB installed; saved games and
+                      reports in the drawer user stay
   Update            - when there is a newer version; only the changed files
                       are downloaded, the old program goes to old/
   Stop              - stops the download

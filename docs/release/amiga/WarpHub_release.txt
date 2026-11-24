@@ -1,10 +1,18 @@
 WARP HUB - wydania
 ==================
 
-Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.7") i w
+Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.8") i w
 Shellu: Version SYS:WarpApps/WarpHub. Opisz, co sie stalo, i podaj
 numer wydania: https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.8 (24.11.2026, wydanie beta)
+------------------------------
+- Przycisk Zainstaluj zmienia sie w Odinstaluj dla zainstalowanej gry,
+  takze starej wersji; przed usunieciem WARP HUB pyta o potwierdzenie.
+  Usuwa tylko pliki zainstalowane przez WARP HUB (program, ikony, teksty,
+  dane); zapisy gry, ustawienia i zgloszenia bledow w szufladzie user
+  zostaja. WARP HUB nie odinstalowuje sam siebie.
 
 0.7 (24.11.2026, wydanie beta)
 ------------------------------

@@ -71,7 +71,7 @@
 
 extern struct WBStartup *_WBenchMsg;
 
-#define WARPHUB_VERSION "0.7"   /* tools/make_release.py reads it */
+#define WARPHUB_VERSION "0.8"   /* tools/make_release.py reads it */
 const char version_tag[] = "$VER: WarpHub " WARPHUB_VERSION " (19.11.2026)";
 
 unsigned long __stack = 65536;
@@ -109,6 +109,8 @@ enum {
   T_RUN_FAILED, T_PRIV_TITLE, T_SERVER, T_PASSWORD, T_REMEMBER, T_LOGIN, T_LOGOUT,
   T_CANCEL, T_CONNECTING, T_CERT_ASK, T_TRUST, T_PRIV_OK, T_PRIV_BAD, T_PRIV_BLOCKED,
   T_PRIV_ERR, T_FULL, T_LOGGED_OUT, T_BAD_SERVER, T_NOT_TRUSTED, T_BUSY,
+  T_UNINSTALL, T_ASK_UNINSTALL, T_UNINSTALL_BTNS, T_UNINSTALLED, T_UNINSTALLED_LEFT,
+  T_UNINSTALL_FAILED,
   T_COUNT
 };
 
@@ -144,7 +146,12 @@ static const char *const texts[3][T_COUNT] = {
     "Private source: too many wrong passwords - try again in 15 minutes.",
     "Private source: %s", "Full package (private source)",
     "Logged out of the private source.", "Server: address:port, e.g. 192.168.1.20:6831",
-    "Certificate not accepted - not connected.", "Wait until the current job ends."
+    "Certificate not accepted - not connected.", "Wait until the current job ends.",
+    "Uninstall",
+    "Uninstall %s from %s?\n\nThe files that WARP HUB installed are deleted (program, texts, data).\n"
+    "Saved games and reports in the drawer user stay.",
+    "Uninstall|Cancel", "%s uninstalled (%d files).",
+    "%s uninstalled (%d files). Your own files stay in %s.", "Not uninstalled: %s"
   },
   { /* pl */
     "Odswiez", "Zainstaluj", "Aktualizuj", "Sprawdz pliki", "Przerwij", "Zainstalowana %s",
@@ -177,7 +184,12 @@ static const char *const texts[3][T_COUNT] = {
     "Prywatne zrodlo: za duzo zlych hasel - sprobuj za 15 minut.",
     "Prywatne zrodlo: %s", "Pelna paczka (prywatne zrodlo)",
     "Wylogowano z prywatnego zrodla.", "Serwer: adres:port, np. 192.168.1.20:6831",
-    "Certyfikat nie przyjety - bez polaczenia.", "Poczekaj, az skonczy sie obecne zadanie."
+    "Certyfikat nie przyjety - bez polaczenia.", "Poczekaj, az skonczy sie obecne zadanie.",
+    "Odinstaluj",
+    "Odinstalowac %s z %s?\n\nUsuniete zostana pliki zainstalowane przez WARP HUB (program, teksty, dane).\n"
+    "Zapisy gry i zgloszenia bledow w szufladzie user zostaja.",
+    "Odinstaluj|Anuluj", "%s odinstalowana (plikow: %d).",
+    "%s odinstalowana (plikow: %d). Twoje wlasne pliki zostaja w %s.", "Nie odinstalowano: %s"
   },
   { /* de */
     "Aktualisieren", "Installieren", "Update", "Dateien pr\xfc" "fen", "Abbrechen",
@@ -211,7 +223,12 @@ static const char *const texts[3][T_COUNT] = {
     "Private Quelle: zu viele falsche Passw\xf6rter - in 15 Minuten noch einmal.",
     "Private Quelle: %s", "Volles Paket (private Quelle)",
     "Von der privaten Quelle abgemeldet.", "Server: Adresse:Port, z.B. 192.168.1.20:6831",
-    "Zertifikat nicht angenommen - keine Verbindung.", "Warte, bis die laufende Aufgabe endet."
+    "Zertifikat nicht angenommen - keine Verbindung.", "Warte, bis die laufende Aufgabe endet.",
+    "Deinstallieren",
+    "%s aus %s deinstallieren?\n\nDie von WARP HUB installierten Dateien werden gel\xf6" "scht (Programm, Texte, Daten).\n"
+    "Spielst\xe4" "nde und Meldungen in der Schublade user bleiben.",
+    "Deinstallieren|Abbrechen", "%s deinstalliert (%d Dateien).",
+    "%s deinstalliert (%d Dateien). Deine eigenen Dateien bleiben in %s.", "Nicht deinstalliert: %s"
   }
 };
 
@@ -697,13 +714,19 @@ static void update_buttons(void)
   /* two buttons: Install for a game that is not there, Update for an installed
    * one with a newer version in the catalog */
   int none = cat == NULL || selected < 0;
-  int can_install = 0, can_update = 0;
+  int can_install = 0, can_update = 0, can_uninstall = 0;
   if (!none && !work.busy && !cat->games[selected].local) {
     HubGame *g = &cat->games[selected];
     HubInstalled *in = installed(g);
-    if (in == NULL) can_install = 1;
-    else if (version_cmp(in->version, g->version) < 0) can_update = 1;
-    else if (g->priv) can_update = 1;     /* the data of the full package */
+    if (in == NULL) {
+      can_install = 1;
+    } else {
+      /* an installed game (also an old one): the same button removes it, after a question;
+       * WARP HUB itself stays */
+      if (strcmp(g->key, SELF_KEY) != 0) can_uninstall = 1;
+      if (version_cmp(in->version, g->version) < 0) can_update = 1;
+      else if (g->priv) can_update = 1;     /* the data of the full package */
+    }
   }
   if (win == NULL) return;
   SetGadgetAttrs((struct Gadget *)g_guide, win, NULL, GA_Text, (ULONG)TX(T_GUIDE),
@@ -712,8 +735,9 @@ static void update_buttons(void)
   SetGadgetAttrs((struct Gadget *)g_run, win, NULL, GA_Text, (ULONG)TX(T_RUN),
                  GA_Disabled, none || installed(&cat->games[selected]) == NULL ||
                               strcmp(cat->games[selected].key, SELF_KEY) == 0, TAG_DONE);
-  SetGadgetAttrs((struct Gadget *)g_install, win, NULL, GA_Text, (ULONG)TX(T_INSTALL),
-                 GA_Disabled, !can_install, TAG_DONE);
+  SetGadgetAttrs((struct Gadget *)g_install, win, NULL,
+                 GA_Text, (ULONG)TX(can_uninstall ? T_UNINSTALL : T_INSTALL),
+                 GA_Disabled, !(can_install || can_uninstall), TAG_DONE);
   SetGadgetAttrs((struct Gadget *)g_update, win, NULL, GA_Text, (ULONG)TX(T_UPDATE),
                  GA_Disabled, !can_update, TAG_DONE);
   SetGadgetAttrs((struct Gadget *)g_stop, win, NULL, GA_Text, (ULONG)TX(T_STOP),
@@ -1349,6 +1373,41 @@ static void start_install(void)
   update_buttons();
 }
 
+/* The Install button of an installed game: remove its files, after a question. */
+static void start_uninstall(void)
+{
+  HubGame *g;
+  HubInstalled *in;
+  char body[800], name[96], dir[256], err[200];
+  int removed = 0, left = 0, ok;
+  if (work.busy || cat == NULL || selected < 0) return;
+  g = &cat->games[selected];
+  in = installed(g);
+  if (in == NULL || strcmp(g->key, SELF_KEY) == 0) return;
+  latin(hub_text(g->name, lang), name, sizeof(name));
+  strncpy(dir, in->dir, sizeof(dir) - 1);
+  dir[sizeof(dir) - 1] = 0;
+  snprintf(body, sizeof(body), TX(T_ASK_UNINSTALL), name, dir);
+  if (ask(body, TX(T_UNINSTALL_BTNS)) != 1) return;
+  SetAttrs(win_obj, WA_BusyPointer, TRUE, TAG_DONE);
+  ok = hub_uninstall(g, dir, &removed, &left, err, sizeof(err));
+  SetAttrs(win_obj, WA_BusyPointer, FALSE, TAG_DONE);
+  if (!ok) {
+    snprintf(body, sizeof(body), TX(T_UNINSTALL_FAILED), err);
+    set_status(body);
+    ask(body, TX(T_OK));
+    refresh_all();
+    return;
+  }
+  hub_prefs_remove_installed(&prefs, g->key);
+  hub_prefs_save(&prefs, PREFS_FILE);
+  if (left) snprintf(body, sizeof(body), TX(T_UNINSTALLED_LEFT), name, removed, dir);
+  else snprintf(body, sizeof(body), TX(T_UNINSTALLED), name, removed);
+  set_status(body);
+  refresh_all();
+  update_buttons();
+}
+
 /* The padlock in the title bar: a gadget of our own next to the system
  * gadgets (OS 3.2 window.class has no such gadget), with a small image class
  * that draws the frame and the padlock (green when logged in). Added after
@@ -1775,7 +1834,7 @@ static void free_pens(void)
 /* width of the widest label of the buttons in all languages */
 static int button_width(void)
 {
-  static const int ids[] = {T_INSTALL, T_UPDATE, T_REPAIR, T_STOP, T_GAMESDIR, T_APPSDIR,
+  static const int ids[] = {T_INSTALL, T_UNINSTALL, T_UPDATE, T_REPAIR, T_STOP, T_GAMESDIR, T_APPSDIR,
                             T_GUIDE};
   struct RastPort *rp = &scr->RastPort;
   int w = 0, l, i;
@@ -2200,6 +2259,11 @@ int main(void)
                 refresh_all();
                 break;
               case GID_INSTALL:
+                if (cat != NULL && selected >= 0 && installed(&cat->games[selected]) != NULL)
+                  start_uninstall();
+                else
+                  start_install();
+                break;
               case GID_UPDATE: start_install(); break;
               case GID_STOP: hub_worker_break(); break;
               case GID_SCROLL: {

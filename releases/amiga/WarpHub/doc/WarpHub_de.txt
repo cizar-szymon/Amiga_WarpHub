@@ -33,7 +33,12 @@ DAS FENSTER
                          Originalspiels) und wohin; oeffnet sich auch nach
                          der Installation
   Installieren         - ein Spiel, das du nicht hast; WARP HUB fragt nach
-                         einer Schublade
+                         einer Schublade. Bei einem installierten Spiel
+                         (auch einer alten Version) heisst der Knopf
+                         Deinstallieren: nach einer Rueckfrage loescht er
+                         die von WARP HUB installierten Dateien;
+                         Spielstaende und Meldungen in der Schublade user
+                         bleiben
   Update               - bei einer neueren Version; nur geaenderte Dateien
                          werden geladen, das alte Programm kommt nach old/
   Abbrechen            - bricht das Laden ab

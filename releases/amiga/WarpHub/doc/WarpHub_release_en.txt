@@ -1,11 +1,19 @@
 WARP HUB - releases
 ===================
 
-Reporting bugs: the release number is in the screen title ("WARP HUB 0.7")
+Reporting bugs: the release number is in the screen title ("WARP HUB 0.8")
 and in the Shell: Version SYS:WarpApps/WarpHub. Describe what
 happened and give the release number:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.8 (24.11.2026, beta release)
+------------------------------
+- The Install button becomes Uninstall for an installed game, also an
+  old version; WARP HUB asks before it deletes. It deletes only the files
+  that WARP HUB installed (program, icons, texts, data); saved games,
+  settings and bug reports in the drawer user stay. WARP HUB does not
+  uninstall itself.
 
 0.7 (24.11.2026, beta release)
 ------------------------------

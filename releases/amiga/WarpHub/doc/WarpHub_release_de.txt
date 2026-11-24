@@ -1,11 +1,19 @@
 WARP HUB - Versionen
 ====================
 
-Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.7")
+Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.8")
 und in der Shell: Version SYS:WarpApps/WarpHub. Beschreibe, was
 passiert ist, mit der Versionsnummer:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.8 (24.11.2026, Beta)
+----------------------
+- Der Knopf Installieren wird bei einem installierten Spiel, auch einer
+  alten Version, zu Deinstallieren; WARP HUB fragt vor dem Loeschen. Es
+  loescht nur die Dateien, die WARP HUB installiert hat (Programm, Symbole,
+  Texte, Daten); Spielstaende, Einstellungen und Fehlermeldungen in der
+  Schublade user bleiben. WARP HUB deinstalliert sich nicht selbst.
 
 0.7 (24.11.2026, Beta)
 ----------------------

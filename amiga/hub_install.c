@@ -353,3 +353,61 @@ int hub_install(HubGame *g, const char *dest, const char *old_version,
   hub_conn_free(c);
   return put_in_place(g, dest, old_version, err, errlen);
 }
+
+/* the part of a path before its last "/" ("a/b/c.txt" -> "a/b"); 0 when none */
+static int parent_of(char *path)
+{
+  char *slash = strrchr(path, '/');
+  if (slash == NULL) return 0;
+  *slash = 0;
+  return 1;
+}
+
+int hub_uninstall(HubGame *g, const char *dest, int *removed, int *left,
+                  char *err, int errlen)
+{
+  char name[NAME_LEN], rel[NAME_LEN], dir[NAME_LEN];
+  int i, pass;
+  BPTR lock;
+  *removed = 0;
+  *left = 0;
+  lock = Lock((CONST_STRPTR)dest, ACCESS_READ);
+  if (lock == 0) {
+    snprintf(err, errlen, "Drawer %s not found.", dest);
+    return 0;
+  }
+  UnLock(lock);
+  /* only the files of the catalog, each path checked: nothing else is touched */
+  for (i = 0; i < g->nfiles; i++) {
+    const char *p = hub_local_path(g, g->files[i].path);
+    if (g->files[i].flag == 'X' || !hub_path_ok(p) ||
+        !full_name(name, sizeof(name), dest, p, "")) continue;
+    SetProtection((CONST_STRPTR)name, 0);
+    if (DeleteFile((CONST_STRPTR)name)) {
+      (*removed)++;
+    } else if (IoErr() != ERROR_OBJECT_NOT_FOUND) {
+      snprintf(err, errlen, "Cannot delete %s (error %ld).", p, (long)IoErr());
+      return 0;
+    }
+  }
+  /* the drawers of those files, deepest first; a drawer that still holds
+   * something (the player's files) cannot be deleted and stays */
+  for (pass = 0; pass < 4; pass++) {
+    for (i = 0; i < g->nfiles; i++) {
+      strncpy(rel, hub_local_path(g, g->files[i].path), sizeof(rel) - 1);
+      rel[sizeof(rel) - 1] = 0;
+      while (parent_of(rel) && rel[0] != 0) {
+        if (full_name(name, sizeof(name), dest, rel, "")) DeleteFile((CONST_STRPTR)name);
+      }
+    }
+  }
+  hub_game_dir(g, dir, sizeof(dir));
+  if (dir[0] != 0 && full_name(name, sizeof(name), dest, dir, "")) {
+    lock = Lock((CONST_STRPTR)name, ACCESS_READ);
+    if (lock != 0) {
+      UnLock(lock);
+      *left = 1;
+    }
+  }
+  return 1;
+}
