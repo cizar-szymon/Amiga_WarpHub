@@ -431,7 +431,7 @@ FILE 237573 f12980a91c94931342bd111da00b4adabe8061264cb8ecbdb7fb3a82895c1514 N D
 FILE 84 3e58d8ec63d245ace37079c6800169b992cf1965217e9cf369ca307f477157e0 N DiabloWarp/save/ReadMe.txt
 END
 GAME tiberiandawn
-NAME en Command & Conquer: Tiberian Dawn
+NAME en C&C: Tiberian Dawn
 DESC en Tiberian Dawn, the first Command & Conquer, on the Vanilla Conquer engine. 640x400 on RTG, game movies with sound, bug reports from the game.
 DESC pl Tiberian Dawn, pierwszy Command & Conquer, na silniku Vanilla Conquer. 640x400 na RTG, filmy z dzwiekiem, zgloszenia bledow z gry.
 DESC de Tiberian Dawn, das erste Command & Conquer, mit der Vanilla-Conquer-Engine. 640x400 auf RTG, Filme mit Ton, Fehlermeldungen aus dem Spiel.
