@@ -1,0 +1,22 @@
+# WARP HUB: WARP NetMonitor (format: tools/game_files.py)
+NAME en WARP NetMonitor
+DESC en How fast and steady the internet line of the Amiga is: download and upload charts (GitHub, Cloudflare, Hetzner, the WARP HUB private source), ping to the router and the internet, a plain-words result. In the style of WarpDashboard.
+DESC pl Jak szybkie i stabilne jest lacze Amigi: wykresy pobierania i wysylania (GitHub, Cloudflare, Hetzner, prywatne zrodlo WARP HUB), ping do routera i internetu, wynik prostymi slowami. W stylu WarpDashboard.
+DESC de Wie schnell und stabil die Internetleitung des Amiga ist: Download- und Upload-Diagramme (GitHub, Cloudflare, Hetzner, die private Quelle von WARP HUB), Ping zum Router und ins Internet, ein Ergebnis in klaren Worten. Im Stil von WarpDashboard.
+TAGS apps,warp1260,warp1240,warp1260x,warp7060
+REQ en Warp card (68040 / 68060)
+REQ en AmigaOS 3.2, RTG 15/16-bit or more
+REQ en AmiSSL 5 (WarpSSL)
+REQ en TCP/IP (WiFi of the Warp card or USB network), internet
+REQ pl karta Warp (68040 / 68060)
+REQ pl AmigaOS 3.2, RTG 15/16-bit lub wiecej
+REQ pl AmiSSL 5 (WarpSSL)
+REQ pl TCP/IP (WiFi karty Warp albo siec USB), internet
+REQ de Warp-Karte (68040 / 68060)
+REQ de AmigaOS 3.2, RTG 15/16 Bit oder mehr
+REQ de AmiSSL 5 (WarpSSL)
+REQ de TCP/IP (WLAN der Warp-Karte oder USB-Netzwerk), Internet
+REPO cizar-szymon/Amiga_WarpNetMonitor
+FLAT
+ORDER 2
+LOCAL ../AmigaSoft/Amiga_WarpNetMonitor

@@ -1005,3 +1005,13 @@ time (more: 503 "busy, try later" at once - the RP4 serves games first, user's w
 <ip> [code]" once per login. Load: the Amiga sends ~1 MB/s, the RP4 decrypts and drops it.
 Tests: 27 (upload with the main password and a code, 401 without, 404 on another path, 503 at the
 limit). On the RP4 since 22:28 (`push_private.sh --no-www`); from the PC 4 MB in 0.56 s.
+
+## WARP NetMonitor in the catalog (26.11.2026)
+WARP NetMonitor (csWarpAmigaSoftware/WarpNetMonitor, GPLv3) is released in its own public repo
+`cizar-szymon/Amiga_WarpNetMonitor` (releases/amiga + its source, user's decision). Catalog:
+`catalog/games/warpnetmonitor.txt` (TAGS apps + Warp 040/060 groups, FLAT into SYS:WarpApps next
+to WARP HUB, ORDER 2, LOCAL ../AmigaSoft/Amiga_WarpNetMonitor), picture
+`catalog/images/warpnetmonitor.png` (the English panel). `make_catalog.py --simulate`: version
+0.9, 17 files (program N, icon K, doc X). Fix: `--simulate` copies the blocks of public games
+from catalog.txt as text, `apply_flat` only for built entries (it failed on them since the
+refactor).

@@ -448,8 +448,8 @@ def main(argv=None):
             g['image'] = image_of(os.path.dirname(args.out), game['key'])
             g['tags'] = game.get('tags', [])
             g['req'] = game.get('req', {})
-            if game.get('flat'):
-                apply_flat(g)
+            if game.get('flat') and 'files' in g:
+                apply_flat(g)          # a block copied from catalog.txt has its flags already
             for lang, data in g.get('local_notes', {}).items():
                 # the Amiga cannot get them from GitHub: notes/<key>_<lang>.txt
                 d = os.path.join(os.path.dirname(args.out), 'notes')
