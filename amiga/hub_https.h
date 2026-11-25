@@ -14,6 +14,9 @@ typedef struct HubConn HubConn;
  * certificates (tests), or NULL. Returns 0 and fills err. */
 int hub_https_init(const char *cafile, char *err, int errlen);
 
+/* The OpenSSL version of AmiSSL ("OpenSSL 3.5.4 30 Sep 2025"); after init. */
+const char *hub_https_version(void);
+
 /* Unix seconds for the certificate check instead of the clock of the Amiga. */
 void hub_https_verify_time(ULONG unix_time);
 void hub_https_cleanup(void);
@@ -39,6 +42,9 @@ int hub_get(HubConn *c, const char *path, HubSink sink, void *user,
 /* The next request of c only with "If-None-Match: etag": the answer is then
  * 304 (no body) when the file has not changed. */
 void hub_conn_if_none_match(HubConn *c, const char *etag);
+/* 1 when the last request of c failed in the network (lost, no data within
+ * the time limit), not by an answer of the server: worth one more try. */
+int hub_conn_net_error(HubConn *c);
 /* The ETag of the last answer of c ("" = none). */
 const char *hub_conn_etag(HubConn *c);
 

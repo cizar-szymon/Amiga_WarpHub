@@ -246,6 +246,18 @@ static int fetch_one(HubConn *c, HubGame *g, const char *dest, HubFile *file,
     snprintf(err, errlen, "Path too long: %s", file->path);
     return 0;
   }
+  {
+    /* an earlier try that stopped (network, Stop) left this file whole and
+     * right: taken as it is - an install of 80 MB goes on where it stopped */
+    ULONG have = 0;
+    char hs[65];
+    if (local_file(name, file->size, &have, hs, NULL) && have == file->size &&
+        strcmp(hs, file->sha) == 0) {
+      *done += file->size;
+      if (progress != NULL) progress(user, file, *done, total);
+      return 1;
+    }
+  }
   memset(&f, 0, sizeof(f));
   f.fh = Open((CONST_STRPTR)name, MODE_NEWFILE);
   if (f.fh == 0) {
@@ -295,18 +307,6 @@ static int is_program(HubGame *g, const HubFile *f)
     }
   }
   return 0;
-}
-
-static void remove_partial(HubGame *g, const char *dest)
-{
-  char name[NAME_LEN];
-  int i;
-  for (i = 0; i < g->nfiles; i++) {
-    if (g->files[i].need &&
-        full_name(name, sizeof(name), dest, hub_local_path(g, g->files[i].path), ".upd")) {
-      DeleteFile((CONST_STRPTR)name);
-    }
-  }
 }
 
 static int put_in_place(HubGame *g, const char *dest, const char *old_version,
@@ -387,12 +387,25 @@ int hub_install(HubGame *g, const char *dest, const char *old_version,
     hub_conn_auth(c, priv_pass);
   }
   for (i = 0; i < g->nfiles; i++) {
+    ULONG before = done;
+    int ok = 0, attempt;
     if (!g->files[i].need) continue;
-    if (hub_break || !fetch_one(c, g, dest, &g->files[i], &done, total, progress,
-                                user, err, errlen)) {
+    /* up to 3 tries of a file the network lost (no data within the time
+     * limit, connection lost), 2 s apart */
+    for (attempt = 0; attempt < 3 && !hub_break; attempt++) {
+      if (attempt > 0) {
+        if (!hub_conn_net_error(c)) break;
+        done = before;
+        Delay(100);
+      }
+      ok = fetch_one(c, g, dest, &g->files[i], &done, total, progress, user, err, errlen);
+      if (ok) break;
+    }
+    if (!ok) {
+      /* the files that came whole stay (.upd, checked): the next Install /
+       * Update takes them and downloads only the rest */
       if (hub_break) snprintf(err, errlen, "Stopped (Ctrl-C).");
       hub_conn_free(c);
-      remove_partial(g, dest);
       return 0;
     }
   }
@@ -429,6 +442,11 @@ int hub_uninstall(HubGame *g, const char *dest, int *removed, int *left,
     if (g->files[i].flag == 'X' || !hub_path_ok(p) ||
         !full_name(name, sizeof(name), dest, p, "")) continue;
     SetProtection((CONST_STRPTR)name, 0);
+    {
+      /* a stopped install left it (kept for the next try) */
+      char upd[NAME_LEN];
+      if (full_name(upd, sizeof(upd), dest, p, ".upd")) DeleteFile((CONST_STRPTR)upd);
+    }
     if (DeleteFile((CONST_STRPTR)name)) {
       (*removed)++;
     } else if (IoErr() != ERROR_OBJECT_NOT_FOUND) {

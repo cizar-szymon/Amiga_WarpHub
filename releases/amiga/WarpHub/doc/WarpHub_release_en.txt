@@ -1,11 +1,32 @@
 WARP HUB - releases
 ===================
 
-Reporting bugs: the release number is in the screen title ("WARP HUB 0.12")
+Reporting bugs: the release number is in the screen title ("WARP HUB 0.14")
 and in the Shell: Version SYS:WarpApps/WarpHub. Describe what
 happened and give the release number:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.14 (25.11.2026, beta release)
+-------------------------------
+- A stopped install (network, Stop) keeps the files that came whole; the
+  next Install / Update downloads only the rest. A big game on a line that
+  breaks off installs in a few tries.
+- A file the network stopped answering on is tried up to 3 times.
+- Time limit for data: 30 s.
+
+0.13 (25.11.2026, beta release)
+-------------------------------
+- The time for the certificate check: time servers first (NTP, UDP 123),
+  and when none answers (e.g. a router blocks port 123) the time of a web
+  server's answer (HTTP, port 80). An Amiga with a wrong clock then connects
+  without setting the date. The clock of the Amiga is not changed.
+- WarpHubCLI TIME shows the clock of the Amiga, the NTP time and the time of
+  the web servers.
+- A connection that stalls (the server or the network stops answering) ends
+  after 30 s with a message naming the server; a download is tried once
+  more, and Refresh only leaves out the missing pictures and texts. Stop
+  ends the wait at once.
 
 0.12 (25.11.2026, beta release)
 -------------------------------

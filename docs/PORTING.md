@@ -807,3 +807,69 @@ The reason of the player's failure is not known yet (asked: AmiSSL / WarpSSL / s
 the whole message of WarpHubCLI LIST).
 - Released as **0.12**; installed on Amiga 1 as `SYS:WarpApps/WarpHub` (= release build, byte
   for byte), 0.10 kept as `WarpHub-0.10`.
+
+## 0.13: time from HTTP when NTP does not answer (25.11.2026)
+A player with WARP HUB 0.11: "The clock of the Amiga is wrong and no time server answers" - no
+NTP (UDP 123 blocked somewhere) and a clock older than the program. Now `hub_net_time()`
+(`hub_time.c`, used by the window and WarpHubCLI): the NTP servers, then the `Date` header of
+`HEAD / HTTP/1.1` to raw.githubusercontent.com, www.google.com, www.cloudflare.com (port 80,
+5 s per piece, `WaitSelect`); only for the certificate check, the clock is not changed.
+Tested on Amiga 1: `WarpHubCLI TIME` - NTP and the three web servers give the same second
+(13:56:53 UTC, PC 13:56:55); `LIST NTP=no-such-host.invalid` loads the catalog (time from
+HTTP); the window 0.13 in RAM: (TIMES) ready after 6.5 s, private source logged in. Not tested:
+an Amiga with a wrong clock and UDP 123 blocked (the player's case). No 64-bit mul/div.
+- **Time limits (0.13, after a player waited "kilkanaście minut" on "loading pictures and
+  texts"):** the RP4 log showed his connections open but nothing coming back (server segments
+  retransmitted, never acknowledged) - and WARP HUB waited without end (SO_RCVTIMEO does not
+  work under AmiSSL/WarpSSL). Now the socket is non-blocking (`FIONBIO`) and every wait -
+  connect, TLS handshake, request, every read - is `WaitSelect` with 20 s and Ctrl-C
+  (`wait_sock` / `ssl_wait` in `hub_https.c`). A request that got no answer (nothing to the sink
+  yet) is tried once more on a new connection; an install retries a file once
+  (`hub_conn_net_error`); a refresh counts the file as missing and goes on. Tested on Amiga 1
+  (WarpHubCLI against test servers on the RP4, test certificate as CAFILE):
+  silent before TLS -> 24 s "no answer within 20 s (timeout)"; TLS without an answer -> 43 s
+  (with the retry) "no answer within 20 s"; body stopping after 1000 B -> 23 s "no data within
+  20 s"; Stop (Ctrl-C) -> 1 s "stopped (Ctrl-C)" (Roadshow gives EINTR, not the signal);
+  GitHub normal 1.2 s. The window: refresh with the private source 2.9 s, install of Vastar to
+  RAM: (11 files) OK.
+
+## WarpNetTest 0.1: network test for players (25.11.2026)
+`amiga/nettest.c` -> `build/amiga/WarpNetTest` (36 KB; from the icon a CON window, Return ends;
+every line also to `RAM:WarpNetTest.txt`). DNS, TCP connect (443, 80), NTP and the HTTP time,
+GitHub: TLS handshake + WarpHub.info, 5 small requests on one connection, catalog, the
+Settlers 0.140 ZIP with KB/s; the private source of `WarpHub.prefs` (PROGDIR: or SYS:WarpApps):
+DNS, TCP, handshake + catalog (with a remembered password) or a 401. No address in the code.
+Amiga 1 (A1200, Warp 1260, home network): GitHub handshake + small file 0.9-1.4 s, small
+request 36-40 ms, catalog 286-744 KB/s, ZIP 1.1-1.3 MB/s; private catalog 590 KB/s, again on
+the connection 1.1-1.3 MB/s; all in 3-4 s. Package for a player: `build/WarpNetTest.zip`
+(not in git; icon = the WARP HUB icon).
+- **WarpNetTest 0.2:** rows with a mark `[ OK ]` / `[SLOW]` / `[FAIL]` (PL `[WOLNO]` / `[BLAD]`),
+  bold headers in the window (CSI 1m; the log file plain), numbered parts (network, time,
+  GitHub, private server) and **RESULT** in plain words: DNS / port 443 / NTP blocked / wrong
+  clock / TLS failing / speed of GitHub (fast >= 100 KB/s, slow >= 30) with an estimate of the
+  first start of WARP HUB (4 files a game, ~38 KB a game, +220 ms a file as measured in WARP
+  HUB) and of a 10 MB game, the private server. Polish or English after LANGUAGE of
+  WarpHub.prefs. Amiga 1: "Wszystko w porzadku", first start ~10 s (measured 11.4 s); a wrong
+  private port gives `[BLAD]` with the TLS error in the result.
+
+## 0.14: resumed installs, 3 tries, 30 s (25.11.2026)
+The player's line (WarpNetTest: DNS 7 s, TCP connect 4.3 s, TLS without data) got through with
+0.13, but the full OpenDUNE (83 MB, private) stopped with a timeout - and a stopped install
+deleted every `.upd`, so the next try started from zero. Now:
+- `fetch_one` takes an `.upd` that is already whole and right (size + SHA-256, `local_file`);
+  a stopped install keeps the `.upd` files (no `remove_partial` any more; the file being
+  downloaded is deleted by `fetch_one`); Uninstall also deletes `<file>.upd`.
+- A file is tried up to 3 times when `hub_conn_net_error`, 2 s apart (`Delay(100)`).
+- `TIMEOUT_S` 30 (user's decision).
+Tested on Amiga 1: Settlers 0.140 (GitHub) to RAM:, Stop after 9 files -> 9 `.upd` kept; the
+second install finished in 14 s, 27 files, `Version` 0.140, no `.upd` left. (That the 9 were
+not downloaded again is not visible from outside - code path only.)
+- WarpNetTest 0.3: RESULT lists every problem (not only DNS), "very slow connecting" (> 1 s),
+  "connection opens but no data comes", the hints (cable, duplex, Wi-Fi bridge, `ping -s 100 /
+  1400`, MTU 1400), a wrong clock without network time. Tested with a silent server on the
+  RP4: `[BLAD] Polaczenie sie otwiera, ale dane nie dochodza` + hints after 33 s.
+- Also tried again (up to 3): a connection that fails before the request (no TCP connection
+  or no TLS handshake in time) - `request()` sets `net_error` when `conn_open` fails, except a
+  refused / not remembered certificate. Seen: the player's Diablo install never reached the
+  RP4 (no `files diablo` in the log) - the handshake timed out. Not tested live (needs a
+  server that serves the catalog and then goes silent).

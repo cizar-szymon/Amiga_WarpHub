@@ -1,10 +1,30 @@
 WARP HUB - wydania
 ==================
 
-Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.12") i w
+Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.14") i w
 Shellu: Version SYS:WarpApps/WarpHub. Opisz, co sie stalo, i podaj
 numer wydania: https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.14 (25.11.2026, wydanie beta)
+-------------------------------
+- Instalacja przerwana (siec, Przerwij) zachowuje pliki pobrane w calosci;
+  nastepne Zainstaluj / Aktualizuj pobiera tylko reszte. Duza gra przy
+  zrywajacym sie laczu instaluje sie w kilku podejsciach.
+- Plik, przy ktorym siec przestala odpowiadac, jest pobierany do 3 razy.
+- Limit czekania na dane: 30 s.
+
+0.13 (25.11.2026, wydanie beta)
+-------------------------------
+- Czas do sprawdzania certyfikatow: najpierw serwery czasu (NTP, UDP 123),
+  a gdy zaden nie odpowiada (np. router blokuje port 123) - godzina z
+  odpowiedzi serwera WWW (HTTP, port 80). Amiga ze zlym zegarem laczy sie
+  wtedy bez ustawiania daty. Zegar Amigi nie jest zmieniany.
+- WarpHubCLI TIME pokazuje zegar Amigi, czas z NTP i czas z serwerow WWW.
+- Polaczenie, ktore stoi (serwer albo siec przestaje odpowiadac), konczy sie
+  po 30 s z komunikatem, na jakim serwerze utknelo; pobieranie probuje
+  jeszcze raz, a Odswiez pomija tylko brakujace obrazki i opisy. Przerwij
+  zatrzymuje czekanie od razu.
 
 0.12 (25.11.2026, wydanie beta)
 -------------------------------

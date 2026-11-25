@@ -14,7 +14,7 @@ LDFLAGS = -mcpu=68020 -msoft-float -noixemul
 
 OBJS = hub_https.o hub_time.o hub_catalog.o hub_install.o hub_util.o
 
-all: $(OUT)/WarpHubCLI $(OUT)/WarpHub $(OUT)/WBStart
+all: $(OUT)/WarpHubCLI $(OUT)/WarpHub $(OUT)/WBStart $(OUT)/WarpNetTest
 
 # test tool: start a program as from its icon
 $(OUT)/WBStart: tools/wbstart.c
@@ -31,8 +31,14 @@ $(OUT)/WarpHubCLI: warphubcli.o $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $^
 	m68k-amigaos-nm $@ | grep -q ___stkinit && m68k-amigaos-strip -o $@.s $@ && mv $@.s $@
 
+# network test for players: GitHub and the private source, from the icon
+$(OUT)/WarpNetTest: nettest.o hub_https.o hub_time.o hub_util.o
+	mkdir -p $(OUT)
+	$(CC) $(LDFLAGS) -o $@ $^
+	m68k-amigaos-nm $@ | grep -q ___stkinit && m68k-amigaos-strip -o $@.s $@ && mv $@.s $@
+
 %.o: %.c hub_https.h hub_time.h hub_catalog.h hub_install.h hub_util.h hub_worker.h hub_mem.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f *.o $(OUT)/WarpHubCLI $(OUT)/WarpHub $(OUT)/WBStart
+	rm -f *.o $(OUT)/WarpHubCLI $(OUT)/WarpHub $(OUT)/WBStart $(OUT)/WarpNetTest

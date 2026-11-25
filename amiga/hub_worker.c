@@ -43,10 +43,6 @@ static struct {
 } etags[HUB_ETAGS];
 static int netags, etags_loaded;
 
-static const char *const ntp_servers[] = {
-  "pool.ntp.org", "time.cloudflare.com", "time.google.com", "europe.pool.ntp.org", NULL
-};
-
 static void tell_window(void)
 {
   Signal(window_task, window_mask);
@@ -615,23 +611,22 @@ static void job_install(HubWork *w)
 
 static int net_open(HubWork *w)
 {
-  ULONG now, t = 0;
-  int i;
+  ULONG now, t;
+  char how[80] = "";
   if (!hub_https_init(NULL, err, sizeof(err))) return 0;
   /* the time of a time server first (the clock of the Amiga is often wrong:
-   * 1978 without a battery, once 2097), the clock only when none answers */
+   * 1978 without a battery, once 2097), then the Date of a web server (port
+   * 80, when UDP 123 is blocked), the clock only when none answers */
   now = hub_amiga_now();
-  for (i = 0; t == 0 && ntp_servers[i] != NULL; i++) {
-    t = hub_sntp(ntp_servers[i], err, sizeof(err));
-  }
+  t = hub_net_time(NULL, how, sizeof(how), err, sizeof(err));
   if (t == 0) {
     if (HUB_CLOCK_OK(now)) return 1;
-    snprintf(err, sizeof(err), "The clock of the Amiga is wrong and no time server "
-             "answers: set the date in Prefs/Time.");
+    snprintf(err, sizeof(err), "The clock of the Amiga is wrong and no time server answers "
+             "(NTP, UDP 123; HTTP, port 80): set the date in Prefs/Time.");
     return 0;
   }
   hub_https_verify_time(t);
-  snprintf(w->net_info, sizeof(w->net_info), "NTP time for certificates");
+  snprintf(w->net_info, sizeof(w->net_info), "Time for certificates: %s", how);
   return 1;
 }
 

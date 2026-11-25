@@ -211,36 +211,27 @@ static void show_date(const char *what, ULONG unix_time)
          s / 3600, (s / 60) % 60, s % 60);
 }
 
-/* time servers tried one after another (UDP sometimes gets lost) */
-static const char *const default_ntp[] = {
-  "pool.ntp.org", "time.cloudflare.com", "time.google.com", "europe.pool.ntp.org", NULL
-};
-
-/* the time for the certificate check: a time server first, the clock of the
- * Amiga only when none answers and the clock looks right (HUB_CLOCK_OK) */
+/* the time for the certificate check: time servers (or NTP=), then the Date
+ * of web servers (port 80), the clock of the Amiga only when none answers
+ * and the clock looks right (HUB_CLOCK_OK) */
 static int set_verify_time(const char *ntp, int force_ntp, int verbose)
 {
   ULONG now = hub_amiga_now();
   ULONG t;
+  char how[80] = "";
   (void)force_ntp;                   /* USENTP: always now, kept for scripts */
-  t = hub_sntp(ntp, err, sizeof(err));
-  if (t == 0 && ntp == default_ntp[0]) {
-    int i;
-    for (i = 1; t == 0 && default_ntp[i] != NULL; i++) {
-      t = hub_sntp(default_ntp[i], err, sizeof(err));
-    }
-  }
+  t = hub_net_time(ntp, how, sizeof(how), err, sizeof(err));
   if (t == 0) {
     if (HUB_CLOCK_OK(now)) return 1;
     show_date("Clock of the Amiga:", now);
-    printf("The clock of this Amiga is wrong and the time server does not\n"
-           "answer (%s). Set the date (Prefs/Time) and try again.\n", err);
+    printf("The clock of this Amiga is wrong and no time server answers\n"
+           "(%s). Set the date (Prefs/Time) and try again.\n", err);
     return 0;
   }
   if (verbose || !HUB_CLOCK_OK(now)) {
     show_date("Clock of the Amiga:", now);
-    show_date("Time from NTP:     ", t);
-    printf("(used only to check certificates; the clock is not changed)\n");
+    show_date("Time for the check:", t);
+    printf("(from %s; used only to check certificates; the clock is not changed)\n", how);
   }
   hub_https_verify_time(t);
   return 1;
@@ -290,7 +281,7 @@ int main(void)
     return RETURN_FAIL;
   }
   cmd = (const char *)args[A_CMD];
-  ntp = args[A_NTP] ? (const char *)args[A_NTP] : default_ntp[0];
+  ntp = args[A_NTP] ? (const char *)args[A_NTP] : NULL;
   lang = hub_lang((const char *)args[A_LANG]);
   printf("WARP HUB %s (Shell)\n", WARPHUB_VERSION);
 
@@ -300,9 +291,24 @@ int main(void)
     return RETURN_FAIL;
   }
   if (stricmp(cmd, "TIME") == 0) {
-    ULONG t = hub_sntp(ntp, err, sizeof(err));
+    /* every source: the clock, NTP, the Date of the web servers */
+    static const char *const web[] = {"raw.githubusercontent.com", "www.google.com",
+                                      "www.cloudflare.com", NULL};
+    int i;
+    ULONG t = hub_sntp(ntp != NULL ? ntp : "pool.ntp.org", err, sizeof(err));
     show_date("Clock of the Amiga:", hub_amiga_now());
-    if (t) show_date("Time from NTP:     ", t); else printf("%s\n", err);
+    if (t) show_date("Time from NTP:     ", t); else printf("NTP: %s\n", err);
+    for (i = 0; web[i] != NULL; i++) {
+      ULONG h = hub_http_time(web[i], err, sizeof(err));
+      if (h) {
+        char label[64];
+        snprintf(label, sizeof(label), "HTTP %-20.20s", web[i]);
+        show_date(label, h);
+        t = t ? t : h;
+      } else {
+        printf("HTTP: %s\n", err);
+      }
+    }
     rc = t ? RETURN_OK : RETURN_WARN;
     goto out;
   }

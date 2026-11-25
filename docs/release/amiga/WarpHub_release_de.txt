@@ -1,11 +1,35 @@
 WARP HUB - Versionen
 ====================
 
-Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.12")
+Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.14")
 und in der Shell: Version SYS:WarpApps/WarpHub. Beschreibe, was
 passiert ist, mit der Versionsnummer:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.14 (25.11.2026, Beta)
+-----------------------
+- Eine abgebrochene Installation (Netz, Abbrechen) behaelt die vollstaendig
+  geladenen Dateien; das naechste Installieren / Aktualisieren laedt nur den
+  Rest. Ein grosses Spiel installiert sich bei abbrechender Leitung in
+  mehreren Anlaeufen.
+- Eine Datei, bei der das Netz nicht mehr antwortet, wird bis zu 3-mal
+  geladen.
+- Zeitlimit fuer Daten: 30 s.
+
+0.13 (25.11.2026, Beta)
+-----------------------
+- Die Zeit fuer die Zertifikatspruefung: zuerst Zeitserver (NTP, UDP 123),
+  und wenn keiner antwortet (z. B. sperrt ein Router Port 123) die Zeit aus
+  der Antwort eines Webservers (HTTP, Port 80). Ein Amiga mit falscher Uhr
+  verbindet sich dann ohne Einstellen des Datums. Die Uhr des Amiga wird
+  nicht geaendert.
+- WarpHubCLI TIME zeigt die Uhr des Amiga, die NTP-Zeit und die Zeit der
+  Webserver.
+- Eine Verbindung, die haengt (Server oder Netz antworten nicht mehr),
+  endet nach 30 s mit einer Meldung, welcher Server; ein Download wird noch
+  einmal versucht, und Aktualisieren laesst nur die fehlenden Bilder und
+  Texte aus. Abbrechen beendet das Warten sofort.
 
 0.12 (25.11.2026, Beta)
 -----------------------

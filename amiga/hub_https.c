@@ -15,6 +15,7 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <netdb.h>
+#include <sys/filio.h>
 
 #include <proto/amissl.h>
 #include <proto/amisslmaster.h>
@@ -46,6 +47,11 @@ static SSL_CTX *ctx = NULL;
 static int ssl_open = 0;
 
 #define IN_SIZE 32768
+/* At most this long without any data (connect, TLS handshake, request,
+ * answer): then the connection is closed with "no data for 30 s". The socket
+ * is non-blocking and every wait is a WaitSelect with this limit and Ctrl-C
+ * (Stop): SO_RCVTIMEO does not work under the TLS handshake (Amiga 1,
+ * WarpSSL: a silent server held WARP HUB for 200 s; a player waited minutes). */
 #define TIMEOUT_S 30
 
 struct HubConn {
@@ -63,6 +69,8 @@ struct HubConn {
   char auth[120];         /* base64 of "warphub:<password>" or "" */
   char inm[100];          /* If-None-Match of the next request ("" = none) */
   char etag[100];         /* ETag of the last answer ("" = none) */
+  int timed_out;          /* the last wait ended without data (TIMEOUT_S) */
+  int net_error;          /* the last request failed in the network */
 };
 
 static void set_err(char *err, int errlen, const char *what)
@@ -277,7 +285,11 @@ static void handshake_err(HubConn *c, int r, char *err, int errlen)
   long en = Errno();
   unsigned long e = ERR_get_error();
   char why[160];
-  if (e != 0) {
+  if (c->timed_out) {
+    snprintf(why, sizeof(why), "no answer within %d s (timeout)", TIMEOUT_S);
+  } else if (hub_break) {
+    snprintf(why, sizeof(why), "stopped (Ctrl-C)");
+  } else if (e != 0) {
     ERR_error_string_n(e, why, sizeof(why));
   } else if (se == SSL_ERROR_SYSCALL && en == 0) {
     snprintf(why, sizeof(why), "connection closed during the handshake");
@@ -294,6 +306,43 @@ static void handshake_err(HubConn *c, int r, char *err, int errlen)
   }
   snprintf(err, errlen, "TLS handshake with %s failed: %s [SSL %d, errno %ld, %s]",
            c->host, why, se, en, OpenSSL_version(OPENSSL_VERSION));
+}
+
+/* Waits until the socket of c can be read (write 0) or written, at most
+ * TIMEOUT_S; 1 when it can, 0 on the time limit (c->timed_out) or Ctrl-C
+ * (hub_break). */
+static int wait_sock(HubConn *c, int write)
+{
+  fd_set fds;
+  struct timeval tv;
+  ULONG sigs = SIGBREAKF_CTRL_C;
+  long r;
+  if (hub_break) return 0;
+  FD_ZERO(&fds);
+  FD_SET(c->sock, &fds);
+  tv.tv_secs = TIMEOUT_S;
+  tv.tv_micro = 0;
+  r = WaitSelect(c->sock + 1, write ? NULL : &fds, write ? &fds : NULL, NULL, &tv, &sigs);
+  /* Ctrl-C (Stop): as a signal, or as EINTR of the stack (Roadshow) */
+  if ((sigs & SIGBREAKF_CTRL_C) || (r < 0 && Errno() == EINTR)) {
+    hub_break = 1;
+    return 0;
+  }
+  if (r == 0) {
+    c->timed_out = 1;
+    return 0;
+  }
+  return r > 0;
+}
+
+/* SSL_read / SSL_write / SSL_connect said "again": wait for the socket.
+ * 1 to try again, 0 when it cannot go on. */
+static int ssl_wait(HubConn *c, int r)
+{
+  int e = SSL_get_error(c->ssl, r);
+  if (e == SSL_ERROR_WANT_READ) return wait_sock(c, 0);
+  if (e == SSL_ERROR_WANT_WRITE) return wait_sock(c, 1);
+  return 0;
 }
 
 static void check_break(void)
@@ -329,12 +378,32 @@ static int conn_open(HubConn *c, char *err, int errlen)
   setsockopt(c->sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
   setsockopt(c->sock, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
   setsockopt(c->sock, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
+  IoctlSocket(c->sock, FIONBIO, (APTR)&one);      /* every wait: wait_sock */
+  c->timed_out = 0;
   if (connect(c->sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-    if (Errno() == EINTR) hub_break = 1;
-    snprintf(err, errlen, "No connection to %s:%d (errno %ld).", c->host,
-             c->port, (long)Errno());
-    conn_close(c);
-    return 0;
+    long en = Errno(), so = 0;
+    socklen_t solen = sizeof(so);
+    if (en == EINPROGRESS || en == EALREADY) {
+      if (wait_sock(c, 1) &&
+          getsockopt(c->sock, SOL_SOCKET, SO_ERROR, &so, &solen) == 0 && so == 0) {
+        en = 0;
+      } else {
+        en = so;
+      }
+    }
+    if (en != 0 || c->timed_out || hub_break) {
+      if (en == EINTR) hub_break = 1;
+      if (hub_break) {
+        snprintf(err, errlen, "Stopped (Ctrl-C).");
+      } else if (c->timed_out) {
+        snprintf(err, errlen, "No connection to %s:%d: no answer within %d s.", c->host,
+                 c->port, TIMEOUT_S);
+      } else {
+        snprintf(err, errlen, "No connection to %s:%d (errno %ld).", c->host, c->port, en);
+      }
+      conn_close(c);
+      return 0;
+    }
   }
   c->ssl = SSL_new(ctx);
   if (c->ssl == NULL) {
@@ -350,7 +419,8 @@ static int conn_open(HubConn *c, char *err, int errlen)
     SSL_set_tlsext_host_name(c->ssl, c->host);
     SSL_set1_host(c->ssl, c->host);
   }
-  r = SSL_connect(c->ssl);
+  while ((r = SSL_connect(c->ssl)) != 1 && ssl_wait(c, r)) {
+  }
   if (r != 1) {
     long v = SSL_get_verify_result(c->ssl);
     if (v != X509_V_OK) {
@@ -393,7 +463,9 @@ static int fill(HubConn *c)
     c->in_len -= c->in_pos;
     c->in_pos = 0;
   }
-  n = SSL_read(c->ssl, c->in + c->in_len, IN_SIZE - c->in_len);
+  while ((n = SSL_read(c->ssl, c->in + c->in_len, IN_SIZE - c->in_len)) <= 0 &&
+         ssl_wait(c, n)) {
+  }
   if (n <= 0) {
     if (Errno() == EINTR) hub_break = 1;
     return 0;
@@ -467,7 +539,14 @@ static int request(HubConn *c, const char *path, HubSink sink, void *user,
 
   *retry = 0;
   c->etag[0] = 0;
-  if (c->ssl == NULL && !conn_open(c, err, errlen)) return -1;
+  c->net_error = 0;
+  if (c->ssl == NULL && !conn_open(c, err, errlen)) {
+    /* no connection or no TLS in time: the network, worth another try (not a
+     * refused certificate) */
+    c->net_error = !hub_break && strncmp(err, "Certificate", 11) != 0 &&
+                   strstr(err, "not the remembered one") == NULL;
+    return -1;
+  }
   len = snprintf(line, sizeof(line),
                  "GET %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: WarpHub/0.1 (Amiga)\r\n"
                  "Accept-Encoding: identity\r\nConnection: keep-alive\r\n%s%s%s%s%s%s\r\n",
@@ -478,11 +557,21 @@ static int request(HubConn *c, const char *path, HubSink sink, void *user,
     snprintf(err, errlen, "Path too long.");
     return -1;
   }
-  n = SSL_write(c->ssl, line, len);
+  c->timed_out = 0;
+  while ((n = SSL_write(c->ssl, line, len)) <= 0 && ssl_wait(c, n)) {
+  }
   if (n != len || !read_line(c, line, sizeof(line))) {
-    /* a kept connection the server closed meanwhile: once more */
-    *retry = c->used > 0 && !hub_break;
-    snprintf(err, errlen, hub_break ? "Stopped (Ctrl-C)." : "Connection lost.");
+    /* a kept connection the server closed meanwhile, or no answer: once
+     * more on a new connection (nothing went to the sink yet) */
+    *retry = (c->used > 0 || c->timed_out) && !hub_break;
+    c->net_error = 1;
+    if (hub_break) {
+      snprintf(err, errlen, "Stopped (Ctrl-C).");
+    } else if (c->timed_out) {
+      snprintf(err, errlen, "%s: no answer within %d s.", c->host, TIMEOUT_S);
+    } else {
+      snprintf(err, errlen, "Connection to %s lost.", c->host);
+    }
     conn_close(c);
     return -1;
   }
@@ -497,7 +586,13 @@ static int request(HubConn *c, const char *path, HubSink sink, void *user,
   if (location != NULL && loclen > 0) location[0] = 0;
   for (;;) {
     if (!read_line(c, line, sizeof(line))) {
-      snprintf(err, errlen, "Connection lost in the headers.");
+      c->net_error = 1;
+      *retry = !hub_break;                /* nothing went to the sink yet */
+      if (c->timed_out) {
+        snprintf(err, errlen, "%s: no data within %d s (headers).", c->host, TIMEOUT_S);
+      } else {
+        snprintf(err, errlen, "Connection lost in the headers.");
+      }
       conn_close(c);
       return -1;
     }
@@ -533,14 +628,28 @@ static int request(HubConn *c, const char *path, HubSink sink, void *user,
         break;
       }
       if (!body(c, size, sink, user) || !read_line(c, line, sizeof(line))) {
-        snprintf(err, errlen, hub_break ? "Stopped (Ctrl-C)." : "Body cut off.");
+        c->net_error = 1;
+        if (hub_break) {
+          snprintf(err, errlen, "Stopped (Ctrl-C).");
+        } else if (c->timed_out) {
+          snprintf(err, errlen, "%s: no data within %d s.", c->host, TIMEOUT_S);
+        } else {
+          snprintf(err, errlen, "Body cut off.");
+        }
         conn_close(c);
         return -1;
       }
     }
   } else if (length >= 0) {
     if (!body(c, length, sink, user)) {
-      snprintf(err, errlen, hub_break ? "Stopped (Ctrl-C)." : "Body cut off.");
+      c->net_error = 1;
+      if (hub_break) {
+        snprintf(err, errlen, "Stopped (Ctrl-C).");
+      } else if (c->timed_out) {
+        snprintf(err, errlen, "%s: no data within %d s.", c->host, TIMEOUT_S);
+      } else {
+        snprintf(err, errlen, "Body cut off.");
+      }
       conn_close(c);
       return -1;
     }
@@ -562,6 +671,16 @@ int hub_get(HubConn *c, const char *path, HubSink sink, void *user,
   }
   c->inm[0] = 0;
   return status;
+}
+
+const char *hub_https_version(void)
+{
+  return OpenSSL_version(OPENSSL_VERSION);
+}
+
+int hub_conn_net_error(HubConn *c)
+{
+  return c != NULL && c->net_error;
 }
 
 void hub_conn_if_none_match(HubConn *c, const char *etag)
