@@ -45,6 +45,52 @@ FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e X War
 FILE 5899 39a0cfab527072e02eee20bdd3dfffed2bc7d4640f621bdfc8cbddbd1372bd79 X WarpHub/doc/WarpHub_release_en.txt
 FILE 3354 b476e8587b9ec2cb2764412450168cc1473eb08f4c3bc1dffd7001589c51deb7 X WarpHub/doc/WarpHub_release_en.txt.info
 END
+GAME warpnetmonitor
+NAME en WARP NetMonitor
+DESC en How fast and steady the internet line of the Amiga is: download and upload charts (GitHub, Cloudflare, Hetzner, the WARP HUB private source), ping to the router and the internet, a plain-words result. In the style of WarpDashboard.
+DESC pl Jak szybkie i stabilne jest lacze Amigi: wykresy pobierania i wysylania (GitHub, Cloudflare, Hetzner, prywatne zrodlo WARP HUB), ping do routera i internetu, wynik prostymi slowami. W stylu WarpDashboard.
+DESC de Wie schnell und stabil die Internetleitung des Amiga ist: Download- und Upload-Diagramme (GitHub, Cloudflare, Hetzner, die private Quelle von WARP HUB), Ping zum Router und ins Internet, ein Ergebnis in klaren Worten. Im Stil von WarpDashboard.
+TAGS apps,warp1260,warp1240,warp1260x,warp7060
+REQ en Warp card (68040 / 68060)
+REQ en AmigaOS 3.2, RTG 15/16-bit or more
+REQ en AmiSSL 5 (WarpSSL)
+REQ en TCP/IP (WiFi of the Warp card or USB network), internet
+REQ pl karta Warp (68040 / 68060)
+REQ pl AmigaOS 3.2, RTG 15/16-bit lub wiecej
+REQ pl AmiSSL 5 (WarpSSL)
+REQ pl TCP/IP (WiFi karty Warp albo siec USB), internet
+REQ de Warp-Karte (68040 / 68060)
+REQ de AmigaOS 3.2, RTG 15/16 Bit oder mehr
+REQ de AmiSSL 5 (WarpSSL)
+REQ de TCP/IP (WLAN der Warp-Karte oder USB-Netzwerk), Internet
+REPO cizar-szymon/Amiga_WarpNetMonitor
+BRANCH main
+VERSION 0.9
+FLAT
+ZIP WarpNetMonitor-0.9.zip 122182
+SIZE 151303
+IMAGE 13073 8b13ac238dcf0eeac1f1415f221d08ce3a11ee535f38c8f57f24a3f6bef7d729 images/warpnetmonitor.png
+NOTES en WarpNetMonitor/doc/WarpNetMonitor_release_en.txt
+NOTES pl WarpNetMonitor/doc/WarpNetMonitor_release.txt
+NOTES de WarpNetMonitor/doc/WarpNetMonitor_release_de.txt
+FILE 6862 ea64fde17ae4daeac0823985da76ba69e9dd13132b8a7c1eb13c57cd533b5b74 X WarpNetMonitor.info
+FILE 146532 11ab3090d45add9673771397911d4ce2ab8e8f1e14060a3e78953951660399f9 N WarpNetMonitor/WarpNetMonitor
+FILE 4771 a63e87c16c12013998d3bd0a5ebc3bd5511e2b7199ece79d04385e159b7dfd4d K WarpNetMonitor/WarpNetMonitor.info
+FILE 2514 40a9f307f7de340bd324734098f4edb73e61c0dd1f1fc355554de827049f812b X WarpNetMonitor/doc.info
+FILE 35149 3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986 X WarpNetMonitor/doc/COPYING
+FILE 2431 99a60aef34385253af8cb02de1d47d4eeff6a98581197a6b7114c3c2764e5790 X WarpNetMonitor/doc/WarpNetMonitor.txt
+FILE 3308 f6ca3a09267f0c9baa2abf16f3de2d17a5f179720c777543c34a3558b69f26eb X WarpNetMonitor/doc/WarpNetMonitor.txt.info
+FILE 2660 c315467b16dda24d48928bba6859ff81c9cbc36f85f0f9ee47f1d27dd5ac0f02 X WarpNetMonitor/doc/WarpNetMonitor_de.txt
+FILE 3218 659bf5badbbfbd9f045a97fdeaddc68fa6d6e4b39c935d70b9f69388e1f6dcdb X WarpNetMonitor/doc/WarpNetMonitor_de.txt.info
+FILE 2539 04fde4ee39cb60bef58c5d77264775e945c55857e36dfd12dfd2c1589ad06757 X WarpNetMonitor/doc/WarpNetMonitor_en.txt
+FILE 3354 f5d26b5dd3e1a7f7ac3872afe846b7298ed9203498da702caec9468fa7bb3832 X WarpNetMonitor/doc/WarpNetMonitor_en.txt.info
+FILE 930 bf915f74a1a9a94c73658102462752b0ca15853e9fc8b47836a30c3b15f76b4d X WarpNetMonitor/doc/WarpNetMonitor_release.txt
+FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e X WarpNetMonitor/doc/WarpNetMonitor_release.txt.info
+FILE 993 6bab7979a1c4cad5cc985d61e45a093cfe7bf3f10b41bb25e5823e7f483383be X WarpNetMonitor/doc/WarpNetMonitor_release_de.txt
+FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e X WarpNetMonitor/doc/WarpNetMonitor_release_de.txt.info
+FILE 977 f882fa099fd7a2966a4c4a9a8ee50f2fccfb3b46ea46e50fc0f6d526d5d5dcc3 X WarpNetMonitor/doc/WarpNetMonitor_release_en.txt
+FILE 3354 b476e8587b9ec2cb2764412450168cc1473eb08f4c3bc1dffd7001589c51deb7 X WarpNetMonitor/doc/WarpNetMonitor_release_en.txt.info
+END
 GAME settlers
 NAME en The Settlers
 NAME de Die Siedler
