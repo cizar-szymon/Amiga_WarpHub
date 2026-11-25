@@ -3,7 +3,7 @@
 # no root): sends tools/private_server.py, the certificate, the password hash and
 # www/ (tools/make_private.py) and (re)starts the server.
 #
-#   sh tools/push_private.sh user@host [--no-www]
+#   sh tools/push_private.sh user@host [--no-www | --full]
 #   sh tools/push_private.sh user@host --codes    only codes.json (no restart:
 #                                                 the server reads it again)
 #
@@ -13,15 +13,18 @@
 #   server.log (kept)
 #   run.sh        restarts the server when it stops (10 s pause)
 #   crontab       @reboot run.sh - starts after a reboot without root
-# www/ is unpacked next to the old one and swapped in one step, so a running
-# download never sees half of the new files.
+# www/: only the new and changed files are sent (tools/private_sync.py: the
+# server's www/ copied with hard links, the changes unpacked into the copy, the
+# copy swapped in one step), so a running download never sees half of the new
+# files; --full sends the whole www/ (about 2.5 GB) as before.
 set -eu
 
 HOST=${1:-${PRIVATE_HOST:-}}
 WWW=1
 [ "${2:-}" = "--no-www" ] && WWW=0
+[ "${2:-}" = "--full" ] && WWW=2
 if [ -z "$HOST" ]; then
-    echo "usage: sh tools/push_private.sh user@host [--no-www | --codes]" >&2
+    echo "usage: sh tools/push_private.sh user@host [--no-www | --full | --codes]" >&2
     exit 2
 fi
 
@@ -49,7 +52,10 @@ CODES=
 tar -C "$ROOT" -cf - cert.pem key.pem server.cfg $CODES | $SSH "$HOST" "tar -C $DIR -xf - && chmod 600 $DIR/key.pem $DIR/server.cfg"
 
 if [ $WWW = 1 ]; then
-    echo "== www/ ($(du -sh "$ROOT/www" | cut -f1))"
+    echo "== www/: the changes ($(du -sh "$ROOT/www" | cut -f1) in all)"
+    python "$HERE/tools/private_sync.py" "$HOST" "$ROOT/www" "$DIR"
+elif [ $WWW = 2 ]; then
+    echo "== www/ ($(du -sh "$ROOT/www" | cut -f1), all of it)"
     $SSH "$HOST" "rm -rf $DIR/www.new && mkdir $DIR/www.new"
     tar -C "$ROOT/www" -cf - . | $SSH "$HOST" "tar -C $DIR/www.new -xf -"
     $SSH "$HOST" "cd $DIR && rm -rf www.old && { [ ! -d www ] || mv www www.old; } && mv www.new www && rm -rf www.old"

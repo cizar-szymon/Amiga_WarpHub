@@ -654,7 +654,7 @@ Settlers z okna.
 ### Serwer na RP4 (23.11.2026)
 - RP4 (Debian 13, Python 3.13), po kablu; WiFi wyłączone (`nmcli radio wifi off`). Adres
   tylko w pamięci agenta / `CLAUDE.md`, nie w repo.
-- **`tools/push_private.sh user@host [--no-www]`** (adres z linii poleceń albo `PRIVATE_HOST`):
+- **`tools/push_private.sh user@host [--no-www | --full]`** (adres z linii poleceń albo `PRIVATE_HOST`):
   wysyła `private_server.py`, `cert.pem`, `key.pem`, `server.cfg` (z `WarpHub-private` na PC)
   i `www/` do `~/warphub-private` (nowe `www` obok starego, podmiana jednym `mv`), robi
   `run.sh` (restart serwera po 10 s, gdy padnie) i wpis `@reboot` w crontabie użytkownika –
@@ -664,6 +664,15 @@ Settlers z okna.
 - Sprawdzone z PC: `www/` na RP4 = PC (209 plików, SHA-256 każdego), bez hasła i ze złym
   hasłem 401, zły login w `server.log`.
 - Po nowym wydaniu gry: `python tools/make_private.py`, potem `sh tools/push_private.sh …`.
+- **Od 25.11.2026 tylko zmienione pliki** (`tools/private_sync.py`, życzenie użytkownika: cała
+  `www/` to 2,5 GB przy jednej zmienionej grze). Lista `www/` z serwera (rozmiar, czas – `tar`
+  zachowuje czasy, `make_private.py` nie rusza niezmienionych plików), na serwerze `www.new` =
+  `cp -al www` (dowiązania twarde), nowe i zmienione pliki strumieniem `tar` z `--unlink-first`
+  (plik w starym `www/` zostaje jak był – trwające pobieranie czyta go do końca), usunięte pliki
+  usuwane, podmiana jednym `mv` jak dotąd. `--full`: cała `www/` jak wcześniej; `private_sync.py
+  … --dry`: tylko co by poszło. Sprawdzone 25.11.2026: po pełnej wysyłce 0 z 2597 plików do
+  wysłania; plik testowy dodany → 1 plik, usunięty → zniknął z serwera; `push_private.sh` razem
+  z restartem 7,7 s (wcześniej kilka minut).
 - WARP HUB z kłódką = **0.6** (numer podniesiony 23.11.2026, wydany jako **0.7** 24.11.2026 w
   `releases/`); wgrany na Amigę 1 do `SYS:WarpApps/WarpHub`, poprzedni jako `WarpHub-0.5`.
 - Test 24.11.2026 (Amiga 1, WARP HUB 0.6): logowanie kłódką przez **adres publiczny**
