@@ -1,11 +1,22 @@
 WARP HUB - Versionen
 ====================
 
-Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.11")
+Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.12")
 und in der Shell: Version SYS:WarpApps/WarpHub. Beschreibe, was
 passiert ist, mit der Versionsnummer:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.12 (25.11.2026, Beta)
+-----------------------
+- Wenn die verschluesselte Verbindung (TLS) fehlschlaegt, nennt die Meldung
+  den Grund und die Daten fuer eine Fehlermeldung, z. B. "TLS handshake with
+  raw.githubusercontent.com failed: connection closed during the handshake
+  [SSL 5, errno 0, OpenSSL 3.5.4]": den Server, den Grund (AmiSSL-Fehler,
+  Verbindung geschlossen, keine Antwort), den TLS-Fehlercode, den
+  Netzwerk-Fehlercode und die AmiSSL-Version. Bitte die ganze Meldung mit
+  der Fehlermeldung schicken.
+- WarpHubCLI nimmt eine Adresse mit Port (CATALOG=https://server:port/datei).
 
 0.11 (25.11.2026, Beta)
 -----------------------

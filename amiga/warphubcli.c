@@ -90,7 +90,17 @@ static char *read_url(const char *url)
   for (i = 0; *p && *p != '/' && i < (int)sizeof(host) - 1; i++) host[i] = *p++;
   host[i] = 0;
   hub_url_path(path, sizeof(path), *p ? p : "/");
-  c = hub_conn_new(host, 443);
+  {
+    /* https://host:port/... (tests: another server, another port) */
+    char *colon = strchr(host, ':');
+    int port = 443;
+    if (colon != NULL) {
+      *colon = 0;
+      port = atoi(colon + 1);
+      if (port <= 0 || port > 65535) port = 443;
+    }
+    c = hub_conn_new(host, port);
+  }
   if (c == NULL) {
     snprintf(err, sizeof(err), "No memory.");
     return NULL;

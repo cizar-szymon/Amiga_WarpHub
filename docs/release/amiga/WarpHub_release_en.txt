@@ -1,11 +1,21 @@
 WARP HUB - releases
 ===================
 
-Reporting bugs: the release number is in the screen title ("WARP HUB 0.11")
+Reporting bugs: the release number is in the screen title ("WARP HUB 0.12")
 and in the Shell: Version SYS:WarpApps/WarpHub. Describe what
 happened and give the release number:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.12 (25.11.2026, beta release)
+-------------------------------
+- When the encrypted connection (TLS) fails, the message gives the reason
+  and the data for a bug report, e.g. "TLS handshake with
+  raw.githubusercontent.com failed: connection closed during the handshake
+  [SSL 5, errno 0, OpenSSL 3.5.4]": the server, the reason (AmiSSL error,
+  connection closed, no answer), the TLS error code, the network error code
+  and the AmiSSL version. Please send the whole message with a bug report.
+- WarpHubCLI takes an address with a port (CATALOG=https://server:port/file).
 
 0.11 (25.11.2026, beta release)
 -------------------------------

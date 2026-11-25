@@ -787,3 +787,23 @@ program read for `$VER` once more. The catalog grows 7-8 KB per game (a line per
   as `WarpHub-0.10`).
 - Later, with many games: a small index catalog (name, version, picture, SHA-256 of the file list
   of each game) and the file list of a game only for Install / Update.
+
+## 0.12: what a failed TLS handshake says (25.11.2026)
+A player with WARP HUB 0.5 got only "TLS handshake failed" on Refresh (no OpenSSL reason) -
+nothing to go on. Now `handshake_err()` in `hub_https.c` gives the host, the reason (OpenSSL
+error string, or for SSL_ERROR_SYSCALL: connection closed / reset / timeout / network error),
+`SSL_get_error`, `Errno()` and `OpenSSL_version()`. `WarpHubCLI` takes `https://host:port/`.
+Tested on Amiga 1 (A1200, Warp 1260, WarpSSL, AmiSSL with OpenSSL 3.5.4), WarpHubCLI against
+the RP4:
+- port 22 (SSH): `error:0A00010B:SSL routines::wrong version number [SSL 1, errno 0, OpenSSL 3.5.4 30 Sep 2025]`
+- a server that closes at once: `error:0A000126:SSL routines::unexpected eof while reading [SSL 1, errno 0, ...]`
+- a server that accepts and stays silent, closing after 200 s: `connection reset by the server
+  or the network [SSL 5, errno 54, ...]` after **203 s** - the 30 s socket timeout
+  (`SO_RCVTIMEO`) does **not** work during the handshake on this Amiga: a silent server holds
+  the refresh until it closes (Stop / Ctrl-C still breaks it). Open: handshake with a
+  non-blocking socket and WaitSelect with a time limit.
+- normal catalog: 10 games, 1200 ms, TLSv1.3.
+The reason of the player's failure is not known yet (asked: AmiSSL / WarpSSL / stack versions,
+the whole message of WarpHubCLI LIST).
+- Released as **0.12**; installed on Amiga 1 as `SYS:WarpApps/WarpHub` (= release build, byte
+  for byte), 0.10 kept as `WarpHub-0.10`.

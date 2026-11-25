@@ -266,6 +266,36 @@ const char *hub_conn_cipher(HubConn *c)
   return c != NULL ? c->cipher : last_cipher;
 }
 
+/* Why SSL_connect failed, for the user and a bug report: the reason of
+ * OpenSSL (when it has one) or what the network did, then the SSL error
+ * code, errno of the socket and the AmiSSL (OpenSSL) version:
+ *   TLS handshake with raw.githubusercontent.com failed: connection closed
+ *   during the handshake [SSL 5, errno 0, OpenSSL 3.1.5 30 Jan 2024] */
+static void handshake_err(HubConn *c, int r, char *err, int errlen)
+{
+  int se = SSL_get_error(c->ssl, r);
+  long en = Errno();
+  unsigned long e = ERR_get_error();
+  char why[160];
+  if (e != 0) {
+    ERR_error_string_n(e, why, sizeof(why));
+  } else if (se == SSL_ERROR_SYSCALL && en == 0) {
+    snprintf(why, sizeof(why), "connection closed during the handshake");
+  } else if (se == SSL_ERROR_SYSCALL && (en == EWOULDBLOCK || en == EAGAIN || en == ETIMEDOUT)) {
+    snprintf(why, sizeof(why), "no answer within %d s (timeout)", TIMEOUT_S);
+  } else if (se == SSL_ERROR_SYSCALL && en == ECONNRESET) {
+    snprintf(why, sizeof(why), "connection reset by the server or the network");
+  } else if (se == SSL_ERROR_SYSCALL) {
+    snprintf(why, sizeof(why), "network error");
+  } else if (se == SSL_ERROR_SSL) {
+    snprintf(why, sizeof(why), "TLS error");
+  } else {
+    snprintf(why, sizeof(why), "unknown");
+  }
+  snprintf(err, errlen, "TLS handshake with %s failed: %s [SSL %d, errno %ld, %s]",
+           c->host, why, se, en, OpenSSL_version(OPENSSL_VERSION));
+}
+
 static void check_break(void)
 {
   if (SetSignal(0, SIGBREAKF_CTRL_C) & SIGBREAKF_CTRL_C) hub_break = 1;
@@ -327,7 +357,7 @@ static int conn_open(HubConn *c, char *err, int errlen)
       snprintf(err, errlen, "Certificate of %s refused: %s.", c->host,
                X509_verify_cert_error_string(v));
     } else {
-      set_err(err, errlen, "TLS handshake failed");
+      handshake_err(c, r, err, errlen);
     }
     conn_close(c);
     return 0;

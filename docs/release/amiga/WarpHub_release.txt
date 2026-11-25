@@ -1,10 +1,19 @@
 WARP HUB - wydania
 ==================
 
-Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.11") i w
+Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.12") i w
 Shellu: Version SYS:WarpApps/WarpHub. Opisz, co sie stalo, i podaj
 numer wydania: https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.12 (25.11.2026, wydanie beta)
+-------------------------------
+- Gdy polaczenie szyfrowane (TLS) sie nie uda, komunikat podaje powod
+  i dane do zgloszenia bledu, np. "TLS handshake with raw.githubusercontent.com
+  failed: connection closed during the handshake [SSL 5, errno 0, OpenSSL 3.5.4]":
+  serwer, powod (blad AmiSSL, zamkniete polaczenie, brak odpowiedzi), kod bledu
+  TLS, kod bledu sieci i wersje AmiSSL. Przy zgloszeniu prosimy o caly komunikat.
+- WarpHubCLI przyjmuje adres z portem (CATALOG=https://serwer:port/plik).
 
 0.11 (25.11.2026, wydanie beta)
 -------------------------------
