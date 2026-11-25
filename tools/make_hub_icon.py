@@ -247,6 +247,56 @@ def picture_square(size):
     return finish(big, size, size)
 
 
+def picture_tool(kind, size):
+    """the network tools, in the style of the square: netmon = bar chart in the
+    colours of its servers + NET; nettest = signal bars + a green tick + TEST"""
+    from PIL import ImageDraw, ImageFont
+    k = 8
+    n = size * k
+    big = Image.new('RGBA', (n, n), (0, 0, 0, 0))
+    d = ImageDraw.Draw(big)
+    edge = int(n * 0.03)
+    d.rounded_rectangle((0, 0, n - 1, n - 1), radius=int(n * 0.16), fill=(70, 70, 76, 255))
+    d.rounded_rectangle((edge, edge, n - 1 - edge, n - 1 - edge), radius=int(n * 0.14),
+                        fill=(0, 0, 0, 255))
+    font = ImageFont.truetype(FONT_FILE, int(n * 0.2))
+    word = 'NET' if kind == 'netmon' else 'TEST'
+    tb = d.textbbox((0, 0), word, font=font)
+    tw, th = tb[2] - tb[0], tb[3] - tb[1]
+    box_h = th + int(n * 0.08)
+    box_w = tw + int(n * 0.12)
+    by = n - int(n * 0.12) - box_h
+    bx = (n - box_w) // 2
+    d.rounded_rectangle((bx, by, bx + box_w, by + box_h), radius=int(n * 0.05), fill=ORANGE + (255,))
+    d.text(((n - tw) // 2 - tb[0], by + (box_h - th) // 2 - tb[1]), word, font=font, fill=(0, 0, 0, 255))
+    # the chart above the word
+    left, right = int(n * 0.14), n - int(n * 0.14)
+    bottom, top = by - int(n * 0.06), int(n * 0.12)
+    if kind == 'netmon':
+        cols = [(48, 112, 240), (240, 144, 32), (32, 176, 80), (192, 64, 208)]
+        heights = [0.55, 0.7, 0.62, 0.78, 0.5, 0.86, 0.66, 0.74]
+        bw = (right - left) / len(heights)
+        for i, h in enumerate(heights):
+            x0 = int(left + i * bw + bw * 0.12)
+            x1 = int(left + (i + 1) * bw - bw * 0.12)
+            d.rectangle((x0, int(bottom - (bottom - top) * h), x1, bottom), fill=cols[i // 2] + (255,))
+        d.line((left, bottom + int(n * 0.012), right, bottom + int(n * 0.012)), fill=(150, 150, 150, 255),
+               width=int(n * 0.02))
+    else:
+        bw = (right - left) / 5
+        for i in range(4):
+            x0 = int(left + i * bw + bw * 0.15)
+            x1 = int(left + (i + 1) * bw - bw * 0.15)
+            h = 0.3 + 0.2 * i
+            d.rectangle((x0, int(bottom - (bottom - top) * h), x1, bottom), fill=(48, 112, 240, 255))
+        # the tick
+        w = int(n * 0.07)
+        pts = [(left + bw * 3.7, top + (bottom - top) * 0.55), (left + bw * 4.25, top + (bottom - top) * 0.85),
+               (right, top)]
+        d.line(pts, fill=(40, 210, 70, 255), width=w, joint='curve')
+    return finish(big, size, size)
+
+
 def selected(img):
     """darker, with a yellow glow around it (as the selected drawer icon)"""
     w, h = img.size
@@ -375,11 +425,17 @@ def main():
     ap.add_argument('out')
     ap.add_argument('--preview')
     ap.add_argument('--stack', type=int, default=65536)
-    ap.add_argument('--style', choices=('square', 'logo', 'drawer'), default='square')
+    ap.add_argument('--style', choices=('square', 'logo', 'drawer', 'netmon', 'nettest'),
+                    default='square')
     ap.add_argument('--height', type=int, default=0, help='square: 46, logo: 34')
     args = ap.parse_args()
     global W, H
-    if args.style == 'square':
+    if args.style in ('netmon', 'nettest'):
+        normal = picture_tool(args.style, args.height or 46)
+        framed = Image.new('RGBA', (normal.width + 2, normal.height + 2), (0, 0, 0, 0))
+        framed.paste(normal, (1, 1))
+        normal = framed
+    elif args.style == 'square':
         normal = picture_square(args.height or 46)
         framed = Image.new('RGBA', (normal.width + 2, normal.height + 2), (0, 0, 0, 0))
         framed.paste(normal, (1, 1))
