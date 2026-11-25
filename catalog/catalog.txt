@@ -20,16 +20,16 @@ REQ de AmiSSL 5 (WarpSSL)
 REQ de TCP/IP, Internet
 REPO cizar-szymon/Amiga_WarpHub
 BRANCH main
-VERSION 0.10
+VERSION 0.11
 FLAT
-ZIP WarpHub-0.10.zip 81468
-SIZE 96136
+ZIP WarpHub-0.11.zip 86043
+SIZE 102652
 IMAGE 2485 e4c6fcc78037abd22d90858afbae99e98f8ac59fe96be8cd324f5c6d7de4cf86 images/warphub.png
 NOTES en WarpHub/doc/WarpHub_release_en.txt
 NOTES pl WarpHub/doc/WarpHub_release.txt
 NOTES de WarpHub/doc/WarpHub_release_de.txt
 FILE 6862 ea64fde17ae4daeac0823985da76ba69e9dd13132b8a7c1eb13c57cd533b5b74 X WarpHub.info
-FILE 92816 08b53264276278c99a5957346c1318af954132e530c6c896bf40714494e8f9d4 N WarpHub/WarpHub
+FILE 99332 05c22fa42a358b901e62a4f8ca00353003d447dd3dab421465f18627b5196252 N WarpHub/WarpHub
 FILE 3320 ec8027ba82761c6c5ee4058c742bea0f7b7a44f393d1a2beb5ca325df12211f8 K WarpHub/WarpHub.info
 FILE 2514 40a9f307f7de340bd324734098f4edb73e61c0dd1f1fc355554de827049f812b X WarpHub/doc.info
 FILE 3612 9e58a221fea71e6331c02055e52d94d3ac5fab07818c79d16065bcf1f879f9ca X WarpHub/doc/WarpHub.txt
@@ -38,11 +38,11 @@ FILE 3935 02af9b29cc6c606914cfc6c25708436f5e8fbe0aa475da1198c040405344c18d X War
 FILE 3218 659bf5badbbfbd9f045a97fdeaddc68fa6d6e4b39c935d70b9f69388e1f6dcdb X WarpHub/doc/WarpHub_de.txt.info
 FILE 3665 3955581061cf3e45e651df77244fb914f095d90f16d5e3fa68f9288d64043c72 X WarpHub/doc/WarpHub_en.txt
 FILE 3354 f5d26b5dd3e1a7f7ac3872afe846b7298ed9203498da702caec9468fa7bb3832 X WarpHub/doc/WarpHub_en.txt.info
-FILE 3041 671c0f3c3d68032628e4385a6f0520c8f2470abd40f65cd88b3d7621b9cb64d7 X WarpHub/doc/WarpHub_release.txt
+FILE 3605 33d2782c6a2bd176498ce0eda9e2a0c4ae0ce719626a28174ac9c05985364f20 X WarpHub/doc/WarpHub_release.txt
 FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e X WarpHub/doc/WarpHub_release.txt.info
-FILE 3253 ce88f382d26eaa5b4ea58138ecedbd90dd03dab3e35d79b8b9910fbd4ed2a849 X WarpHub/doc/WarpHub_release_de.txt
+FILE 3888 3a9bd3df01267addb19a4b52a04f63095e35fac648f8e0f7c47229579b677210 X WarpHub/doc/WarpHub_release_de.txt
 FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e X WarpHub/doc/WarpHub_release_de.txt.info
-FILE 3097 b0a033acacc40e54b17130f4c2ed923fe77dbc7f9c714b8ad679f3459fe34cac X WarpHub/doc/WarpHub_release_en.txt
+FILE 3707 de0ccf26ea3e104964bbe61091564787e3f8ac82d3cd91309bf90c7deab73d08 X WarpHub/doc/WarpHub_release_en.txt
 FILE 3354 b476e8587b9ec2cb2764412450168cc1473eb08f4c3bc1dffd7001589c51deb7 X WarpHub/doc/WarpHub_release_en.txt.info
 END
 GAME settlers
@@ -170,9 +170,9 @@ REQ de 100 MHz recommended
 REQ de AmigaOS 3.2
 REPO cizar-szymon/Amiga_Game_Diablo
 BRANCH main
-VERSION 0.49
-ZIP DiabloWarp-0.49.zip 7958222
-SIZE 18266258
+VERSION 0.51
+ZIP DiabloWarp-0.51.zip 7970826
+SIZE 18297015
 IMAGE 21829 e64fb989acd90586d7ecc31b30385a8bd743d7aa5718b4662e9e427e819a6351 images/diablo.png
 NOTES en DiabloWarp/doc/DiabloWarp_release_en.txt
 NOTES pl DiabloWarp/doc/DiabloWarp_release.txt
@@ -391,16 +391,16 @@ FILE 350799 6b0e7dc9ee8d57568e5a5eaa00229e1d553a4928f5a1f44014188136727ef6f2 N D
 FILE 302528 a1b7e09dd6a24c659746ae446fa65ff2a91d5e3970bc9d0da87c99c79c2cd64a N DiabloWarp/assets/zh_CN.gmo
 FILE 245059 8cc3bc8dd802ddaaafa2eff4444f8bacd393360322b73fa2f52f699abcb8a435 N DiabloWarp/assets/zh_TW.gmo
 FILE 326 c04513215c305ce71a3b04fa5d5e8505a8ef1373cc26d21df7a447519df83c50 N DiabloWarp/data/ReadMe.txt
-FILE 5463356 9acdecdefe04246ad4bbf1727f78f6ec0bd192c27033921fac21dfe8bd17d219 N DiabloWarp/devilutionx
+FILE 5493032 542e6ddc5d1a5bbfa77f4f9b42a7227977ccdbb7b7948f0285233ca788a09f0a N DiabloWarp/devilutionx
 FILE 9554 c5c156001aff7bf612149e78a5c6e249d0d8d29ef017e51fb52586599349e4f0 K DiabloWarp/devilutionx.info
 FILE 2514 4d3bbb205578bdd39e2767ea3b732b73c1d1190071240ad321691c9f0fdad0ae N DiabloWarp/doc.info
-FILE 6013 735b73b29e8b82482e8ed6fcf3e641d1458f7762f724af4d80ca45fd268f9879 N DiabloWarp/doc/DiabloWarp.txt
+FILE 6059 f0a32d7c3523a7dfb8b41cfbc445cebf51aebd426f912efcffa204b7238bc60a N DiabloWarp/doc/DiabloWarp.txt
 FILE 3308 e4d512ad0982c8289fb78e6763b7a1f48910069e902e58baa1263c2e5908b1d9 N DiabloWarp/doc/DiabloWarp.txt.info
-FILE 6336 560af1ddedbb76c20662e0e889787e5fd676f41784b33c2e53af3f6cc61dfb65 N DiabloWarp/doc/DiabloWarp_en.txt
+FILE 6392 95778f01b99bfc74a817cff417ff14a5597e6eee01a8ecdfb122c2ba2e858170 N DiabloWarp/doc/DiabloWarp_en.txt
 FILE 3354 2815761e68e144716848c26fbd06151c83c91ea0a6b10344b8d9a985695c2864 N DiabloWarp/doc/DiabloWarp_en.txt.info
-FILE 2098 ef98a7f00bc3072075bd42292eb7dcd1e1e6561d216e74b77abdd3781967f30b N DiabloWarp/doc/DiabloWarp_release.txt
+FILE 2572 c43e66c732f18bf6dae1a76095af8ddd79760e91d25f5a99312b1c39a973f733 N DiabloWarp/doc/DiabloWarp_release.txt
 FILE 3308 875986c9aa1aa5335b79fa78af4320091295a04b742279b0b22e957aa3d06a1c N DiabloWarp/doc/DiabloWarp_release.txt.info
-FILE 2179 718ed12eb8e0b5b30ca6ac1adb7702755f0d44f947f612e2cb7b24708f873555 N DiabloWarp/doc/DiabloWarp_release_en.txt
+FILE 2684 8442c58b9a5f4d58b8e99b686447930e0c720618abcf46bc83730f0aaf79f15f N DiabloWarp/doc/DiabloWarp_release_en.txt
 FILE 3354 927df1890e9f5929d361d61ed3e49c706b706077cb56051843f041f5ba258d5d N DiabloWarp/doc/DiabloWarp_release_en.txt.info
 FILE 3629 049382c17367e384c622369abbeda0cab1d65658c28611717e18afead341e586 N DiabloWarp/doc/LICENSE.md
 FILE 3218 8fbeac3073d378aeffe9bbec99748601043af5cf78fe8004d97449fb0dbfe141 N DiabloWarp/doc/LICENSE.md.info
