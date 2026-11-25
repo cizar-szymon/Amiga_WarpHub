@@ -906,3 +906,27 @@ stall; NULL in WARP HUB (plain waits). Fixes found on Amiga 1: `hub_url_path` en
 the Cloudflare query (404) - the paths are used as they are; the first second of a slice and the
 bit after the end were counted as min (GitHub "UNSTABLE"). Amiga 1, 180 s: all four STABLE,
 GitHub 1177, Cloudflare 1241, Hetzner 1180, RP4 1064 KB/s, "Lacze stabilne".
+
+### Seen on Amiga 2 (25.11.2026): a resumed Diablo install looked stuck
+The user restarted the full Diablo (804 MB, private) after an earlier try had left whole `.upd`
+files (diabdat.mpq 517 MB, hellfire / hf*.mpq). 0.14 checks each with SHA-256 before taking it
+(SD card + SHA: minutes for 517 MB) and gave no progress meanwhile: the status stood at
+"Pobieranie DiabloWarp/data/ReadMe.txt (1%)" for many minutes, then jumped (hfmonk 78%,
+hfmusic 82%). WarpNetMonitor at the same time: all servers > 1 MB/s - not the network.
+Fix (next release): the check of an earlier `.upd` reports progress (`resume_cb` through
+`local_file`'s CheckCtx), so the bar moves while it reads. The label still says "Pobieranie".
+
+## 0.15: window "Downloaded files" (25.11.2026, idea of the user)
+A title bar button left of the padlock (same image class, `files_img`: a list with an arrow,
+green while an install runs) and the key F1 open `show_files()`: a ReAction window as the guide
+(listbrowser + Close), on top "<game>: pobrane X z N plikow (a MB z b MB)", every file of the
+install "path (size) - czeka / sprawdzanie N% / N% / gotowe / blad". `HubFile.state` / `got`
+(new fields, written by the network process in `hub_install.c`: WAIT at the start, CHECK while an
+earlier `.upd` is checked - with progress, GET while downloading, DONE / FAIL); the window's loop
+also waits on the worker signal: `worker_news()` as in the main loop, the list at most every
+300 ms, scrolled to the current file. Tested on Amiga 2 (RAM:WF, public Diablo 18 MB): F1 during
+the download -> "Diablo (DevilutionX): pobrane 17 z 251 plikow (1.0 MB z 17.4 MB)", rows done /
+96% / waiting, Esc closed it, the install finished (devilutionx 0.51). The button itself was
+not clicked (AmiAgent has no mouse) - it is drawn left of the padlock (screenshot).
+- Window title (user's wish): "WARP HUB 0.15 - <what it does>", alone "WARP HUB 0.15" (the
+  version right after the name; `set_status`, `WA_Title`).

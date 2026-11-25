@@ -1,11 +1,22 @@
 WARP HUB - releases
 ===================
 
-Reporting bugs: the release number is in the screen title ("WARP HUB 0.14")
+Reporting bugs: the release number is in the screen title ("WARP HUB 0.15")
 and in the Shell: Version SYS:WarpApps/WarpHub. Describe what
 happened and give the release number:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.15 (25.11.2026, beta release)
+-------------------------------
+- A button next to the padlock in the title bar (or the key F1) opens the
+  window "Downloaded files": on top how many files of how many are downloaded
+  (and how many MB), below every file of the install with its state:
+  waiting / checking / percentage / done / error. The window is updated while
+  downloading and shows the current file. The button is green while a
+  download runs.
+- A resumed install shows its progress also while it checks the files
+  downloaded before (big game files: some minutes).
 
 0.14 (25.11.2026, beta release)
 -------------------------------

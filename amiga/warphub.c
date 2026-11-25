@@ -75,7 +75,7 @@
 
 extern struct WBStartup *_WBenchMsg;
 
-#define WARPHUB_VERSION "0.14"   /* tools/make_release.py reads it */
+#define WARPHUB_VERSION "0.15"   /* tools/make_release.py reads it */
 const char version_tag[] = "$VER: WarpHub " WARPHUB_VERSION " (19.11.2026)";
 
 unsigned long __stack = 65536;
@@ -117,6 +117,7 @@ enum {
   T_UNINSTALL_FAILED, T_CHECK_PROGRESS, T_LOADING_GAMES, T_STOPPED,
   T_CLEAN_TITLE, T_CLEAN_OLD_HEAD, T_CLEAN_BUG_HEAD, T_CLEAN_SAVES, T_CLEAN_B_OLD, T_CLEAN_B_BUGS,
   T_CLEAN_SURE_OLD, T_CLEAN_SURE_BUGS, T_CLEAN_DELETED, T_CLEAN_FAILED,
+  T_FILES_WIN, T_FILES_HEAD, T_FILES_NONE, T_FILES_PLAN, T_F_WAIT, T_F_CHECK, T_F_DONE, T_F_FAIL,
   T_COUNT
 };
 
@@ -163,7 +164,10 @@ static const char *const texts[3][T_COUNT] = {
     "Bug reports (drawers bugNNN in the drawer user): %d items, %d files, %s",
     "Saved games and settings are not touched.", "Delete old versions", "Delete bug reports",
     "Delete the old versions of %s (%d files, %s)?",
-    "Delete the bug reports of %s (%d files, %s)? They cannot be restored.", "Deleted.", "Not deleted: %s"
+    "Delete the bug reports of %s (%d files, %s)? They cannot be restored.", "Deleted.", "Not deleted: %s",
+    "Downloaded files", "%s: %d of %d files downloaded (%s of %s)",
+    "Nothing is being downloaded.", "%s: checking the files on the disk (%d of %d)...",
+    "waiting", "checking %ld%%", "done", "error"
   },
   { /* pl */
     "Odswiez", "Zainstaluj", "Aktualizuj", "Sprawdz pliki", "Przerwij", "Zainstalowana %s",
@@ -207,7 +211,10 @@ static const char *const texts[3][T_COUNT] = {
     "Zgloszenia bledow (szuflady bugNNN w szufladzie user): pozycji %d, plikow %d, %s",
     "Zapisy gry i ustawienia zostaja.", "Usun stare wersje", "Usun zgloszenia",
     "Usunac stare wersje %s (plikow: %d, %s)?",
-    "Usunac zgloszenia bledow %s (plikow: %d, %s)? Nie da sie ich odtworzyc.", "Usunieto.", "Nie usunieto: %s"
+    "Usunac zgloszenia bledow %s (plikow: %d, %s)? Nie da sie ich odtworzyc.", "Usunieto.", "Nie usunieto: %s",
+    "Pobierane pliki", "%s: pobrane %d z %d plikow (%s z %s)",
+    "Nic nie jest teraz pobierane.", "%s: sprawdzanie plikow na dysku (%d z %d)...",
+    "czeka", "sprawdzanie %ld%%", "gotowe", "blad"
   },
   { /* de */
     "Aktualisieren", "Installieren", "Update", "Dateien pr\xfc" "fen", "Abbrechen",
@@ -252,7 +259,10 @@ static const char *const texts[3][T_COUNT] = {
     "Fehlermeldungen (Schubladen bugNNN in der Schublade user): %d Eintraege, %d Dateien, %s",
     "Spielstaende und Einstellungen bleiben.", "Alte Versionen loeschen", "Fehlermeldungen loeschen",
     "Alte Versionen von %s loeschen (%d Dateien, %s)?",
-    "Fehlermeldungen von %s loeschen (%d Dateien, %s)? Sie lassen sich nicht wiederherstellen.", "Geloescht.", "Nicht geloescht: %s"
+    "Fehlermeldungen von %s loeschen (%d Dateien, %s)? Sie lassen sich nicht wiederherstellen.", "Geloescht.", "Nicht geloescht: %s",
+    "Geladene Dateien", "%s: %d von %d Dateien geladen (%s von %s)",
+    "Es wird nichts geladen.", "%s: pruefe die Dateien auf der Platte (%d von %d)...",
+    "wartet", "pruefe %ld%%", "fertig", "Fehler"
   }
 };
 
@@ -277,7 +287,7 @@ static char test_key[32], test_dir[256], test_gamesdir[256];
 /* --- state --------------------------------------------------------------- */
 
 enum { GID_LANG = 1, GID_REFRESH, GID_GALLERY, GID_SCROLL, GID_PAGE, GID_INSTALL, GID_STOP,
-       GID_NOTES, GID_PROGRESS, GID_REQ, GID_GAMESDIR, GID_APPSDIR, GID_UPDATE, GID_GUIDE, GID_RUN, GID_LOCK, GID_FILTER };     /* GID_FILTER + 0..FILTERS-1 */
+       GID_NOTES, GID_PROGRESS, GID_REQ, GID_GAMESDIR, GID_APPSDIR, GID_UPDATE, GID_GUIDE, GID_RUN, GID_LOCK, GID_FILES, GID_FILTER };     /* GID_FILTER + 0..FILTERS-1 */
 
 typedef struct Tile {
   Object *dt;                /* the picture (datatype), NULL = none */
@@ -353,8 +363,9 @@ static void set_status(const char *text)
 {
   strncpy(status_text, text, sizeof(status_text) - 1);
   status_text[sizeof(status_text) - 1] = 0;
-  if (status_text[0]) snprintf(title_text, sizeof(title_text), "WARP HUB - %s", status_text);
-  else strcpy(title_text, "WARP HUB");
+  /* the version right after the name (bug reports), then what it does */
+  if (status_text[0]) snprintf(title_text, sizeof(title_text), "WARP HUB " WARPHUB_VERSION " - %s", status_text);
+  else strcpy(title_text, "WARP HUB " WARPHUB_VERSION);
   if (win != NULL) SetWindowTitles(win, (UBYTE *)title_text, (UBYTE *)~0);
 }
 
@@ -749,8 +760,11 @@ static void fill_notes(void)
 
 /* --- buttons and texts ---------------------------------------------------- */
 
+static void files_redraw(void);
+
 static void update_buttons(void)
 {
+  files_redraw();
   /* two buttons: Install for a game that is not there, Update for an installed
    * one with a newer version in the catalog */
   int none = cat == NULL || selected < 0;
@@ -1717,6 +1731,8 @@ static void offer_cleanup(void)
  * the window opens, removed before it closes or is iconified. */
 static Class *lock_class;
 static Object *lock_img;
+static Object *files_img;              /* the button "Downloaded files" left of it */
+static struct Gadget *files_gad;
 static struct Gadget *lock_gad;
 static struct DrawInfo *dri;
 
@@ -1744,6 +1760,23 @@ static ULONG lock_dispatch(Class *cl, Object *o, Msg msg)
     Move(rp, x + w - 1, y + 1);
     Draw(rp, x + w - 1, y + h - 1);
     Draw(rp, x + 1, y + h - 1);
+    if (o == files_img) {
+      /* a list with an arrow down; green while an install downloads */
+      int lx = x + w / 5, lw = w * 3 / 5, i, ay;
+      LONG pen = work.busy && work.job == HUB_JOB_INSTALL && pens[P_GREEN] >= 0 ? pens[P_GREEN]
+                                                                                : dp[TEXTPEN];
+      SetAPen(rp, pen);
+      for (i = 0; i < 3; i++) {
+        int ly = y + 3 + i * (h - 6) / 3;
+        RectFill(rp, lx, ly, lx + lw / 2, ly);
+      }
+      ay = y + 3;
+      RectFill(rp, lx + lw * 3 / 4, ay, lx + lw * 3 / 4 + 1, y + h - 5);
+      for (i = 0; i < 3; i++) {
+        RectFill(rp, lx + lw * 3 / 4 - i, y + h - 5 - i, lx + lw * 3 / 4 + 1 + i, y + h - 5 - i);
+      }
+      return 0;
+    }
     /* the padlock: body below, shackle above */
     bw = w * 2 / 5;
     if (bw < 6) bw = 6;
@@ -1766,6 +1799,15 @@ static ULONG lock_dispatch(Class *cl, Object *o, Msg msg)
 
 static void lock_remove(void)
 {
+  if (files_gad != NULL) {
+    if (win != NULL) RemoveGList(win, files_gad, 1);
+    DisposeObject((Object *)files_gad);
+    files_gad = NULL;
+  }
+  if (files_img != NULL) {
+    DisposeObject(files_img);
+    files_img = NULL;
+  }
   if (lock_gad != NULL) {
     if (win != NULL) RemoveGList(win, lock_gad, 1);
     DisposeObject((Object *)lock_gad);
@@ -1815,6 +1857,23 @@ static void lock_add(void)
   }
   AddGList(win, lock_gad, 0, 1, NULL);
   RefreshGList(lock_gad, win, NULL, 1);
+  /* "Downloaded files": left of the padlock */
+  files_img = NewObject(lock_class, NULL, IA_Width, w, IA_Height, h, TAG_DONE);
+  if (files_img != NULL) {
+    files_gad = (struct Gadget *)NewObject(NULL, (ClassID)"buttongclass",
+        GA_ID, GID_FILES, GA_RelVerify, TRUE, GA_TopBorder, TRUE,
+        GA_RelRight, left - w, GA_Top, 0, GA_Width, w, GA_Height, h,
+        GA_Image, (ULONG)files_img, TAG_DONE);
+    if (files_gad != NULL) {
+      AddGList(win, files_gad, 0, 1, NULL);
+      RefreshGList(files_gad, win, NULL, 1);
+    }
+  }
+}
+
+static void files_redraw(void)
+{
+  if (win != NULL && files_gad != NULL) RefreshGList(files_gad, win, NULL, 1);
 }
 
 static void lock_redraw(void)
@@ -2157,6 +2216,202 @@ static void worker_news(void)
   update_buttons();
 }
 
+/* --- the window "Downloaded files" (button left of the padlock) ---------------- *
+ * The files of the install in progress (or the last one): every file to
+ * download with its state and percentage, on top how many of how many; updated
+ * while the network process works; Close at the bottom. */
+
+static struct List files_list;
+static int files_n;                    /* nodes in files_list */
+
+static void files_head(HubGame *g, char *out, int outlen)
+{
+  char name[96], a[32], b[32];
+  int i, n = 0, ok = 0;
+  ULONG all = 0, got = 0;
+  if (g == NULL) {
+    snprintf(out, outlen, "%s", TX(T_FILES_NONE));
+    return;
+  }
+  latin(hub_text(g->name, lang), name, sizeof(name));
+  if (work.busy && work.checking) {
+    snprintf(out, outlen, TX(T_FILES_PLAN), name, (int)work.chk_index, (int)work.chk_count);
+    return;
+  }
+  for (i = 0; i < g->nfiles; i++) {
+    HubFile *f = &g->files[i];
+    if (f->state == HUB_F_NONE) continue;
+    n++;
+    all += f->size;
+    got += f->state == HUB_F_DONE ? f->size : f->got;
+    if (f->state == HUB_F_DONE) ok++;
+  }
+  if (n == 0) {
+    snprintf(out, outlen, "%s", TX(T_FILES_NONE));
+    return;
+  }
+  size_text(got, a, sizeof(a));
+  size_text(all, b, sizeof(b));
+  snprintf(out, outlen, TX(T_FILES_HEAD), name, ok, n, a, b);
+}
+
+static void file_line(HubFile *f, char *out, int outlen)
+{
+  char sz[32], st[40];
+  long pct = f->size ? (long)(((f->got >> 4) * 100UL) / ((f->size >> 4) + 1)) : 100;
+  size_text(f->size, sz, sizeof(sz));
+  switch (f->state) {
+    case HUB_F_WAIT: snprintf(st, sizeof(st), "%s", TX(T_F_WAIT)); break;
+    case HUB_F_CHECK: snprintf(st, sizeof(st), TX(T_F_CHECK), pct); break;
+    case HUB_F_GET: snprintf(st, sizeof(st), "%ld%%", pct); break;
+    case HUB_F_DONE: snprintf(st, sizeof(st), "%s", TX(T_F_DONE)); break;
+    default: snprintf(st, sizeof(st), "%s", TX(T_F_FAIL)); break;
+  }
+  snprintf(out, outlen, "%s  (%s)  -  %s", f->path, sz, st);
+}
+
+/* the game of the install in progress / the last install */
+static HubGame *files_game(void)
+{
+  return cat != NULL && work.key[0] ? hub_catalog_find(cat, work.key) : NULL;
+}
+
+/* fills the list again (when the files changed) or only its texts; the row
+ * being downloaded / checked is returned in *active (-1 none) */
+static void files_update(Object *lb, struct Window *w2, Object *head, int *active)
+{
+  HubGame *g = files_game();
+  struct Node *node;
+  char line[400];
+  int i, n = 0, row = 0;
+  *active = -1;
+  for (i = 0; g != NULL && i < g->nfiles; i++) n += g->files[i].state != HUB_F_NONE;
+  if (lb != NULL && w2 != NULL) SetGadgetAttrs((struct Gadget *)lb, w2, NULL, LISTBROWSER_Labels, ~0, TAG_DONE);
+  if (n != files_n) {
+    FreeListBrowserList(&files_list);
+    NewList(&files_list);
+    files_n = 0;
+    for (i = 0; g != NULL && i < g->nfiles; i++) {
+      if (g->files[i].state == HUB_F_NONE) continue;
+      file_line(&g->files[i], line, sizeof(line));
+      node = AllocListBrowserNode(1, LBNCA_CopyText, TRUE, LBNCA_Text, (ULONG)line, TAG_DONE);
+      if (node != NULL) {
+        AddTail(&files_list, node);
+        files_n++;
+      }
+    }
+  }
+  node = files_list.lh_Head;
+  for (i = 0; g != NULL && i < g->nfiles && node->ln_Succ != NULL; i++) {
+    HubFile *f = &g->files[i];
+    if (f->state == HUB_F_NONE) continue;
+    if (f->state == HUB_F_CHECK || f->state == HUB_F_GET) *active = row;
+    file_line(f, line, sizeof(line));
+    SetListBrowserNodeAttrs(node, LBNCA_CopyText, TRUE, LBNCA_Text, (ULONG)line, TAG_DONE);
+    node = node->ln_Succ;
+    row++;
+  }
+  if (lb != NULL && w2 != NULL) {
+    SetGadgetAttrs((struct Gadget *)lb, w2, NULL, LISTBROWSER_Labels, (ULONG)&files_list, TAG_DONE);
+    if (*active >= 0) SetGadgetAttrs((struct Gadget *)lb, w2, NULL, LISTBROWSER_MakeVisible, *active, TAG_DONE);
+  }
+  if (head != NULL && w2 != NULL) {
+    static char text[300];
+    files_head(g, text, sizeof(text));
+    SetGadgetAttrs((struct Gadget *)head, w2, NULL, GA_Text, (ULONG)text, TAG_DONE);
+  }
+}
+
+static void show_files(void)
+{
+  Object *gw, *lb, *head;
+  struct Window *w2;
+  ULONG sig = 0, result, wmask = work_signal >= 0 ? 1UL << work_signal : 0, last = 0;
+  UWORD code;
+  int done = 0, active;
+  static char text[300];
+  if (win == NULL) return;
+  NewList(&files_list);
+  files_n = -1;
+  files_update(NULL, NULL, NULL, &active);
+  files_head(files_game(), text, sizeof(text));
+  gw = NewObject(WINDOW_GetClass(), NULL,
+      WA_Title, (ULONG)TX(T_FILES_WIN),
+      WA_PubScreen, (ULONG)scr,
+      WA_DragBar, TRUE, WA_DepthGadget, TRUE, WA_CloseGadget, TRUE, WA_SizeGadget, TRUE,
+      WA_Activate, TRUE,
+      WA_Left, win->LeftEdge + 20, WA_Top, win->TopEdge + 20,
+      WA_Width, win->Width - 40, WA_Height, win->Height - 40,
+      WA_IDCMP, IDCMP_RAWKEY,
+      WINDOW_Layout, (ULONG)(NewObject(LAYOUT_GetClass(), NULL, LAYOUT_Orientation, LAYOUT_ORIENT_VERT,
+        LAYOUT_SpaceOuter, TRUE,
+        LAYOUT_AddChild, (ULONG)(head = NewObject(BUTTON_GetClass(), NULL,
+          GA_ReadOnly, TRUE, GA_Text, (ULONG)text, BUTTON_Justification, BCJ_LEFT,
+          BUTTON_BevelStyle, BVS_NONE, TAG_END)),
+        CHILD_WeightedHeight, 0,
+        LAYOUT_AddChild, (ULONG)(lb = NewObject(LISTBROWSER_GetClass(), NULL,
+          GA_ReadOnly, TRUE,
+          LISTBROWSER_Labels, (ULONG)&files_list,
+          LISTBROWSER_ShowSelected, FALSE,
+        TAG_END)),
+        LAYOUT_AddChild, (ULONG)(NewObject(BUTTON_GetClass(), NULL,
+          GA_ID, 1, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_CLOSE),
+        TAG_END)),
+        CHILD_WeightedHeight, 0,
+      TAG_END)),
+    TAG_END);
+  if (gw != NULL) {
+    w2 = (struct Window *)RA_OpenWindow(gw);
+    if (w2 != NULL) {
+      GetAttr(WINDOW_SigMask, gw, &sig);
+      files_update(lb, w2, head, &active);
+    }
+    while (w2 != NULL && !done) {
+      ULONG s = Wait(sig | wmask | SIGBREAKF_CTRL_C);
+      if (s & SIGBREAKF_CTRL_C) {
+        SetSignal(SIGBREAKF_CTRL_C, SIGBREAKF_CTRL_C);   /* for the main loop too */
+        done = 1;
+      }
+      if (s & wmask) {
+        /* the network process: the main window as always, the list at most
+         * 3 times a second (and at the end of the job) */
+        ULONG now = hub_ms();
+        int was_busy = work.busy;
+        worker_news();
+        if (now - last >= 300UL || !was_busy || !work.busy) {
+          last = now;
+          files_update(lb, w2, head, &active);
+        }
+      }
+      while ((result = RA_HandleInput(gw, &code)) != WMHI_LASTMSG) {
+        switch (result & WMHI_CLASSMASK) {
+          case WMHI_CLOSEWINDOW: done = 1; break;
+          case WMHI_GADGETUP: if ((result & WMHI_GADGETMASK) == 1) done = 1; break;
+          case WMHI_RAWKEY: {
+            ULONG top = 0;
+            LONG step = 0;
+            if (code == 0x45) done = 1;                              /* Esc */
+            else if (code == 0x7A || code == 0x4C) step = -3;        /* wheel / up */
+            else if (code == 0x7B || code == 0x4D) step = 3;         /* wheel / down */
+            if (step != 0) {
+              GetAttr(LISTBROWSER_Top, lb, &top);
+              if (step < 0 && top < (ULONG)-step) top = 0;
+              else top += step;
+              SetGadgetAttrs((struct Gadget *)lb, w2, NULL, LISTBROWSER_Top, top, TAG_DONE);
+            }
+            break;
+          }
+        }
+      }
+    }
+    DisposeObject(gw);
+    while (RA_HandleInput(win_obj, &code) != WMHI_LASTMSG) {
+    }
+  }
+  FreeListBrowserList(&files_list);
+  files_n = 0;
+}
+
 /* --- the window ------------------------------------------------------------ */
 
 static void get_pens(void)
@@ -2242,7 +2497,7 @@ static Object *make_window(void)
   req_hook = gallery_hook;
 
   return NewObject(WINDOW_GetClass(), NULL,
-      WA_Title, (ULONG)"WARP HUB",
+      WA_Title, (ULONG)("WARP HUB " WARPHUB_VERSION),
       WA_ScreenTitle, (ULONG)"WARP HUB " WARPHUB_VERSION,
       WA_PubScreen, (ULONG)scr,
       WA_DragBar, TRUE, WA_DepthGadget, TRUE, WA_CloseGadget, TRUE, WA_SizeGadget, TRUE,
@@ -2580,6 +2835,7 @@ int main(void)
             else if (code == 0x7B || code == 0x4D) scroll_rows(1);   /* wheel / down */
             else if (code == 0x45) done = 1;                         /* Esc */
             else if (code == 0x5F) show_guide();                     /* Help */
+            else if (code == 0x50) show_files();                     /* F1: downloaded files */
             else if (code == 0x44 || code == 0x43) run_game();       /* Return, Enter */
             else if (code >= 0x01 && code <= 0x08) {                 /* 1..8: group */
               filter = code - 0x01;
@@ -2612,6 +2868,7 @@ int main(void)
               case GID_GUIDE: show_guide(); break;
               case GID_RUN: run_game(); break;
               case GID_LOCK: login(); break;
+              case GID_FILES: show_files(); break;
               case GID_APPSDIR: choose_games_dir(1); break;
               case GID_FILTER: case GID_FILTER + 1: case GID_FILTER + 2: case GID_FILTER + 3:
               case GID_FILTER + 4: case GID_FILTER + 5: case GID_FILTER + 6: case GID_FILTER + 7:

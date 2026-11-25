@@ -222,9 +222,28 @@ static int fetch_sink(void *user, const UBYTE *data, LONG len)
   }
   hub_sha_add(f->sha, data, len);
   f->got += len;
+  ((HubFile *)f->file)->got = f->got;
   *f->done += len;
   if (f->progress != NULL) f->progress(f->user, f->file, *f->done, f->total);
   return 1;
+}
+
+/* the progress of a download while an earlier .upd is checked (a resumed
+ * install: diabdat.mpq, 517 MB, takes minutes - the bar must move) */
+typedef struct ResumeCtx {
+  HubProgress progress;
+  void *user;
+  ULONG base;
+} ResumeCtx;
+
+static void resume_cb(void *user, const HubFile *f, int index, int count, ULONG all_done,
+                      ULONG all_total)
+{
+  ResumeCtx *r = (ResumeCtx *)user;
+  (void)index;
+  (void)count;
+  ((HubFile *)f)->got = all_done - r->base;
+  if (r->progress != NULL) r->progress(r->user, f, all_done, all_total);
 }
 
 static int fetch_one(HubConn *c, HubGame *g, const char *dest, HubFile *file,
@@ -251,13 +270,30 @@ static int fetch_one(HubConn *c, HubGame *g, const char *dest, HubFile *file,
      * right: taken as it is - an install of 80 MB goes on where it stopped */
     ULONG have = 0;
     char hs[65];
-    if (local_file(name, file->size, &have, hs, NULL) && have == file->size &&
+    ResumeCtx rc;
+    CheckCtx cc;
+    memset(&cc, 0, sizeof(cc));
+    rc.progress = progress;
+    rc.user = user;
+    rc.base = *done;
+    cc.cb = resume_cb;
+    cc.user = &rc;
+    cc.f = file;
+    cc.base = *done;
+    cc.all_total = total;
+    file->state = HUB_F_CHECK;
+    file->got = 0;
+    if (local_file(name, file->size, &have, hs, &cc) && have == file->size &&
         strcmp(hs, file->sha) == 0) {
+      file->got = file->size;
+      file->state = HUB_F_DONE;
       *done += file->size;
       if (progress != NULL) progress(user, file, *done, total);
       return 1;
     }
   }
+  file->state = HUB_F_GET;
+  file->got = 0;
   memset(&f, 0, sizeof(f));
   f.fh = Open((CONST_STRPTR)name, MODE_NEWFILE);
   if (f.fh == 0) {
@@ -280,7 +316,11 @@ static int fetch_one(HubConn *c, HubGame *g, const char *dest, HubFile *file,
   status = hub_get(c, url, fetch_sink, &f, NULL, 0, err, errlen);
   Close(f.fh);
   hub_sha_end(f.sha, sha);
-  if (status == 200 && f.got == file->size && strcmp(sha, file->sha) == 0) return 1;
+  if (status == 200 && f.got == file->size && strcmp(sha, file->sha) == 0) {
+    file->state = HUB_F_DONE;
+    return 1;
+  }
+  file->state = HUB_F_FAIL;
   DeleteFile((CONST_STRPTR)name);
   if (f.write_failed) {
     snprintf(err, errlen, "Cannot write %s (disk full?).", file->path);
@@ -371,6 +411,8 @@ int hub_install(HubGame *g, const char *dest, const char *old_version,
     return 0;
   }
   for (i = 0; i < g->nfiles; i++) {
+    g->files[i].state = g->files[i].need ? HUB_F_WAIT : HUB_F_NONE;
+    g->files[i].got = 0;
     if (g->files[i].need) total += g->files[i].size;
   }
   if (g->priv && (priv_host[0] == 0 || strlen(priv_pin) != 64)) {

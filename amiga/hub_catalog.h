@@ -14,7 +14,13 @@ typedef struct HubFile {
   char flag;               /* 'N' replace, 'K' player's file: only if missing,
                               'X' not installed (texts for the window only) */
   char need;               /* set by hub_plan() */
+  /* an install in progress (written by the network process, read by the
+   * window "Downloaded files"): HUB_F_... and the bytes so far */
+  volatile UBYTE state;
+  volatile ULONG got;
 } HubFile;
+
+enum { HUB_F_NONE, HUB_F_WAIT, HUB_F_CHECK, HUB_F_GET, HUB_F_DONE, HUB_F_FAIL };
 
 typedef struct HubGame {
   const char *key;

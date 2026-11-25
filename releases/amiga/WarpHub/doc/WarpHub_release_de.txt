@@ -1,11 +1,22 @@
 WARP HUB - Versionen
 ====================
 
-Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.14")
+Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.15")
 und in der Shell: Version SYS:WarpApps/WarpHub. Beschreibe, was
 passiert ist, mit der Versionsnummer:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.15 (25.11.2026, Beta)
+-----------------------
+- Ein Knopf neben dem Schloss in der Titelleiste (oder die Taste F1) oeffnet
+  das Fenster "Geladene Dateien": oben wie viele Dateien von wie vielen
+  geladen sind (und wie viele MB), darunter jede Datei der Installation mit
+  ihrem Zustand: wartet / pruefe / Prozent / fertig / Fehler. Das Fenster
+  wird beim Laden aktualisiert und zeigt die aktuelle Datei. Der Knopf ist
+  gruen, solange geladen wird.
+- Eine fortgesetzte Installation zeigt den Fortschritt auch, waehrend sie
+  die vorher geladenen Dateien prueft (grosse Spieldateien: einige Minuten).
 
 0.14 (25.11.2026, Beta)
 -----------------------
