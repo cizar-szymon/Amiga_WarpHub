@@ -20,16 +20,16 @@ REQ de AmiSSL 5 (WarpSSL)
 REQ de TCP/IP, Internet
 REPO cizar-szymon/Amiga_WarpHub
 BRANCH main
-VERSION 0.11
+VERSION 0.12
 FLAT
-ZIP WarpHub-0.11.zip 86043
-SIZE 102652
+ZIP WarpHub-0.12.zip 87018
+SIZE 103148
 IMAGE 2485 e4c6fcc78037abd22d90858afbae99e98f8ac59fe96be8cd324f5c6d7de4cf86 images/warphub.png
 NOTES en WarpHub/doc/WarpHub_release_en.txt
 NOTES pl WarpHub/doc/WarpHub_release.txt
 NOTES de WarpHub/doc/WarpHub_release_de.txt
 FILE 6862 ea64fde17ae4daeac0823985da76ba69e9dd13132b8a7c1eb13c57cd533b5b74 X WarpHub.info
-FILE 99332 05c22fa42a358b901e62a4f8ca00353003d447dd3dab421465f18627b5196252 N WarpHub/WarpHub
+FILE 99828 e6d474050474331ffe18e2f2b1a200af2b2eb2932941eb56f2a0ea221c09d1ed N WarpHub/WarpHub
 FILE 3320 ec8027ba82761c6c5ee4058c742bea0f7b7a44f393d1a2beb5ca325df12211f8 K WarpHub/WarpHub.info
 FILE 2514 40a9f307f7de340bd324734098f4edb73e61c0dd1f1fc355554de827049f812b X WarpHub/doc.info
 FILE 3612 9e58a221fea71e6331c02055e52d94d3ac5fab07818c79d16065bcf1f879f9ca X WarpHub/doc/WarpHub.txt
@@ -38,11 +38,11 @@ FILE 3935 02af9b29cc6c606914cfc6c25708436f5e8fbe0aa475da1198c040405344c18d X War
 FILE 3218 659bf5badbbfbd9f045a97fdeaddc68fa6d6e4b39c935d70b9f69388e1f6dcdb X WarpHub/doc/WarpHub_de.txt.info
 FILE 3665 3955581061cf3e45e651df77244fb914f095d90f16d5e3fa68f9288d64043c72 X WarpHub/doc/WarpHub_en.txt
 FILE 3354 f5d26b5dd3e1a7f7ac3872afe846b7298ed9203498da702caec9468fa7bb3832 X WarpHub/doc/WarpHub_en.txt.info
-FILE 3605 33d2782c6a2bd176498ce0eda9e2a0c4ae0ce719626a28174ac9c05985364f20 X WarpHub/doc/WarpHub_release.txt
+FILE 4139 3556440bb0023091f74be06924d2a5f6bdbdadce4cee6602d41542c3f6093961 X WarpHub/doc/WarpHub_release.txt
 FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e X WarpHub/doc/WarpHub_release.txt.info
-FILE 3888 3a9bd3df01267addb19a4b52a04f63095e35fac648f8e0f7c47229579b677210 X WarpHub/doc/WarpHub_release_de.txt
+FILE 4487 18aa49721e29f92d3aa6d8f94c52efc2ec0d9413de23cbc3def5136192bc0230 X WarpHub/doc/WarpHub_release_de.txt
 FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e X WarpHub/doc/WarpHub_release_de.txt.info
-FILE 3707 de0ccf26ea3e104964bbe61091564787e3f8ac82d3cd91309bf90c7deab73d08 X WarpHub/doc/WarpHub_release_en.txt
+FILE 4282 39ab1cc93d98f72de0c0bea7f2320951caff8fc7f03b0fa656625ffcd8f41939 X WarpHub/doc/WarpHub_release_en.txt
 FILE 3354 b476e8587b9ec2cb2764412450168cc1473eb08f4c3bc1dffd7001589c51deb7 X WarpHub/doc/WarpHub_release_en.txt.info
 END
 GAME settlers
@@ -66,9 +66,9 @@ REQ de 32 MB Fast RAM
 REQ de AmigaOS 3.x, RTG 8-Bit
 REPO cizar-szymon/Amiga_game_Settlers
 BRANCH amiga-port
-VERSION 0.139
-ZIP Settlers-0.139.zip 1773984
-SIZE 6693820
+VERSION 0.140
+ZIP Settlers-0.140.zip 1789444
+SIZE 6732010
 IMAGE 7698 62dfceb22ec3f4d88d73f294dfb9a9f6d41d1edca635d6796baeb0f7993bda27 images/settlers.png
 NOTES en Settlers/doc/Settlers_release_en.txt
 NOTES pl Settlers/doc/Settlers_release.txt
@@ -77,31 +77,31 @@ README Settlers/data/amiga/ReadMe.txt
 README Settlers/data/intro/ReadMe.txt
 FILE 6862 ea64fde17ae4daeac0823985da76ba69e9dd13132b8a7c1eb13c57cd533b5b74 K Settlers.info
 FILE 368 8d5aa97b19162fb56991ce5b415815ac8ae056c28d96baf9c08047dbc0141a09 N Settlers/MP3/ReadMe.txt
-FILE 3223744 5700a28527a6641d5ba097f6bd600b9a1ef9dca7b554128548d177fb18618483 N Settlers/Settlers
+FILE 3253916 7bda325a917770c993e527932e7e10484ac041fa5cc561af1b6168d54b59578b N Settlers/Settlers
 FILE 4004 399242aaea570b433b8e4bfade8fb6ce1062273351e939d48e730e41451e7d8e K Settlers/Settlers.info
 FILE 294 e193583f76df3938f4a227b1d5e3150d7f4a1474ceef9c2abed3be97d7b308e5 N Settlers/data/amiga/ReadMe.txt
 FILE 1071 8e4b773c2f89086d1998113c221d98cf341b302ae6159107c4bf9bd68f86c352 N Settlers/data/intro/ReadMe.txt
 FILE 3108318 4481f07d164893651a141e9027d29a20c7b391757d570816af631b6200945190 N Settlers/data/intro/intro.script
 FILE 2514 9472d4fd84f4f8efd861cdc48935c30f8dcf774eb5635c902a28c025dc2007c4 N Settlers/doc.info
 FILE 35147 8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903 N Settlers/doc/COPYING
-FILE 108870 88cb86ea4c02755961d77c8935423c6dcb4c6a08e62eb5ac00d05769815dd8a9 N Settlers/doc/Install.pdf
+FILE 108870 24fd253bc1a0de402270f71963255cc7da13fbb72412621818afe2ff7468889f N Settlers/doc/Install.pdf
 FILE 10835 cbc01e206f1f0d1057f30cd03d122ff0561aae091577dd5735c3fcf262c99353 N Settlers/doc/Install.txt
 FILE 3218 659bf5badbbfbd9f045a97fdeaddc68fa6d6e4b39c935d70b9f69388e1f6dcdb N Settlers/doc/Install.txt.info
-FILE 17344 c8a828839809fc5df0850859c69c8ac062b32152a9330e217961d6df039eee31 N Settlers/doc/Settlers.txt
+FILE 18456 e758b69a5ce89eb02571cbe3c9d9c25cce48e76e00b35d9ab127257dc746b649 N Settlers/doc/Settlers.txt
 FILE 3308 f6ca3a09267f0c9baa2abf16f3de2d17a5f179720c777543c34a3558b69f26eb N Settlers/doc/Settlers.txt.info
 FILE 8489 4e5aa696190f983f581a582a6903eae824b7c48754180a3161029c4818624081 N Settlers/doc/Settlers_dev.txt
 FILE 3308 6596e79960c09303d6b26ed8f54cf35fad8324d71897060bc8b93d7f2ab7621d N Settlers/doc/Settlers_dev.txt.info
 FILE 9071 08f5ae2ffa7a453eb7b85a62a0ad3d8af4067a2a9f2bdce029ae5ddfa4d349d3 N Settlers/doc/Settlers_dev_en.txt
 FILE 3354 0c36a8c180591227a22f688265dbeb1fbb2be9bd3cb0c64a4a1e3906c108054a N Settlers/doc/Settlers_dev_en.txt.info
-FILE 18757 1c645f66021fa99e8ed7bf57338bd301f1588ae8ce21dfad9cb6befb56f28cab N Settlers/doc/Settlers_en.txt
+FILE 19896 aeac3d654fc1e4cb576d87085fecf05a9f443eca152a6c938664399892d155f9 N Settlers/doc/Settlers_en.txt
 FILE 3354 f5d26b5dd3e1a7f7ac3872afe846b7298ed9203498da702caec9468fa7bb3832 N Settlers/doc/Settlers_en.txt.info
-FILE 30828 041df3dc1b151b720da1228a89d403213b60c0777c80851fe9994b37a030b0bd N Settlers/doc/Settlers_release.txt
+FILE 31735 76514344359512ce4388ee553d3cd202deec2808b87c3463daf00bf0a28467b1 N Settlers/doc/Settlers_release.txt
 FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e N Settlers/doc/Settlers_release.txt.info
-FILE 31809 7951f336588787b12ecfce07882a812cc0cf983972cc6fff078329dae16dbd20 N Settlers/doc/Settlers_release_en.txt
+FILE 32728 6db8382e74dc7d4fbb3750ca24f63d950a6907235da79824a7aa1efdcbb45bba N Settlers/doc/Settlers_release_en.txt
 FILE 3354 b476e8587b9ec2cb2764412450168cc1473eb08f4c3bc1dffd7001589c51deb7 N Settlers/doc/Settlers_release_en.txt.info
-FILE 1551 4d3cfd8d45b994c678b5946281a7569b70c380bfb9e97176f136d2153d11cf18 N Settlers/doc/micromod-licence.txt
-FILE 25571 b74d3901a38b3bb191ca401513ceae030dd41d0ab1c07ae44712fbfc85bfbebe N Settlers/po/de.po
-FILE 25169 cc005db1476dd199311f771b1347dde3282861bb799b090801f8334f2bfd7220 N Settlers/po/pl.po
+FILE 1514 aa6e4d262de0111cc0b6aad2086c26549e39dafd1b6a255bde850e6a9bbd7189 N Settlers/doc/micromod-licence.txt
+FILE 27573 0878f3dbb3f87ecfcebd158ff0cfdc62d8125439167b53f4aadf501ba7cdb5a9 N Settlers/po/de.po
+FILE 27145 9d2e4ee13c3e5a7736c22ae986529a47d76742607b9d7f0f94c13b4b84128999 N Settlers/po/pl.po
 END
 GAME opendune
 NAME en OpenDUNE
