@@ -930,3 +930,25 @@ the download -> "Diablo (DevilutionX): pobrane 17 z 251 plikow (1.0 MB z 17.4 MB
 not clicked (AmiAgent has no mouse) - it is drawn left of the padlock (screenshot).
 - Window title (user's wish): "WARP HUB 0.15 - <what it does>", alone "WARP HUB 0.15" (the
   version right after the name; `set_status`, `WA_Title`).
+
+## WARP NetMonitor 0.2: dashboard in the style of "Net Monitor" (25.11.2026, user's wish)
+The same measurement (GitHub, Cloudflare, Hetzner, RP4 in turns of 10 s), new look: a dark
+window 640x440 (own pens by ObtainBestPen, topaz 8): red header "WARP NetMonitor" with CPU / KS,
+a menu on the left with the logo bars (1 Panel, 2 Serwery, 3 Wynik), five cards (download now,
+average, response, jitter, stalls / errors), an area chart (dark fill + bright top line in the
+colour of the server, red = a second without data) with the ranges 1 min / 3 min / all,
+buttons Pause / Reset / Start (mouse and keys P R S, 1-3 the views, Esc end), the legend table
+(peak / average / minimum / stalls / errors / response) and a status line. Jitter: |response -
+previous response of the same server and kind| (kind = new connection with TLS or kept), else
+it mixed 0.8 s handshakes with 40 ms requests. After the test the view Result; Start again.
+Amiga 1 (60 s) and Amiga 2 (180 s): all four STABLE; Amiga 2 GitHub ~1.5 MB/s, Cloudflare
+~1.85 MB/s, Hetzner ~1.1 MB/s, RP4 ~1.35 MB/s, jitter 11-14 ms; one run on Amiga 2 had two
+GitHub seconds without data and gaps on the RP4 (stalls 2 / 1). Installed in
+Work:Games/WarpNetMonitor on Amiga 2.
+
+### WARP NetMonitor moved to the Warp repo (25.11.2026, user's decision)
+NetMonitor leaves WarpHub: it is rebuilt in the style of WarpDashboard (its DashGfx /
+DashWidgets drawing, helvetica, WARP logo) as `csWarpAmigaSoftware/WarpNetMonitor` (GPLv3, next
+to WarpDashboard). Removed here: `amiga/netmon.c`, its Makefile target, its icon. The network
+code it uses (`hub_https`, `hub_time`, `hub_util`, `hub_wait_hook`) stays in WarpHub; WarpNetTest
+stays here.
