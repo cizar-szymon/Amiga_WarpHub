@@ -873,3 +873,36 @@ not downloaded again is not visible from outside - code path only.)
   refused / not remembered certificate. Seen: the player's Diablo install never reached the
   RP4 (no `files diablo` in the log) - the handshake timed out. Not tested live (needs a
   server that serves the catalog and then goes silent).
+- Released together as **0.13 + 0.14** (commit 2549fe1); Amiga 1 `SYS:WarpApps/WarpHub` = 0.14
+  (byte for byte), 0.10 kept as `WarpHub-0.10`.
+
+## WARP HUB in the private source (25.11.2026, user's request)
+`catalog/games/warphub.txt`: `LOCAL ../AmigaSoft/WarpHub`; `make_release.py` also writes
+`private/WarpHub-<v>-full.zip` (= the release ZIP; `private/` in `.gitignore`, older to
+`private/old`); `make_private.py` applies FLAT (`make_catalog.apply_flat`, shared with the
+public catalog) - without it the private entry would install a drawer `WarpHub/` instead of the
+file in SYS:WarpApps. The private entry of 0.14: the same FILE lines (size, SHA-256, flags) as the
+public one, FLAT, SOURCE private. On the RP4 (`push_private.sh`, 29 files); the main password
+and the 7-day code see `warphub`. Amiga 1, a copy in RAM: logged in: TESTINSTALL=warphub ->
+"WARP HUB 0.14 zainstalowana", `WarpHub` + `WarpHub.info` as files (no drawer), from the RP4
+(`files warphub` in the log), byte for byte the release.
+Note: a release must be built from the committed program - `make_release.py` packs
+`build/amiga/WarpHub` as it is (after later changes in `hub_https.c` it would have made
+another "0.14"; restored from git).
+
+## WarpNetMonitor 0.1: speed charts over minutes (25.11.2026)
+`amiga/netmon.c` -> `build/amiga/WarpNetMonitor` (44 KB; Intuition window 624x432, fits
+640x480). Targets in turns of 10 s: GitHub (Settlers 0.140 ZIP, again and again), Cloudflare
+(`speed.cloudflare.com/__down?bytes=25000000`), Hetzner (`fsn1-speed.hetzner.com/100MB.bin`),
+the private source of WarpHub.prefs (`/catalog.txt`; without a password the 401 response time
+only). Speed chart: a bar a second in the colour of the server (red = a second without data);
+response chart: time to the first byte of every request, red X = error; table: avg / min / max
+KB/s (not the first second of a slice: TLS), stalls (> 1 s without data), errors, response; at
+the end a verdict per server (STABLE / UNSTABLE / SLOW / NO CONNECTION) and "all servers stall
+= the line of the Amiga" / "only some". `DURATION=<s>` (Tool Type / Shell, default 180);
+`RAM:WarpNetMonitor.txt` every second. `hub_https`: `hub_wait_hook` / `hub_wait_sigs` - a wait
+wakes every second (and on the window signal) so the window draws and reads its gadgets during a
+stall; NULL in WARP HUB (plain waits). Fixes found on Amiga 1: `hub_url_path` encoded the `?` of
+the Cloudflare query (404) - the paths are used as they are; the first second of a slice and the
+bit after the end were counted as min (GitHub "UNSTABLE"). Amiga 1, 180 s: all four STABLE,
+GitHub 1177, Cloudflare 1241, Hetzner 1180, RP4 1064 KB/s, "Lacze stabilne".

@@ -104,6 +104,15 @@ def main():
                 put(z, os.path.join(dirpath, f), rel + '/' + f)
     n = sum(1 for i in zipfile.ZipFile(zpath).infolist() if not i.is_dir())
     print('%s: %d files, %d bytes' % (zpath, n, os.path.getsize(zpath)))
+    # the private source (make_private.py, LOCAL ../AmigaSoft/WarpHub) offers
+    # WARP HUB too: private/WarpHub-<v>-full.zip = the same ZIP (not in git);
+    # older ones to private/old
+    priv = os.path.join(HERE, 'private')
+    os.makedirs(os.path.join(priv, 'old'), exist_ok=True)
+    for old in os.listdir(priv):
+        if re.match(r'^WarpHub-[0-9.]+-full\.zip$', old) and old != 'WarpHub-%s-full.zip' % v:
+            shutil.move(os.path.join(priv, old), os.path.join(priv, 'old', old))
+    shutil.copyfile(zpath, os.path.join(priv, 'WarpHub-%s-full.zip' % v))
     return 0
 
 

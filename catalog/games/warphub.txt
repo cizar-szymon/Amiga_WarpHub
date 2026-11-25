@@ -19,3 +19,4 @@ REQ de TCP/IP, Internet
 REPO cizar-szymon/Amiga_WarpHub
 FLAT
 ORDER 1
+LOCAL ../AmigaSoft/WarpHub

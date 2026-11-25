@@ -61,6 +61,13 @@ HubSha *hub_sha_new(void);
 void hub_sha_add(HubSha *s, const UBYTE *data, LONG len);
 void hub_sha_end(HubSha *s, char hex[65]);   /* frees s */
 
+/* A program with a window: hub_wait_hook is called at least every second
+ * while a request waits for the network (and when one of hub_wait_sigs
+ * comes), so it can draw and read its window; setting hub_break stops.
+ * Both 0 / NULL: plain waits. */
+extern ULONG hub_wait_sigs;
+extern void (*hub_wait_hook)(void);
+
 /* Ctrl-C seen (set by the network code, checked by the caller). */
 extern volatile int hub_break;
 

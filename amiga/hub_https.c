@@ -311,28 +311,44 @@ static void handshake_err(HubConn *c, int r, char *err, int errlen)
 /* Waits until the socket of c can be read (write 0) or written, at most
  * TIMEOUT_S; 1 when it can, 0 on the time limit (c->timed_out) or Ctrl-C
  * (hub_break). */
+ULONG hub_wait_sigs = 0;
+void (*hub_wait_hook)(void) = NULL;
+
 static int wait_sock(HubConn *c, int write)
 {
   fd_set fds;
   struct timeval tv;
-  ULONG sigs = SIGBREAKF_CTRL_C;
   long r;
+  int left = TIMEOUT_S;
   if (hub_break) return 0;
-  FD_ZERO(&fds);
-  FD_SET(c->sock, &fds);
-  tv.tv_secs = TIMEOUT_S;
-  tv.tv_micro = 0;
-  r = WaitSelect(c->sock + 1, write ? NULL : &fds, write ? &fds : NULL, NULL, &tv, &sigs);
-  /* Ctrl-C (Stop): as a signal, or as EINTR of the stack (Roadshow) */
-  if ((sigs & SIGBREAKF_CTRL_C) || (r < 0 && Errno() == EINTR)) {
-    hub_break = 1;
-    return 0;
+  for (;;) {
+    ULONG sigs = SIGBREAKF_CTRL_C | hub_wait_sigs;
+    /* with a hook (a window that draws while it waits): a second at a time */
+    int step = hub_wait_hook != NULL && left > 1 ? 1 : left;
+    FD_ZERO(&fds);
+    FD_SET(c->sock, &fds);
+    tv.tv_secs = step;
+    tv.tv_micro = 0;
+    r = WaitSelect(c->sock + 1, write ? NULL : &fds, write ? &fds : NULL, NULL, &tv, &sigs);
+    /* Ctrl-C (Stop): as a signal, or as EINTR of the stack (Roadshow) */
+    if ((sigs & SIGBREAKF_CTRL_C) || (r < 0 && Errno() == EINTR)) {
+      hub_break = 1;
+      return 0;
+    }
+    if (r > 0) return 1;
+    if (r < 0) return 0;
+    if (hub_wait_hook != NULL) {
+      hub_wait_hook();
+      if (hub_break) return 0;
+    }
+    if (r == 0 && !(sigs & hub_wait_sigs)) {
+      left -= step;
+      if (left <= 0) {
+        c->timed_out = 1;
+        return 0;
+      }
+    }
   }
-  if (r == 0) {
-    c->timed_out = 1;
-    return 0;
-  }
-  return r > 0;
 }
 
 /* SSL_read / SSL_write / SSL_connect said "again": wait for the socket.

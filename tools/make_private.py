@@ -160,6 +160,8 @@ def main(argv=None):
         g = build(game, projects, www, print)
         if g is None:
             continue
+        if game.get('flat'):
+            make_catalog.apply_flat(g)          # WARP HUB itself: a file in SYS:WarpApps
         img = os.path.join(here, 'catalog', 'images', game['key'] + '.png')
         if os.path.exists(img):
             os.makedirs(os.path.join(www, 'images'), exist_ok=True)
