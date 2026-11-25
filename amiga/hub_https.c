@@ -61,6 +61,8 @@ struct HubConn {
   char pin[65];           /* its SHA-256 ("" = not known yet) */
   char peer[65];          /* SHA-256 of the certificate of this connection */
   char auth[120];         /* base64 of "warphub:<password>" or "" */
+  char inm[100];          /* If-None-Match of the next request ("" = none) */
+  char etag[100];         /* ETag of the last answer ("" = none) */
 };
 
 static void set_err(char *err, int errlen, const char *what)
@@ -434,12 +436,14 @@ static int request(HubConn *c, const char *path, HubSink sink, void *user,
   LONG length = -1;
 
   *retry = 0;
+  c->etag[0] = 0;
   if (c->ssl == NULL && !conn_open(c, err, errlen)) return -1;
   len = snprintf(line, sizeof(line),
                  "GET %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: WarpHub/0.1 (Amiga)\r\n"
-                 "Accept-Encoding: identity\r\nConnection: keep-alive\r\n%s%s%s\r\n",
+                 "Accept-Encoding: identity\r\nConnection: keep-alive\r\n%s%s%s%s%s%s\r\n",
                  path, c->host, c->auth[0] ? "Authorization: Basic " : "", c->auth,
-                 c->auth[0] ? "\r\n" : "");
+                 c->auth[0] ? "\r\n" : "", c->inm[0] ? "If-None-Match: " : "", c->inm,
+                 c->inm[0] ? "\r\n" : "");
   if (len >= (int)sizeof(line)) {
     snprintf(err, errlen, "Path too long.");
     return -1;
@@ -474,6 +478,10 @@ static int request(HubConn *c, const char *path, HubSink sink, void *user,
       chunked = starts(value_of(line), "chunked");
     } else if (starts(line, "connection:")) {
       if (starts(value_of(line), "close")) close_after = 1;
+    } else if (starts(line, "etag:")) {
+      strncpy(c->etag, value_of(line), sizeof(c->etag) - 1);
+      c->etag[sizeof(c->etag) - 1] = 0;
+      if (strchr(c->etag, ' ') != NULL) c->etag[0] = 0;   /* kept in a file as one word */
     } else if (starts(line, "location:") && location != NULL) {
       strncpy(location, value_of(line), loclen - 1);
       location[loclen - 1] = 0;
@@ -481,7 +489,10 @@ static int request(HubConn *c, const char *path, HubSink sink, void *user,
   }
   /* only a 200 body goes to the sink, others are skipped */
   if (status != 200) sink = NULL;
-  if (chunked) {
+  if (status == 304 || status == 204 || (status >= 100 && status < 200)) {
+    /* no body at all (a 304 often has no Content-Length: reading up to the
+     * end would wait until the server closes the connection) */
+  } else if (chunked) {
     for (;;) {
       LONG size;
       if (!read_line(c, line, sizeof(line))) break;
@@ -519,7 +530,19 @@ int hub_get(HubConn *c, const char *path, HubSink sink, void *user,
   if (status < 0 && retry) {
     status = request(c, path, sink, user, location, loclen, err, errlen, &retry);
   }
+  c->inm[0] = 0;
   return status;
+}
+
+void hub_conn_if_none_match(HubConn *c, const char *etag)
+{
+  strncpy(c->inm, etag != NULL ? etag : "", sizeof(c->inm) - 1);
+  c->inm[sizeof(c->inm) - 1] = 0;
+}
+
+const char *hub_conn_etag(HubConn *c)
+{
+  return c->etag;
 }
 
 void hub_url_path(char *out, int outlen, const char *path)

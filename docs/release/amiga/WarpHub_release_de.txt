@@ -1,11 +1,22 @@
 WARP HUB - Versionen
 ====================
 
-Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.10")
+Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.11")
 und in der Shell: Version SYS:WarpApps/WarpHub. Beschreibe, was
 passiert ist, mit der Versionsnummer:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.11 (25.11.2026, Beta)
+-----------------------
+- Schnellerer Start: WARP HUB merkt sich die Versionen der installierten
+  Spiele und liest ein Spielprogramm nur dann wieder, wenn sich die Datei
+  geaendert hat. Der Spielekatalog (oeffentlich und privat) wird nur geladen,
+  wenn er sich geaendert hat; Bilder und Texte in WarpHub-cache werden nach
+  Groesse und Datum geprueft, und die Bilder im Fenster werden nur fuer neue
+  Spiele oder Spiele mit neuem Bild wieder geladen.
+- Option TIMES (Tool Type des Icons oder in der Shell: WarpHub TIMES) schreibt
+  die Zeiten des Starts und jeder Aktualisierung nach RAM:WarpHub-times.txt.
 
 0.10 (24.11.2026, Beta)
 -----------------------

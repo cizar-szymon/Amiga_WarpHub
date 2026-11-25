@@ -1,10 +1,20 @@
 WARP HUB - wydania
 ==================
 
-Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.10") i w
+Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.11") i w
 Shellu: Version SYS:WarpApps/WarpHub. Opisz, co sie stalo, i podaj
 numer wydania: https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.11 (25.11.2026, wydanie beta)
+-------------------------------
+- Szybszy start: WARP HUB pamieta wersje zainstalowanych gier i czyta program
+  gry ponownie tylko wtedy, gdy plik sie zmienil. Katalog gier (publiczny
+  i prywatny) jest pobierany tylko wtedy, gdy sie zmienil; obrazki i opisy
+  w WarpHub-cache sa sprawdzane po rozmiarze i dacie, a obrazki w oknie sa
+  wczytywane od nowa tylko dla gier nowych lub ze zmienionym obrazkiem.
+- Opcja TIMES (Tool Type ikony albo w Shellu: WarpHub TIMES) zapisuje czasy
+  startu i odswiezania do RAM:WarpHub-times.txt.
 
 0.10 (24.11.2026, wydanie beta)
 -------------------------------

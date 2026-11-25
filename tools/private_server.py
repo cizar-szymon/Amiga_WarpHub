@@ -447,12 +447,24 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return
         games = self.grant['games']
         game = self.game_of()
-        if games is not None and full == os.path.join(self.state.www, 'catalog.txt'):
+        if full == os.path.join(self.state.www, 'catalog.txt'):
+            # the catalog (only the games of a code) with an ETag: WARP HUB
+            # asks If-None-Match and gets 304 without it when it is the same
             with open(full, encoding='utf-8', newline='') as f:
-                body = filter_catalog(f.read(), games).encode('utf-8')
+                text = f.read()
+            if games is not None:
+                text = filter_catalog(text, games)
+            body = text.encode('utf-8')
+            etag = '"%s"' % hashlib.sha256(body).hexdigest()[:32]
+            if self.headers.get('If-None-Match', '').strip() == etag:
+                self.send_response(304)
+                self.send_header('ETag', etag)
+                self.end_headers()
+                return
             self.send_response(200)
             self.send_header('Content-Type', 'application/octet-stream')
             self.send_header('Content-Length', str(len(body)))
+            self.send_header('ETag', etag)
             self.end_headers()
             if self.command != 'HEAD':
                 self.wfile.write(body)

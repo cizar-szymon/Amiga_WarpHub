@@ -210,3 +210,162 @@ void hub_prefs_remove_installed(HubPrefs *p, const char *key)
   if (in == NULL) return;
   *in = p->inst[--p->ninst];
 }
+
+/* --- remembered files ------------------------------------------------------ */
+
+static int file_stamp(const char *name, ULONG *size, struct DateStamp *ds)
+{
+  BPTR lock = Lock((CONST_STRPTR)name, ACCESS_READ);
+  struct FileInfoBlock *fib;
+  int ok = 0;
+  if (lock == 0) return 0;
+  fib = (struct FileInfoBlock *)AllocDosObject(DOS_FIB, NULL);
+  if (fib != NULL) {
+    if (Examine(lock, fib) && fib->fib_DirEntryType < 0) {
+      *size = (ULONG)fib->fib_Size;
+      *ds = fib->fib_Date;
+      ok = 1;
+    }
+    FreeDosObject(DOS_FIB, fib);
+  }
+  UnLock(lock);
+  return ok;
+}
+
+static HubStamp *stamp_find(HubStamps *t, const char *name)
+{
+  int i;
+  for (i = 0; i < t->n; i++) {
+    if (strcmp(t->e[i].name, name) == 0) return &t->e[i];
+  }
+  return NULL;
+}
+
+static HubStamp *stamp_add(HubStamps *t, const char *name)
+{
+  HubStamp *e;
+  if (t->n == t->cap) {
+    int cap = t->cap ? t->cap * 2 : 64, i;
+    HubStamp *ne = (HubStamp *)hub_malloc(cap * sizeof(HubStamp));
+    if (ne == NULL) return NULL;
+    for (i = 0; i < t->n; i++) ne[i] = t->e[i];
+    hub_free(t->e);
+    t->e = ne;
+    t->cap = cap;
+  }
+  e = &t->e[t->n];
+  e->name = (char *)hub_malloc(strlen(name) + 1);
+  if (e->name == NULL) return NULL;
+  strcpy(e->name, name);
+  e->value[0] = 0;
+  t->n++;
+  return e;
+}
+
+void hub_stamps_load(HubStamps *t, const char *file)
+{
+  char *text = hub_read_file(file, 1UL << 20, NULL), *line, *next;
+  if (text == NULL) return;
+  for (line = text; line != NULL && *line; line = next) {
+    unsigned long size;
+    long days, minute, tick;
+    char value[68];
+    int used = 0;
+    HubStamp *e;
+    next = strchr(line, '\n');
+    if (next != NULL) *next++ = 0;
+    if (sscanf(line, "%lu %ld %ld %ld %67s %n", &size, &days, &minute, &tick, value, &used) < 5 ||
+        used == 0 || line[used] == 0 || stamp_find(t, line + used) != NULL) {
+      continue;
+    }
+    e = stamp_add(t, line + used);
+    if (e == NULL) break;
+    e->size = size;
+    e->days = days;
+    e->minute = minute;
+    e->tick = tick;
+    strcpy(e->value, value);
+  }
+  hub_free(text);
+}
+
+int hub_stamps_save(HubStamps *t, const char *file)
+{
+  char *buf;
+  ULONG cap = 64, len = 0;
+  int i, ok;
+  if (!t->dirty) return 1;
+  for (i = 0; i < t->n; i++) cap += strlen(t->e[i].name) + 120;
+  buf = (char *)hub_malloc(cap);
+  if (buf == NULL) return 0;
+  for (i = 0; i < t->n; i++) {
+    HubStamp *e = &t->e[i];
+    len += snprintf(buf + len, cap - len, "%lu %ld %ld %ld %s %s\n", (unsigned long)e->size,
+                    (long)e->days, (long)e->minute, (long)e->tick, e->value, e->name);
+  }
+  ok = hub_write_file(file, buf, len);
+  hub_free(buf);
+  if (ok) t->dirty = 0;
+  return ok;
+}
+
+void hub_stamps_free(HubStamps *t)
+{
+  int i;
+  for (i = 0; i < t->n; i++) hub_free(t->e[i].name);
+  hub_free(t->e);
+  t->e = NULL;
+  t->n = t->cap = 0;
+  t->dirty = 0;
+}
+
+const char *hub_stamps_get(HubStamps *t, const char *name, ULONG *size)
+{
+  HubStamp *e = stamp_find(t, name);
+  struct DateStamp ds;
+  ULONG now;
+  if (e == NULL || !file_stamp(name, &now, &ds)) return NULL;
+  if (now != e->size || ds.ds_Days != e->days || ds.ds_Minute != e->minute ||
+      ds.ds_Tick != e->tick) {
+    return NULL;
+  }
+  if (size != NULL) *size = now;
+  return e->value;
+}
+
+void hub_stamps_set(HubStamps *t, const char *name, const char *value)
+{
+  HubStamp *e;
+  struct DateStamp ds;
+  ULONG size;
+  if (strlen(value) >= sizeof(e->value) || strchr(value, ' ') != NULL ||
+      strchr(name, '\n') != NULL || !file_stamp(name, &size, &ds)) {
+    return;
+  }
+  e = stamp_find(t, name);
+  if (e == NULL) e = stamp_add(t, name);
+  if (e == NULL) return;
+  e->size = size;
+  e->days = ds.ds_Days;
+  e->minute = ds.ds_Minute;
+  e->tick = ds.ds_Tick;
+  strcpy(e->value, value);
+  t->dirty = 1;
+}
+
+ULONG hub_fnv(const char *data, ULONG len)
+{
+  ULONG h = 2166136261UL, i;
+  for (i = 0; i < len; i++) {
+    h ^= (UBYTE)data[i];
+    h *= 16777619UL;
+  }
+  return h;
+}
+
+ULONG hub_ms(void)
+{
+  struct DateStamp ds;
+  DateStamp(&ds);
+  return (ULONG)ds.ds_Days * 86400000UL + (ULONG)ds.ds_Minute * 60000UL + (ULONG)ds.ds_Tick * 20UL;
+}

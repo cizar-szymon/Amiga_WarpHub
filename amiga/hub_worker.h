@@ -49,6 +49,9 @@ typedef struct HubWork {
   int priv_status;           /* HUB_PRIV_... */
   char priv_peer[65];        /* probe: SHA-256 of the certificate of the server */
   char priv_msg[160];        /* why the private source failed */
+  ULONG cat_sum;             /* refresh: FNV-1a of the catalog text (has it changed) */
+  ULONG net_ms;              /* the start of the network (AmiSSL, NTP) in ms */
+  char timing[200];          /* refresh: how long its steps took (TIMES) */
 } HubWork;
 
 /* Starts the process; signal: the bit the window waits on. 0 on failure. */

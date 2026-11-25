@@ -52,4 +52,39 @@ void hub_prefs_set_installed(HubPrefs *p, const char *key, const char *version,
                              const char *dir);
 void hub_prefs_remove_installed(HubPrefs *p, const char *key);
 
+/* --- remembered files: PROGDIR:WarpHub-cache/versions.txt, sums.txt ----- *
+ * A value (the $VER of a game program, the SHA-256 of a cache file) kept
+ * with the size and the date of the file: while they are the same the file
+ * is not read again. Lines "<size> <days> <minute> <tick> <value> <name>". */
+
+typedef struct HubStamp {
+  ULONG size;
+  LONG days, minute, tick;
+  char value[68];
+  char *name;
+} HubStamp;
+
+typedef struct HubStamps {
+  HubStamp *e;
+  int n, cap;
+  int dirty;
+} HubStamps;
+
+void hub_stamps_load(HubStamps *t, const char *file);
+/* writes only after a change; 1 when written or nothing to write */
+int hub_stamps_save(HubStamps *t, const char *file);
+void hub_stamps_free(HubStamps *t);
+/* the value of name when the file has the remembered size and date (its
+ * size in *size when not NULL), NULL when it changed, is not there or is not
+ * known */
+const char *hub_stamps_get(HubStamps *t, const char *name, ULONG *size);
+/* remembers value with the size and the date the file has now */
+void hub_stamps_set(HubStamps *t, const char *name, const char *value);
+
+/* FNV-1a of a text: has the catalog changed (not a check of the content) */
+ULONG hub_fnv(const char *data, ULONG len);
+
+/* milliseconds of the clock (DateStamp, 20 ms steps): for differences only */
+ULONG hub_ms(void);
+
 #endif

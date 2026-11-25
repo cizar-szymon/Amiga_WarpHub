@@ -36,6 +36,12 @@ void hub_conn_auth(HubConn *c, const char *password);
 int hub_get(HubConn *c, const char *path, HubSink sink, void *user,
             char *location, int loclen, char *err, int errlen);
 
+/* The next request of c only with "If-None-Match: etag": the answer is then
+ * 304 (no body) when the file has not changed. */
+void hub_conn_if_none_match(HubConn *c, const char *etag);
+/* The ETag of the last answer of c ("" = none). */
+const char *hub_conn_etag(HubConn *c);
+
 /* The protocol and cipher of c ("TLSv1.3 TLS_AES_128_GCM_SHA256"); c NULL:
  * of the last connection made. */
 const char *hub_conn_cipher(HubConn *c);

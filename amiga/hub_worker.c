@@ -30,6 +30,18 @@ static HubConn *conn;              /* kept for the host of the catalog */
 static char conn_host[128];
 static char err[256];
 static ULONG last_signal_done;
+static HubStamps sums;             /* cache files: size, date, SHA-256 (sums.txt) */
+static int sums_loaded;
+static char last_etag[100];        /* of the last get_https */
+
+/* ETags of the catalogs (etags.txt: "<etag> <source>"): the next refresh
+ * asks "If-None-Match" and gets 304 without the catalog when it is the same */
+#define HUB_ETAGS 8
+static struct {
+  char etag[100];
+  char src[200];
+} etags[HUB_ETAGS];
+static int netags, etags_loaded;
 
 static const char *const ntp_servers[] = {
   "pool.ntp.org", "time.cloudflare.com", "time.google.com", "europe.pool.ntp.org", NULL
@@ -82,8 +94,10 @@ static int mem_sink(void *user, const UBYTE *data, LONG len)
   return 1;
 }
 
-/* https://host/path -> memory (NUL-terminated); NULL with err */
-static char *get_https(const char *url, ULONG max, ULONG *len)
+/* https://host/path -> memory (NUL-terminated); NULL with err. inm (not
+ * NULL): asked "If-None-Match"; a 304 gives NULL and *not_modified = 1 */
+static char *get_https_inm(const char *url, ULONG max, ULONG *len, const char *inm,
+                           int *not_modified)
 {
   char host[128], path[600];
   const char *p = url + 8;
@@ -102,7 +116,15 @@ static char *get_https(const char *url, ULONG max, ULONG *len)
       return NULL;
     }
   }
+  if (not_modified != NULL) *not_modified = 0;
+  hub_conn_if_none_match(conn, inm);
   status = hub_get(conn, path, mem_sink, &m, NULL, 0, err, sizeof(err));
+  strcpy(last_etag, hub_conn_etag(conn));
+  if (status == 304 && inm != NULL && not_modified != NULL) {
+    *not_modified = 1;
+    hub_free(m.data);
+    return NULL;
+  }
   if (status != 200) {
     if (status > 0) snprintf(err, sizeof(err), "HTTP %d: %s", status, url);
     hub_free(m.data);
@@ -111,6 +133,11 @@ static char *get_https(const char *url, ULONG max, ULONG *len)
   if (m.data == NULL) mem_sink(&m, (const UBYTE *)"", 0);
   if (len != NULL) *len = m.len;
   return m.data;
+}
+
+static char *get_https(const char *url, ULONG max, ULONG *len)
+{
+  return get_https_inm(url, max, len, NULL, NULL);
 }
 
 /* a URL or a file name -> memory */
@@ -133,16 +160,22 @@ static void sha_of(const void *data, ULONG len, char hex[65])
 }
 
 /* the cache file is there with this size and SHA-256 */
+/* The size and the date of the file as remembered with this SHA-256
+ * (sums.txt): not read again. Otherwise read, checked and remembered. */
 static int cached(const char *name, ULONG size, const char *sha)
 {
   ULONG len;
   char hex[65];
-  char *data = hub_read_file(name, size, &len);
+  char *data;
   int ok;
+  const char *known = hub_stamps_get(&sums, name, &len);
+  if (known != NULL && len == size && strcmp(known, sha) == 0) return 1;
+  data = hub_read_file(name, size, &len);
   if (data == NULL) return 0;
   sha_of(data, len, hex);
   ok = len == size && strcmp(hex, sha) == 0;
   hub_free(data);
+  if (ok) hub_stamps_set(&sums, name, sha);
   return ok;
 }
 
@@ -163,7 +196,67 @@ static int to_cache(const char *src, const char *name, ULONG size, const char *s
   }
   len = hub_write_file(name, data, len);
   hub_free(data);
+  if (len) hub_stamps_set(&sums, name, sha);
   return (int)len;
+}
+
+/* --- ETags of the catalogs --------------------------------------------------- */
+
+static void etags_load(HubWork *w)
+{
+  char name[300], *text, *line, *next;
+  if (etags_loaded) return;
+  etags_loaded = 1;
+  snprintf(name, sizeof(name), "%s/etags.txt", w->cache);
+  text = hub_read_file(name, 16384, NULL);
+  for (line = text; line != NULL && *line && netags < HUB_ETAGS; line = next) {
+    char *sp;
+    next = strchr(line, '\n');
+    if (next != NULL) *next++ = 0;
+    sp = strchr(line, ' ');
+    if (sp == NULL || sp - line >= (int)sizeof(etags[0].etag) ||
+        strlen(sp + 1) >= sizeof(etags[0].src)) {
+      continue;
+    }
+    memcpy(etags[netags].etag, line, sp - line);
+    etags[netags].etag[sp - line] = 0;
+    strcpy(etags[netags].src, sp + 1);
+    netags++;
+  }
+  hub_free(text);
+}
+
+static const char *etag_of(const char *src)
+{
+  int i;
+  for (i = 0; i < netags; i++) {
+    if (strcmp(etags[i].src, src) == 0) return etags[i].etag;
+  }
+  return NULL;
+}
+
+/* remembers (etag "": forgets) the ETag of src, written at once */
+static void etag_set(HubWork *w, const char *src, const char *etag)
+{
+  char name[300], buf[HUB_ETAGS * 310];
+  int i, n = 0;
+  if (strlen(src) >= sizeof(etags[0].src) || strlen(etag) >= sizeof(etags[0].etag)) return;
+  for (i = 0; i < netags; i++) {
+    if (strcmp(etags[i].src, src) == 0) break;
+  }
+  if (i == netags) {
+    if (etag[0] == 0) return;
+    if (netags == HUB_ETAGS) i = --netags;      /* the last one makes room */
+    strcpy(etags[i].src, src);
+    netags++;
+  }
+  if (strcmp(etags[i].etag, etag) == 0) return;
+  strcpy(etags[i].etag, etag);
+  for (i = 0; i < netags; i++) {
+    if (etags[i].etag[0]) n += snprintf(buf + n, sizeof(buf) - n, "%s %s\n", etags[i].etag, etags[i].src);
+  }
+  snprintf(name, sizeof(name), "%s/etags.txt", w->cache);
+  hub_write_file(name, buf, n);
 }
 
 /* --- jobs ---------------------------------------------------------------- */
@@ -189,8 +282,11 @@ static HubConn *priv_conn(HubWork *w, int with_password)
   return c;
 }
 
-/* path of the private source -> memory; NULL with priv_status and err */
-static char *get_private(HubWork *w, HubConn *c, const char *path, ULONG max, ULONG *len)
+/* path of the private source -> memory; NULL with priv_status and err.
+ * not_modified (not NULL): a 304 to the If-None-Match set on c gives NULL
+ * and *not_modified = 1 (not an error) */
+static char *get_private_inm(HubWork *w, HubConn *c, const char *path, ULONG max, ULONG *len,
+                             int *not_modified)
 {
   char p[600];
   int status;
@@ -198,6 +294,11 @@ static char *get_private(HubWork *w, HubConn *c, const char *path, ULONG max, UL
   m.max = max;
   hub_url_path(p, sizeof(p), path);
   status = hub_get(c, p, mem_sink, &m, NULL, 0, err, sizeof(err));
+  if (status == 304 && not_modified != NULL) {
+    *not_modified = 1;
+    hub_free(m.data);
+    return NULL;
+  }
   if (status == 200) {
     if (m.data == NULL) mem_sink(&m, (const UBYTE *)"", 0);
     if (len != NULL) *len = m.len;
@@ -214,6 +315,11 @@ static char *get_private(HubWork *w, HubConn *c, const char *path, ULONG max, UL
   }
   snprintf(w->priv_msg, sizeof(w->priv_msg), "%s", err);
   return NULL;
+}
+
+static char *get_private(HubWork *w, HubConn *c, const char *path, ULONG max, ULONG *len)
+{
+  return get_private_inm(w, c, path, max, len, NULL);
 }
 
 /* the same as to_cache, from the private source (path on the server) */
@@ -235,6 +341,7 @@ static int priv_to_cache(HubWork *w, HubConn *c, const char *path, const char *n
   }
   len = hub_write_file(name, data, len);
   hub_free(data);
+  if (len) hub_stamps_set(&sums, name, sha);
   return (int)len;
 }
 
@@ -261,22 +368,75 @@ static void job_probe(HubWork *w)
 
 static void job_refresh(HubWork *w)
 {
-  char *text, *copy, base[300], src[700], name[300], *ptext = NULL;
-  ULONG len, plen = 0;
+  char *text, *copy, base[300], src[700], name[300], pname[300], *ptext = NULL;
+  char pkey[200], pub_how[32], priv_how[32] = "-", pub_etag[100] = "", priv_etag[100] = "";
+  ULONG len, plen = 0, t0 = hub_ms(), t1, t2;
   HubCatalog *cat;
   HubConn *pc = NULL;
-  int i, lang, missing = 0;
+  int i, lang, missing = 0, same = 0, psame = 0;
 
-  text = get_any(w->catalog_src, 4UL << 20, &len);
+  if (!sums_loaded) {
+    snprintf(name, sizeof(name), "%s/sums.txt", w->cache);
+    hub_stamps_load(&sums, name);
+    sums_loaded = 1;
+  }
+  etags_load(w);
+  snprintf(name, sizeof(name), "%s/catalog.txt", w->cache);
+  snprintf(pname, sizeof(pname), "%s/private.txt", w->cache);
+  if (strncmp(w->catalog_src, "https://", 8) == 0) {
+    /* 304: the catalog of the cache is the one of the server */
+    const char *et = etag_of(w->catalog_src);
+    int nm = 0;
+    text = NULL;
+    if (et != NULL) {
+      text = get_https_inm(w->catalog_src, 4UL << 20, &len, et, &nm);
+      if (nm) {
+        text = hub_read_file(name, 4UL << 20, &len);
+        same = text != NULL;
+      }
+    }
+    /* no ETag yet, or 304 but the cache file is gone: the whole catalog */
+    if (text == NULL && (et == NULL || nm)) text = get_https(w->catalog_src, 4UL << 20, &len);
+    if (text != NULL && !same) strcpy(pub_etag, last_etag);
+  } else {
+    text = get_any(w->catalog_src, 4UL << 20, &len);
+  }
   if (text == NULL) {
     snprintf(w->msg, sizeof(w->msg), "%s", err);
     return;
   }
-  if (w->priv_host[0] && strlen(w->priv_pin) == 64) {
-    pc = priv_conn(w, 1);
-    if (pc != NULL) ptext = get_private(w, pc, "/catalog.txt", 4UL << 20, &plen);
-    if (ptext != NULL) w->priv_status = HUB_PRIV_OK;
+  if (same) {
+    strcpy(pub_how, "304");
+  } else {
+    snprintf(pub_how, sizeof(pub_how), "%lu B", (unsigned long)len);
   }
+  t1 = hub_ms();
+  if (w->priv_host[0] && strlen(w->priv_pin) == 64) {
+    snprintf(pkey, sizeof(pkey), "private %s:%d", w->priv_host, w->priv_port);
+    pc = priv_conn(w, 1);
+    if (pc != NULL) {
+      const char *et = etag_of(pkey);
+      hub_conn_if_none_match(pc, et);
+      ptext = get_private_inm(w, pc, "/catalog.txt", 4UL << 20, &plen, et != NULL ? &psame : NULL);
+      if (psame) {
+        ptext = hub_read_file(pname, 4UL << 20, &plen);
+        if (ptext == NULL) {
+          psame = 0;
+          ptext = get_private(w, pc, "/catalog.txt", 4UL << 20, &plen);
+        }
+      }
+      if (ptext != NULL && !psame) strcpy(priv_etag, hub_conn_etag(pc));
+    }
+    if (ptext != NULL) {
+      w->priv_status = HUB_PRIV_OK;
+      if (psame) {
+        strcpy(priv_how, "304");
+      } else {
+        snprintf(priv_how, sizeof(priv_how), "%lu B", (unsigned long)plen);
+      }
+    }
+  }
+  t2 = hub_ms();
   /* the public catalog, then the private one: its games take the place of
    * the same public ones (hub_catalog_parse) */
   copy = (char *)hub_malloc(len + plen + 2);
@@ -291,20 +451,26 @@ static void job_refresh(HubWork *w)
   if (ptext != NULL) {
     copy[len] = '\n';
     memcpy(copy + len + 1, ptext, plen + 1);
-    hub_free(ptext);
   }
+  w->cat_sum = hub_fnv(copy, ptext != NULL ? len + 1 + plen : len);
   cat = hub_catalog_parse(copy, err, sizeof(err));
   if (cat == NULL) {
     hub_free(text);
+    hub_free(ptext);
     hub_conn_free(pc);
     snprintf(w->msg, sizeof(w->msg), "%s", err);
     return;
   }
-  /* only the public catalog goes to the cache: without a login (or the
-   * network) the private games are not shown */
-  snprintf(name, sizeof(name), "%s/catalog.txt", w->cache);
-  hub_write_file(name, text, len);
+  /* the public catalog goes to catalog.txt (shown at the start); the private
+   * one to private.txt, read only after a login answered 304 - without a
+   * login (or the network) the private games are not shown. The ETag only
+   * with the file it belongs to. */
+  if (!same && hub_write_file(name, text, len) && strncmp(w->catalog_src, "https://", 8) == 0) {
+    etag_set(w, w->catalog_src, pub_etag);
+  }
   hub_free(text);
+  if (ptext != NULL && !psame && hub_write_file(pname, ptext, plen)) etag_set(w, pkey, priv_etag);
+  hub_free(ptext);
 
   base_of(w->catalog_src, base, sizeof(base));
   for (i = 0; i < cat->ngames && !hub_break; i++) {
@@ -374,6 +540,12 @@ static void job_refresh(HubWork *w)
     }
   }
   hub_conn_free(pc);
+  snprintf(name, sizeof(name), "%s/sums.txt", w->cache);
+  hub_stamps_save(&sums, name);
+  snprintf(w->timing, sizeof(w->timing),
+           "catalog %lu ms (%s), private %lu ms (%s), pictures and texts %lu ms (%d games)",
+           (unsigned long)(t1 - t0), pub_how, (unsigned long)(t2 - t1), priv_how,
+           (unsigned long)(hub_ms() - t2), cat->ngames);
   w->new_cat = cat;
   w->ok = 1;
   if (missing) {
@@ -468,7 +640,9 @@ static void net_main(void)
   HubWork *w = work;
   int net_ok;
   job_signal = AllocSignal(-1);
+  w->net_ms = hub_ms();
   net_ok = net_open(w);
+  w->net_ms = hub_ms() - w->net_ms;
   if (!net_ok) snprintf(w->net_info, sizeof(w->net_info), "%s", err);
   alive = 1;
   tell_window();
@@ -507,6 +681,8 @@ static void net_main(void)
   }
   hub_conn_free(conn);
   conn = NULL;
+  hub_stamps_free(&sums);
+  sums_loaded = 0;
   hub_https_cleanup();
   if (job_signal >= 0) FreeSignal(job_signal);
   Forbid();

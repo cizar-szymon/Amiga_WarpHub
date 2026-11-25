@@ -739,3 +739,50 @@ Settlers z okna.
 - `ask()` uses the ReAction `requester.class` (47.9 on Amiga 2) so that every question opens in the middle of the WARP HUB window; `EasyRequest` opened at the top left corner of the screen. Fallback to `EasyRequest` when the class is missing;
   a `%` in the body text is doubled (the body is a format string there).
 - Tested by the user on Amiga 2 (`RAM:WarpHub09`): works.
+
+## 0.11: faster start - remembered versions and sums, ETag (25.11.2026, request of the user)
+What the start did (0.10): cached catalog -> every game program read up to `$VER` (7.8 MB on Amiga 2:
+Diablo 3.4 MB, Red Alert 2.5 MB without `$VER`) -> refresh (whole public catalog 77 KB, whole private
+catalog 300 KB, every picture / history / guide of the cache read and SHA-256 checked) -> every
+program read for `$VER` once more. The catalog grows 7-8 KB per game (a line per file).
+- `$VER` remembered with the size and the date of the program (`WarpHub-cache/versions.txt`,
+  `HubStamps` in `hub_util.c`): read again only after a change.
+- Cache files: size + date + SHA-256 in `WarpHub-cache/sums.txt`; checked by SHA-256 only when
+  the size or the date changed (or the catalog has another SHA-256).
+- The drawers are looked at again after a refresh only when the catalog changed (FNV-1a of the
+  text, `cur_sum` / `scanned_sum`) or the user pressed Refresh (also without the network).
+- ETag: `If-None-Match` for the public catalog (GitHub answers 304) and the private one
+  (`private_server.py` sends an ETag = SHA-256 of the catalog as sent, filtered for a code);
+  ETags in `WarpHub-cache/etags.txt`, the private catalog in `WarpHub-cache/private.txt` (read only
+  after a login answered 304). `hub_https`: no body for 304 / 204 / 1xx (a 304 without
+  Content-Length waited for the server to close the connection).
+- `TIMES` (Shell / Tool Type): the times to `RAM:WarpHub-times.txt`.
+- Measured on Amiga 2 (A4000, Warp 7060), `RAM:WarpHub-test`, 10 + 4 private games:
+
+  | Step | 1st start (as 0.10) | next starts |
+  |---|---|---|
+  | drawers at the start | 860 ms, 11 programs read | 20 ms, 0 read |
+  | public catalog | 4680 ms (76270 B) | 1980-2280 ms (304) |
+  | private catalog (old server, no ETag) | 6480 ms (300556 B) | 2820-6560 ms (300556 B) |
+  | pictures and texts of the cache | 600 ms | 340-360 ms |
+  | drawers after the refresh | 960 ms | 40 ms |
+  | ready after the start | 17.4 s | 8.3-11.6 s |
+
+  Left: the TLS connection to GitHub (~2 s with 304), NTP 0.5-1.7 s, the pictures (datatypes,
+  ~1 s at the start and ~1 s after every refresh: `take_catalog` loads all again). The new
+  `private_server.py` is on the RP4 (25.11.2026, `push_private.sh <user@host> --no-www`); from the
+  PC: catalog 200 with an ETag (300556 B), the same request with If-None-Match 304 (0 B).
+  Amiga 2 with the new server (3 starts): 1st private 4960 ms (300556 B, ETag remembered), then
+  1380 / 740 ms (304); whole refresh 8.0 -> 3.8 / 3.1 s, **ready 11.4 -> 6.6 / 5.8 s after the
+  start** (0.10: ~17 s). Left: public catalog 2.1 s (TLS to GitHub, 304), pictures 2 x 1 s, NTP.
+- Pictures: `take_catalog` keeps the tile (datatype object) of a game with the same key and
+  picture SHA-256 (`Tile.sha`), only new / changed pictures are loaded. After a refresh
+  980 -> 80-100 ms; **ready 5.5 s after the start** (Amiga 2, 2 starts). The first load at the
+  start (~0.9 s, 10 pictures) stays.
+- Released as **0.11** (25.11.2026), `SYS:WarpApps/WarpHub` on Amiga 2 = the release build
+  (checked byte for byte). The window with the pictures not checked by a screenshot (`shot` of
+  AmiAgent did not finish on Amiga 2 that day); the window title showed the private source. Tests: 24 PC tests (new: ETag / 304 of the
+  private server, also for a code). Installed on Amiga 2 as `SYS:WarpApps/WarpHub` 0.11 (0.10 kept
+  as `WarpHub-0.10`).
+- Later, with many games: a small index catalog (name, version, picture, SHA-256 of the file list
+  of each game) and the file list of a game only for Install / Update.

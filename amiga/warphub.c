@@ -6,7 +6,8 @@
  * gallery of tiles and the page of the chosen game. The network runs in a
  * process of its own (hub_worker.c), so the window never waits.
  *
- * Shell / Tool Types: CATALOG=<https URL or file> LANG=pl|en|de */
+ * Shell / Tool Types: CATALOG=<https URL or file> LANG=pl|en|de
+ *   TIMES: the times of the start and of every refresh to RAM:WarpHub-times.txt */
 
 #include <exec/types.h>
 #include <dos/dos.h>
@@ -62,6 +63,7 @@
 #include <gadgets/fuelgauge.h>
 #include <reaction/reaction_macros.h>   /* RA_OpenWindow, RA_HandleInput */
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -73,7 +75,7 @@
 
 extern struct WBStartup *_WBenchMsg;
 
-#define WARPHUB_VERSION "0.10"   /* tools/make_release.py reads it */
+#define WARPHUB_VERSION "0.11"   /* tools/make_release.py reads it */
 const char version_tag[] = "$VER: WarpHub " WARPHUB_VERSION " (19.11.2026)";
 
 unsigned long __stack = 65536;
@@ -281,6 +283,7 @@ typedef struct Tile {
   Object *dt;                /* the picture (datatype), NULL = none */
   struct BitMap *bm;
   int w, h;
+  char sha[65];              /* SHA-256 of the picture it was made from */
 } Tile;
 
 static HubPrefs prefs;
@@ -380,9 +383,13 @@ static void free_tiles(void)
   tiles = NULL;
 }
 
-static void load_tiles(void)
+/* the pictures of the catalog. A game of the catalog before (old, its tiles
+ * old_tiles) with the same picture (key and SHA-256) keeps its tile: no
+ * datatype again (~90 ms a picture on Amiga 2, all of them after every
+ * refresh before 0.11). Taken tiles are cleared in old_tiles. */
+static void load_tiles(HubCatalog *old, Tile *old_tiles)
 {
-  int i;
+  int i, j;
   char name[300];
   free_tiles();
   if (cat == NULL) return;
@@ -390,8 +397,19 @@ static void load_tiles(void)
   if (tiles == NULL || scr == NULL) return;
   for (i = 0; i < cat->ngames; i++) {
     Tile *t = &tiles[i];
+    HubGame *g = &cat->games[i];
     struct BitMapHeader *bmh = NULL;
-    hub_cache_image(&work, cat->games[i].key, name, sizeof(name));
+    for (j = 0; old != NULL && old_tiles != NULL && g->image_sha != NULL && j < old->ngames; j++) {
+      if (old_tiles[j].dt != NULL && strcmp(old->games[j].key, g->key) == 0 &&
+          strcmp(old_tiles[j].sha, g->image_sha) == 0) {
+        *t = old_tiles[j];
+        memset(&old_tiles[j], 0, sizeof(Tile));
+        break;
+      }
+    }
+    if (t->dt != NULL) continue;
+    if (g->image_sha != NULL && strlen(g->image_sha) < sizeof(t->sha)) strcpy(t->sha, g->image_sha);
+    hub_cache_image(&work, g->key, name, sizeof(name));
     t->dt = NewDTObject((APTR)name, DTA_GroupID, GID_PICTURE, PDTA_Remap, TRUE,
                         PDTA_Screen, (ULONG)scr, PDTA_DestMode, PMODE_V43,
                         OBP_Precision, PRECISION_IMAGE, TAG_DONE);
@@ -858,27 +876,68 @@ static void set_filter_buttons(void)
 static void take_catalog(HubCatalog *c)
 {
   char key[32] = "";
+  HubCatalog *old = cat;
+  Tile *old_tiles = tiles;
   int i;
   if (cat != NULL && selected >= 0) strncpy(key, cat->games[selected].key, sizeof(key) - 1);
-  free_tiles();
-  hub_catalog_free(cat);
+  tiles = NULL;
   cat = c;
   selected = cat != NULL && cat->ngames > 0 ? 0 : -1;
   for (i = 0; cat != NULL && i < cat->ngames; i++) {
     if (strcmp(cat->games[i].key, key) == 0) selected = i;
   }
-  load_tiles();
+  load_tiles(old, old_tiles);
+  /* the pictures the new catalog did not take */
+  for (i = 0; old != NULL && old_tiles != NULL && i < old->ngames; i++) {
+    if (old_tiles[i].dt != NULL) DisposeDTObject(old_tiles[i].dt);
+  }
+  hub_free(old_tiles);
+  hub_catalog_free(old);
   apply_filter();
 }
+
+/* --- TIMES: how long the start and the refreshes take ----------------------- */
+
+static int times_on;
+static ULONG t_start, t_refresh;
+
+static void times_log(const char *fmt, ...)
+{
+  char line[400];
+  va_list ap;
+  BPTR fh;
+  int n;
+  if (!times_on) return;
+  n = snprintf(line, sizeof(line), "%7lu ms  ", (unsigned long)(hub_ms() - t_start));
+  va_start(ap, fmt);
+  n += vsnprintf(line + n, sizeof(line) - n, fmt, ap);
+  va_end(ap);
+  if (n > (int)sizeof(line) - 2) n = sizeof(line) - 2;
+  line[n++] = '\n';
+  fh = Open((CONST_STRPTR)"RAM:WarpHub-times.txt", MODE_READWRITE);
+  if (fh == 0) return;
+  Seek(fh, 0, OFFSET_END);
+  Write(fh, line, n);
+  Close(fh);
+}
+
+/* the catalog shown (FNV-1a of its text) and the one the drawers were last
+ * looked at with: after a refresh that brought the same catalog the drawers
+ * are not looked at again (unless the user pressed Refresh) */
+static ULONG cur_sum, scanned_sum;
+static int refresh_by_user;
 
 static void load_cached_catalog(void)
 {
   char name[300], err[160];
   char *text;
+  ULONG len;
   snprintf(name, sizeof(name), "%s/catalog.txt", CACHE_DIR);
-  text = hub_read_file(name, 4UL << 20, NULL);
+  text = hub_read_file(name, 4UL << 20, &len);
   if (text != NULL) {
-    HubCatalog *c = hub_catalog_parse(text, err, sizeof(err));
+    HubCatalog *c;
+    cur_sum = hub_fnv(text, len);
+    c = hub_catalog_parse(text, err, sizeof(err));
     if (c != NULL) take_catalog(c);
   }
 }
@@ -928,6 +987,7 @@ static void start_refresh(void)
   strncpy(work.catalog_src, prefs.catalog[0] ? prefs.catalog : CATALOG_URL,
           sizeof(work.catalog_src) - 1);
   work.job = HUB_JOB_REFRESH;
+  t_refresh = hub_ms();
   set_status(TX(T_LOADING));
   hub_worker_go(&work);
   update_buttons();
@@ -1055,6 +1115,29 @@ static void program_version(const char *file, char *out, int outlen)
   Close(fh);
 }
 
+/* $VER of a program, remembered with its size and date (versions.txt): a
+ * program that did not change is not read again (Diablo: 3.4 MB to $VER) */
+#define VERS_FILE CACHE_DIR "/versions.txt"
+static HubStamps vers;
+static int vers_loaded, ver_reads;
+
+static void program_version_known(const char *file, char *out, int outlen)
+{
+  const char *v;
+  if (!vers_loaded) {
+    hub_stamps_load(&vers, VERS_FILE);
+    vers_loaded = 1;
+  }
+  v = hub_stamps_get(&vers, file, NULL);
+  if (v != NULL) {
+    snprintf(out, outlen, "%s", strcmp(v, "-") != 0 ? v : "");
+    return;
+  }
+  program_version(file, out, outlen);
+  ver_reads++;
+  hub_stamps_set(&vers, file, out[0] ? out : "-");
+}
+
 /* the games of the catalog found in the games drawer: <dir>/<Game>/<program>.
  * A game has one or more programs (a file of the drawer whose icon is a
  * player's file); the version is the $VER of the largest program that has
@@ -1099,7 +1182,7 @@ static int scan_games_dir(const char *dir, int save, int only_new)
       if (lock == 0) continue;
       UnLock(lock);
       here = 1;
-      program_version(name, ver, sizeof(ver));
+      program_version_known(name, ver, sizeof(ver));
       if (ver[0] && g->files[j].size >= best_size) {
         strcpy(best, ver);
         best_size = g->files[j].size;
@@ -1116,6 +1199,7 @@ static int scan_games_dir(const char *dir, int save, int only_new)
     }
   }
   if (save) hub_prefs_save(&prefs, PREFS_FILE);
+  hub_stamps_save(&vers, VERS_FILE);
   return found;
 }
 
@@ -1147,8 +1231,11 @@ static void rescan_games(int at_start)
 {
   char dirs[HUB_MAX_INSTALLED + 2][256];
   int ndirs = 0, i, k;
+  ULONG t0 = hub_ms();
   if (cat == NULL || (at_start && games_scanned)) return;
   games_scanned = 1;
+  scanned_sum = cur_sum;
+  ver_reads = 0;
   for (i = -2; i < prefs.ninst; i++) {
     const char *d = i == -2 ? prefs.gamesdir : i == -1 ? prefs.appsdir : prefs.inst[i].dir;
     for (k = 0; k < ndirs; k++) {
@@ -1164,6 +1251,9 @@ static void rescan_games(int at_start)
   for (k = 0; k < ndirs; k++) scan_games_dir(dirs[k], 0, 0);
   hub_prefs_save(&prefs, PREFS_FILE);
   set_status("");
+  times_log("drawers looked at (%s): %d drawers, %lu ms, %d programs read for $VER",
+            at_start ? "start" : "after the refresh", ndirs,
+            (unsigned long)(hub_ms() - t0), ver_reads);
 }
 
 /* Run: the main program of the installed game (the largest program of its
@@ -1975,20 +2065,38 @@ static void worker_news(void)
     return;
   }
   if (work.finished == HUB_JOB_REFRESH) {
+    static int first_refresh = 1;
+    int by_user = refresh_by_user;
+    refresh_by_user = 0;
     work.finished = 0;
+    if (first_refresh) times_log("network start (AmiSSL, NTP): %lu ms", (unsigned long)work.net_ms);
     if (work.new_cat != NULL) {
+      ULONG t0;
+      times_log("refresh %lu ms: %s", (unsigned long)(hub_ms() - t_refresh), work.timing);
+      t0 = hub_ms();
       take_catalog(work.new_cat);
       work.new_cat = NULL;
-      rescan_games(0);          /* all drawers again: new, deleted, updated games */
+      times_log("catalog taken (pictures): %lu ms", (unsigned long)(hub_ms() - t0));
+      cur_sum = work.cat_sum;
+      /* all drawers again (new, deleted, updated games) when the catalog is
+       * another one or the user pressed Refresh */
+      if (by_user || cur_sum != scanned_sum) {
+        rescan_games(0);
+      } else {
+        times_log("drawers not looked at again: the same catalog");
+      }
       ready_status(work.msg[0] ? work.msg : NULL);
       private_result();
     } else {
+      times_log("refresh %lu ms: failed (%s)", (unsigned long)(hub_ms() - t_refresh), work.msg);
       snprintf(a, sizeof(a), TX(T_CACHE_ONLY), work.msg);
       if (cat == NULL) snprintf(a, sizeof(a), TX(T_NO_NET), work.msg);
-      rescan_games(0);          /* the drawers also without the network */
+      if (by_user) rescan_games(0);          /* the drawers also without the network */
       set_status(a);
       set_progress(0, 0);
     }
+    if (first_refresh) times_log("ready");
+    first_refresh = 0;
     refresh_all();
     if (clean_after_refresh) {
       clean_after_refresh = 0;
@@ -2331,19 +2439,23 @@ static void read_options(void)
       if ((v = FindToolType((CONST_STRPTR *)dobj->do_ToolTypes, (CONST_STRPTR)"LANG")) != NULL) {
         strncpy(prefs.language, (char *)v, sizeof(prefs.language) - 1);
       }
+      if (FindToolType((CONST_STRPTR *)dobj->do_ToolTypes, (CONST_STRPTR)"TIMES") != NULL) {
+        times_on = 1;
+      }
       FreeDiskObject(dobj);
     }
     CurrentDir(old);
   } else {
-    LONG args[5] = {0, 0, 0, 0, 0};
+    LONG args[6] = {0, 0, 0, 0, 0, 0};
     struct RDArgs *rd = ReadArgs((CONST_STRPTR)"CATALOG/K,LANG/K,TESTINSTALL/K,TESTTO/K,"
-                                 "TESTGAMESDIR/K", args, NULL);
+                                 "TESTGAMESDIR/K,TIMES/S", args, NULL);
     if (rd != NULL) {
       if (args[0]) strncpy(prefs.catalog, (char *)args[0], sizeof(prefs.catalog) - 1);
       if (args[1]) strncpy(prefs.language, (char *)args[1], sizeof(prefs.language) - 1);
       if (args[2]) strncpy(test_key, (char *)args[2], sizeof(test_key) - 1);
       if (args[3]) strncpy(test_dir, (char *)args[3], sizeof(test_dir) - 1);
       if (args[4]) strncpy(test_gamesdir, (char *)args[4], sizeof(test_gamesdir) - 1);
+      if (args[5]) times_on = 1;
       FreeArgs(rd);
     }
   }
@@ -2369,6 +2481,7 @@ int main(void)
   ULONG win_sig = 0, work_mask, sigs;
   int done = 0, i;
 
+  t_start = hub_ms();
   for (i = 0; i < P_COUNT; i++) pens[i] = -1;
   NewList(&notes_list);
   NewList(&lang_list);
@@ -2393,7 +2506,9 @@ int main(void)
     TILE_H = 90;
   }
   get_pens();
+  times_log("WARP HUB %s, start", WARPHUB_VERSION);
   load_cached_catalog();
+  times_log("cached catalog read (%d games)", cat != NULL ? cat->ngames : 0);
   win_obj = make_window();
   if (win_obj == NULL) {
     say_error("window object not made");
@@ -2487,7 +2602,10 @@ int main(void)
           case WMHI_GADGETUP:
             switch (result & WMHI_GADGETMASK) {
               case GID_REFRESH:
-                if (!work.busy) clean_after_refresh = 1;
+                if (!work.busy) {
+                  clean_after_refresh = 1;
+                  refresh_by_user = 1;
+                }
                 start_refresh();
                 break;
               case GID_GAMESDIR: choose_games_dir(0); break;
@@ -2555,6 +2673,7 @@ out:
     UnlockPubScreen(NULL, scr);
   }
   FreeListBrowserList(&notes_list);
+  hub_stamps_free(&vers);
   {
     struct Node *n;
     while ((n = RemHead(&lang_list)) != NULL) FreeChooserNode(n);

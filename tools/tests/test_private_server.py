@@ -94,7 +94,7 @@ class PrivateServerTest(unittest.TestCase):
         out = cls.cli('code', name, *args)
         return out.split('code:')[1].split()[0]
 
-    def get(self, path, password):
+    def get(self, path, password, etag=None, want_etag=False):
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
@@ -102,11 +102,30 @@ class PrivateServerTest(unittest.TestCase):
         if password is not None:
             req.add_header('Authorization',
                            'Basic ' + base64.b64encode(('x:' + password).encode()).decode())
+        if etag is not None:
+            req.add_header('If-None-Match', etag)
         try:
             with urllib.request.urlopen(req, context=ctx, timeout=10) as r:
-                return r.status, r.read().decode()
+                out = r.status, r.read().decode()
+                return out + (r.headers.get('ETag'),) if want_etag else out
         except urllib.error.HTTPError as e:
-            return e.code, e.read().decode()
+            out = e.code, e.read().decode()
+            return out + (e.headers.get('ETag'),) if want_etag else out
+
+    def test_catalog_etag_304(self):
+        status, text, etag = self.get('/catalog.txt', 'main-password-1', want_etag=True)
+        self.assertEqual(status, 200)
+        self.assertTrue(etag and etag.startswith('"'))
+        self.assertEqual(self.get('/catalog.txt', 'main-password-1', etag), (304, ''))
+        self.assertEqual(self.get('/catalog.txt', 'main-password-1', '"other"')[0], 200)
+        # a code for one game: its own catalog, another ETag
+        status, text, etag2 = self.get('/catalog.txt', self.code_alpha, want_etag=True)
+        self.assertEqual(status, 200)
+        self.assertNotEqual(etag, etag2)
+        self.assertEqual(self.get('/catalog.txt', self.code_alpha, etag)[0], 200)
+        self.assertEqual(self.get('/catalog.txt', self.code_alpha, etag2)[0], 304)
+        # no password: 401 even with the right ETag
+        self.assertEqual(self.get('/catalog.txt', None, etag)[0], 401)
 
     def test_main_password_everything(self):
         status, text = self.get('/catalog.txt', 'main-password-1')

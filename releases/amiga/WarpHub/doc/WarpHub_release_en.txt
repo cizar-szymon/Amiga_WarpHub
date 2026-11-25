@@ -1,11 +1,22 @@
 WARP HUB - releases
 ===================
 
-Reporting bugs: the release number is in the screen title ("WARP HUB 0.10")
+Reporting bugs: the release number is in the screen title ("WARP HUB 0.11")
 and in the Shell: Version SYS:WarpApps/WarpHub. Describe what
 happened and give the release number:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.11 (25.11.2026, beta release)
+-------------------------------
+- Faster start: WARP HUB remembers the versions of the installed games and
+  reads a game program again only when the file has changed. The catalog of
+  the games (public and private) is downloaded only when it has changed; the
+  pictures and texts in WarpHub-cache are checked by size and date, and the
+  pictures of the window are loaded again only for new games or games with a
+  new picture.
+- Option TIMES (Tool Type of the icon or in the Shell: WarpHub TIMES) writes
+  the times of the start and of every refresh to RAM:WarpHub-times.txt.
 
 0.10 (24.11.2026, beta release)
 -------------------------------
