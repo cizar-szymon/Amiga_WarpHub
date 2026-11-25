@@ -952,3 +952,56 @@ DashWidgets drawing, helvetica, WARP logo) as `csWarpAmigaSoftware/WarpNetMonito
 to WarpDashboard). Removed here: `amiga/netmon.c`, its Makefile target, its icon. The network
 code it uses (`hub_https`, `hub_time`, `hub_util`, `hub_wait_hook`) stays in WarpHub; WarpNetTest
 stays here.
+
+## WarpNetTest 0.4: stack, ping, certificates, ports, TLS (25.11.2026)
+New parts (the old ones kept; sections 1-7, RESULT):
+- **Stack and router** (section 1): the release string of bsdsocket (`SBTC_RELEASESTRPTR`).
+  warpSOCKET (the WiFi module of the Warp, stack mode): the state of the module through
+  `cswarp.library` `netCtl(CSWNET_INFO)` (LVO -618, only for 30.65+, version-1 info block
+  laid out by hand: link, address, gateway) - warpsocket.library has no `GetRouteInfo` /
+  `QueryInterfaceTagList` (ENOSYS). Roadshow: `GetRouteInfo(AF_INET, RTF_GATEWAY)` (the
+  route to 0.0.0.0), the interfaces with device / address / MTU (`ObtainInterfaceList`,
+  `QueryInterfaceTags`; a `warpnet` device = the WiFi of the Warp in bridge mode). Option
+  `ROUTER=<address>` (Tool Type / Shell) when the gateway is not known.
+- **Ping** (section 2): own ICMP echo through `socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)`
+  (written here, not taken from `wping`, which is GPLv3): 20 requests every 100 ms, then at
+  most 1 s for the last replies; 56 B and 1400 B (warpSOCKET takes at most 1468) to the
+  router and to 1.1.1.1. The reply may start with the IP header (skipped by its length);
+  id / sequence / data checked, ICMP unreachable / time exceeded counted. Times from the
+  E-Clock (`timer.device` UNIT_ECLOCK, tenths of a ms, no 64-bit). Rows: loss %,
+  min/avg/max, jitter (average change between consecutive replies). RESULT: Amiga-router
+  loses >= 10% -> WiFi / cable / router (try another router, a phone hotspot, channel,
+  cable); big lost and small not -> MTU (mtu=1400); router fine and the internet loses ->
+  behind the router / the provider; router silent but 1.1.1.1 answers -> "the router does
+  not answer pings" (not judged); no raw socket -> said in the result, not an error.
+- **Certificates** (section 5): `badssl.com` must connect; `expired.`, `self-signed.`,
+  `wrong.host.badssl.com` must be refused ("Certificate of ... refused" of hub_https);
+  a bad one taken -> `[BLAD] AmiSSL nie sprawdza certyfikatow` + hint (date, AmiSSL,
+  WarpSSL); another error -> "not checked". `www.howsmyssl.com/a/check`: TLS version and
+  rating (a row; "Bad" -> SLOW).
+- **Ports** (section 6): TCP connect to portquiz.net (listens on every port) 80, 443, 6831
+  (and the port of PRIVATE when another), 5 s each: "port 6831 blocked in your network -
+  the private source cannot work from here"; private server unreachable but its port open
+  -> "the server does not answer".
+- RESULT lines wrap at 70 characters (the CON window has 78 columns).
+`hub_https` / WARP HUB unchanged. No 64-bit mul/div (`find64.sh`: 0). 62 KB.
+Tested on **Amiga 1** (A1200, Warp 1260, **warpSOCKET 30.75**, WiFi of the Warp, stack
+mode; WARP NetMonitor was running at the same time): from the Shell 18 s, router
+4.3/10.5/20.0 ms 0%, 1400 B 0%, 1.1.1.1 0%, the three bad certificates refused, TLS 1.3
+"Probably Okay", ports 80/443/6831 open, "Wszystko w porzadku"; `ROUTER=<an unused LAN address>`
+(nobody there) -> router 100% lost, internet fine -> "Router nie odpowiada na ping ..."
+(INFO); from the icon (WBStart, LANGUAGE en in PROGDIR:WarpHub.prefs) 16 s, Return closed
+the window; Ctrl-C during the ping -> "Stopped (Ctrl-C)" in 3 s.
+Not tested: Roadshow (GetRouteInfo, interface list, raw socket under Roadshow) - Amiga 2
+was not reachable from the PC that evening; a line that really loses packets (the
+verdicts for losses / MTU are code paths only); a stack without raw sockets.
+Package `build/WarpNetTest.zip` (program 755, icon, ReadMe.txt, not in git).
+
+## Private server: POST /upload for WARP NetMonitor (25.11.2026)
+`private_server.py do_POST`: `/upload` only, with a valid password or code (any); the body is
+read in 64 KB pieces and dropped, the answer is the number of bytes; at most `UPLOAD_MAX` 64 MB a
+request (411 without Content-Length, 413 larger), at most `UPLOAD_PARALLEL` 3 uploads at the same
+time (more: 503 "busy, try later" at once - the RP4 serves games first, user's wish); log "upload
+<ip> [code]" once per login. Load: the Amiga sends ~1 MB/s, the RP4 decrypts and drops it.
+Tests: 27 (upload with the main password and a code, 401 without, 404 on another path, 503 at the
+limit). On the RP4 since 22:28 (`push_private.sh --no-www`); from the PC 4 MB in 0.56 s.

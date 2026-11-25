@@ -53,6 +53,10 @@ ITERATIONS = 200000
 MAX_BAD = 5
 BLOCK_S = 15 * 60
 CHUNK = 64 * 1024
+# POST /upload (WARP NetMonitor: the upload speed to the private source): the
+# body is read and thrown away; only with a password, at most this much a request
+UPLOAD_MAX = 64 * 1024 * 1024
+UPLOAD_PARALLEL = 3          # uploads at the same time; more: 503 at once
 
 
 def default_root():
@@ -279,6 +283,7 @@ class State:
         self.codes_salt = ''
         self.codes_mtime = None
         self.seen = set()        # (who, ip, game) already in the log
+        self.uploads = 0         # POST /upload in progress
 
     def log(self, text):
         line = '%s %s' % (time.strftime('%Y-%m-%d %H:%M:%S'), text)
@@ -437,6 +442,56 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if len(parts) == 2 and parts[0] == 'images':
             return os.path.splitext(parts[1])[0]
         return None
+
+    def do_POST(self):
+        """POST /upload: the speed of sending from the Amiga. The body is read
+        and dropped; the answer is the number of bytes. Only with a valid
+        password or code (any), at most UPLOAD_MAX a request."""
+        if self.path.split('?', 1)[0] != '/upload':
+            self.close_connection = True
+            self.reply(404, b'not found\n')
+            return
+        if not self.authorized():
+            self.close_connection = True       # the body is not read
+            return
+        try:
+            n = int(self.headers.get('Content-Length', '-1'))
+        except ValueError:
+            n = -1
+        if n < 0 or n > UPLOAD_MAX:
+            self.close_connection = True
+            self.reply(411 if n < 0 else 413, b'length needed\n' if n < 0 else b'too large\n')
+            return
+        st = self.state
+        with st.lock:
+            busy = st.uploads >= UPLOAD_PARALLEL
+            if not busy:
+                st.uploads += 1
+        if busy:
+            # a few test connections at most: the RP4 serves games first
+            self.close_connection = True
+            self.reply(503, b'busy, try later\n')
+            return
+        try:
+            left = n
+            while left > 0:
+                block = self.rfile.read(min(CHUNK, left))
+                if not block:
+                    break
+                left -= len(block)
+        finally:
+            with st.lock:
+                st.uploads -= 1
+        if left:
+            self.close_connection = True
+            return
+        key = (self.grant['who'], self.client_address[0], 'upload')
+        with st.lock:
+            new = key not in st.seen
+            st.seen.add(key)
+        if new:
+            st.log('upload %s%s' % (key[1], '' if key[0] == 'main' else ' ' + key[0]))
+        self.reply(200, ('%d\n' % n).encode())
 
     def do_GET(self):
         if not self.authorized():

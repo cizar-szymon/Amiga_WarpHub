@@ -112,6 +112,40 @@ class PrivateServerTest(unittest.TestCase):
             out = e.code, e.read().decode()
             return out + (e.headers.get('ETag'),) if want_etag else out
 
+    def post(self, path, password, data, length=None):
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        req = urllib.request.Request('https://127.0.0.1:%d%s' % (self.port, path), data=data, method='POST')
+        if password is not None:
+            req.add_header('Authorization',
+                           'Basic ' + base64.b64encode(('x:' + password).encode()).decode())
+        if length is not None:
+            req.add_header('Content-Length', str(length))
+        try:
+            with urllib.request.urlopen(req, context=ctx, timeout=10) as r:
+                return r.status, r.read().decode()
+        except urllib.error.HTTPError as e:
+            return e.code, e.read().decode()
+
+    def test_upload(self):
+        data = bytes(1024 * 1024)
+        self.assertEqual(self.post('/upload', 'main-password-1', data), (200, '1048576\n'))
+        self.assertEqual(self.post('/upload', self.code_alpha, b'abc')[0], 200)   # any code
+        self.assertEqual(self.post('/upload', None, b'abc')[0], 401)
+        self.assertEqual(self.post('/catalog.txt', 'main-password-1', b'abc')[0], 404)
+
+    def test_upload_limit(self):
+        st = ps.Handler.state
+        with st.lock:
+            st.uploads = ps.UPLOAD_PARALLEL          # as if 3 were running
+        try:
+            self.assertEqual(self.post('/upload', 'main-password-1', b'abc')[0], 503)
+        finally:
+            with st.lock:
+                st.uploads = 0
+        self.assertEqual(self.post('/upload', 'main-password-1', b'abc')[0], 200)
+
     def test_catalog_etag_304(self):
         status, text, etag = self.get('/catalog.txt', 'main-password-1', want_etag=True)
         self.assertEqual(status, 200)
