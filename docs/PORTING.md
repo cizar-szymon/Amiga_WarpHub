@@ -781,7 +781,8 @@ program read for `$VER` once more. The catalog grows 7-8 KB per game (a line per
   start (~0.9 s, 10 pictures) stays.
 - Released as **0.11** (25.11.2026), `SYS:WarpApps/WarpHub` on Amiga 2 = the release build
   (checked byte for byte). The window with the pictures not checked by a screenshot (`shot` of
-  AmiAgent did not finish on Amiga 2 that day); the window title showed the private source. Tests: 24 PC tests (new: ETag / 304 of the
+  AmiAgent did not finish on Amiga 2 that day); the window title showed the private source.
+  Checked by the user on Amiga 2 (25.11.2026): the pictures look right. Tests: 24 PC tests (new: ETag / 304 of the
   private server, also for a code). Installed on Amiga 2 as `SYS:WarpApps/WarpHub` 0.11 (0.10 kept
   as `WarpHub-0.10`).
 - Later, with many games: a small index catalog (name, version, picture, SHA-256 of the file list
