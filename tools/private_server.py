@@ -57,6 +57,9 @@ CHUNK = 64 * 1024
 # body is read and thrown away; only with a password, at most this much a request
 UPLOAD_MAX = 64 * 1024 * 1024
 UPLOAD_PARALLEL = 3          # uploads at the same time; more: 503 at once
+# run: called with (root, ssl context, State) after the start - a wrapper
+# script on the server may add services of its own here
+ON_START = []
 
 
 def default_root():
@@ -568,6 +571,11 @@ def cmd_run(args):
                                    do_handshake_on_connect=False)
     Handler.state.log('start, port %d, certificate %s' % (
         port, show_fingerprint(fingerprint(os.path.join(args.root, 'cert.pem')))))
+    for fn in ON_START:
+        try:
+            fn(args.root, ctx, Handler.state)
+        except Exception as e:                       # noqa: BLE001 - the games go on
+            Handler.state.log('start hook failed: %s' % e)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

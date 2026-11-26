@@ -46,7 +46,12 @@ fi
 
 echo "== files of the server"
 $SSH "$HOST" "mkdir -p $DIR && chmod 700 $DIR"
-tar -C "$HERE/tools" -cf - private_server.py | $SSH "$HOST" "tar -C $DIR -xf -"
+tar -C "$HERE/tools" -cf - private_server.py game_files.py | $SSH "$HOST" "tar -C $DIR -xf -"
+# extra files of the server kept outside the repo (<root>/server/), if any;
+# run.sh starts <root>/server/run.py instead of private_server.py when it is there
+if [ -d "$ROOT/server" ]; then
+    tar -C "$ROOT/server" --exclude=__pycache__ -cf - . | $SSH "$HOST" "tar -C $DIR -xf -"
+fi
 CODES=
 [ -f "$ROOT/codes.json" ] && CODES=codes.json
 tar -C "$ROOT" -cf - cert.pem key.pem server.cfg $CODES | $SSH "$HOST" "tar -C $DIR -xf - && chmod 600 $DIR/key.pem $DIR/server.cfg"
@@ -70,7 +75,8 @@ cat > run.sh <<'RUN'
 # WARP HUB private source: keeps the server running (started by cron @reboot)
 cd "$(dirname "$0")"
 while :; do
-    python3 private_server.py run --root . >>server.out 2>&1
+    if [ -f run.py ]; then S=run.py; else S=private_server.py; fi
+    python3 $S run --root . >>server.out 2>&1
     sleep 10
 done
 RUN

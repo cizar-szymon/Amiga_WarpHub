@@ -50,6 +50,10 @@ class PrivateServerTest(unittest.TestCase):
             os.makedirs(os.path.dirname(path))
             with open(path, 'w') as f:
                 f.write(key)
+        # a drawer next to www/: never served
+        os.makedirs(os.path.join(cls.root, 'other'))
+        with open(os.path.join(cls.root, 'other', 'secret.txt'), 'w') as f:
+            f.write('NAME en Secret')
         with open(os.path.join(www, 'files', 'beta', 'Beta', 'map030.b&b'), 'w') as f:
             f.write('map')                          # '&' in a name (Syndicate Wars)
         os.makedirs(os.path.join(www, 'images'))
@@ -169,6 +173,12 @@ class PrivateServerTest(unittest.TestCase):
         self.assertIn('GAME alpha', text)
         self.assertIn('GAME beta', text)
         self.assertEqual(self.get('/files/beta/Beta/b.txt', 'main-password-1'), (200, 'beta'))
+
+    def test_outside_www_never_served(self):
+        for path in ('/other/secret.txt', '/../other/secret.txt', '/%2e%2e/other/secret.txt',
+                     '/files/beta/..%2f..%2f..%2fother/secret.txt', '/images/..%2f..%2fother%2fsecret.txt',
+                     '/files/..%5c..%5cother/secret.txt', '/../server.cfg', '/..%2fserver.cfg'):
+            self.assertNotEqual(self.get(path, 'main-password-1')[0], 200, path)
 
     def test_ampersand_in_a_name(self):
         # WARP HUB sends '&' as %26 (hub_url_path)

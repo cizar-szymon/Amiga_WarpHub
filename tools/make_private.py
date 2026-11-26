@@ -13,9 +13,11 @@ writes <root>/www/catalog.txt in the format of the public catalog with
     https://<server>/files/<key>/<path>
 
 after logging in. Names, descriptions, groups and requirements are those of
-the public catalog; the drawer icon (<Root>.info), which the full ZIPs do not
-have, comes from releases/amiga/ of the project. The picture is the one of
-catalog/images/.
+catalog/games, or of <root>/games when that drawer is there (extra
+descriptions; the same key: the one of <root>/games wins); the drawer icon (<Root>.info), which the full ZIPs do not have,
+comes from releases/amiga/ of the project. The picture: <root>/images, then
+catalog/images/. Without --only, files and pictures of games no longer in the
+catalog are removed from www/.
 
 The private root never goes into a repo: it holds the data of the games.
 """
@@ -100,7 +102,7 @@ def unpack(zip_path, dest, extra, log):
 
 
 def build(game, projects, www, log):
-    local = os.path.join(projects, *game['local'].split('/'))
+    local = game['local'] if os.path.isabs(game['local']) else os.path.join(projects, *game['local'].split('/'))
     pdir = os.path.join(local, 'private')
     # two games in one project (C&C): the full ZIP whose name is the key of the game
     found = ((game.get('fullname') and newest_full(pdir, game['fullname']))
@@ -142,6 +144,29 @@ def build(game, projects, www, log):
             'tags': game.get('tags', []), 'req': game.get('req', {})}
 
 
+def all_games(public_dir, extra_dir):
+    """The games of catalog/games and of extra_dir (when it is there); the same
+    key: the one of extra_dir wins. In gallery order."""
+    games = {g['key']: g for g in game_files.load_games(public_dir)}
+    if os.path.isdir(extra_dir):
+        for g in game_files.load_games(extra_dir):
+            games[g['key']] = g
+    return sorted(games.values(), key=lambda g: (g['order'], g['key']))
+
+
+def drop_old(www, keys, log):
+    """files/<key>/ and images/<key>.png of games no longer in the catalog."""
+    files = os.path.join(www, 'files')
+    for k in sorted(os.listdir(files)) if os.path.isdir(files) else []:
+        if k not in keys and os.path.isdir(os.path.join(files, k)):
+            shutil.rmtree(os.path.join(files, k))
+            log('%s: no longer in the catalog - files removed' % k)
+    images = os.path.join(www, 'images')
+    for n in sorted(os.listdir(images)) if os.path.isdir(images) else []:
+        if n.endswith('.png') and n[:-4] not in keys:
+            os.remove(os.path.join(images, n))
+
+
 def main(argv=None):
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     projects = paths.GAMES
@@ -154,7 +179,7 @@ def main(argv=None):
     os.makedirs(www, exist_ok=True)
     only = set(args.only.split(',')) if args.only else None
     games = []
-    for game in game_files.load_games(args.games):
+    for game in all_games(args.games, os.path.join(args.root, 'games')):
         if not game.get('local') or (only and game['key'] not in only):
             continue
         g = build(game, projects, www, print)
@@ -162,12 +187,16 @@ def main(argv=None):
             continue
         if game.get('flat'):
             make_catalog.apply_flat(g)          # WARP HUB itself: a file in SYS:WarpApps
-        img = os.path.join(here, 'catalog', 'images', game['key'] + '.png')
+        img = os.path.join(args.root, 'images', game['key'] + '.png')
+        if not os.path.exists(img):
+            img = os.path.join(here, 'catalog', 'images', game['key'] + '.png')
         if os.path.exists(img):
             os.makedirs(os.path.join(www, 'images'), exist_ok=True)
             shutil.copyfile(img, os.path.join(www, 'images', game['key'] + '.png'))
             g['image'] = make_catalog.image_of(www, game['key'])
         games.append(g)
+    if only is None:
+        drop_old(www, {g['key'] for g in games}, print)
     text = make_catalog.write_catalog(games).replace(
         '# made by tools/make_catalog.py from catalog/games/ (do not edit)',
         '# private: made by tools/make_private.py (do not edit, never in a repo)')
