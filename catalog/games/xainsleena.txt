@@ -3,7 +3,7 @@ NAME en Xain'd Sleena
 DESC en The 1986 Technos arcade game: on foot on the planets, in flight between them.
 DESC pl Gra z automatu Technosu z 1986 roku: na piechotę na planetach, w locie między nimi.
 DESC de Das Technos-Arcadespiel von 1986: zu Fuß auf den Planeten, im Flug dazwischen.
-TAGS warp1260,warp1240,warp1260x,warp7060,other
+TAGS warp,other
 REQ en 4 MB Fast RAM
 REQ en AmigaOS 3.1+, RTG
 REQ pl 4 MB Fast RAM

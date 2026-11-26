@@ -3,7 +3,7 @@ NAME en WARP NetMonitor
 DESC en How fast and steady the internet line of the Amiga is: download and upload charts (GitHub, Cloudflare, Hetzner, the WARP HUB private source), ping to the router and the internet, a plain-words result. In the style of WarpDashboard.
 DESC pl Jak szybkie i stabilne jest lacze Amigi: wykresy pobierania i wysylania (GitHub, Cloudflare, Hetzner, prywatne zrodlo WARP HUB), ping do routera i internetu, wynik prostymi slowami. W stylu WarpDashboard.
 DESC de Wie schnell und stabil die Internetleitung des Amiga ist: Download- und Upload-Diagramme (GitHub, Cloudflare, Hetzner, die private Quelle von WARP HUB), Ping zum Router und ins Internet, ein Ergebnis in klaren Worten. Im Stil von WarpDashboard.
-TAGS apps,warp1260,warp1240,warp1260x,warp7060
+TAGS apps,warp
 REQ en Warp card (68040 / 68060)
 REQ en AmigaOS 3.2, RTG 15/16-bit or more
 REQ en AmiSSL 5 (WarpSSL)

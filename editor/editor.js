@@ -13,11 +13,16 @@ const GAMES = 'catalog/games';
 const IMAGES = 'catalog/images';
 const API = 'https://api.github.com';
 const LANGS = ['en', 'pl', 'de'];
+/* the groups (tools/game_files.py); they may overlap */
 const TAGS = [
-  ['apps', 'Programy'], ['warp1260', 'Warp 560/1260'], ['warp1240', 'Warp 1240'],
-  ['warp1260x', 'Warp 1260X'], ['warp7060', 'Warp 7060'], ['ppc', 'PowerPC'],
-  ['other', 'Inne'],
+  ['warp', 'WARP', 'działa natywnie na kartach Warp (68040 / 68060)'],
+  ['warp_arm', 'WARP_ARM', 'korzysta z procesora ARM Warp 1260X / 7060 (dużo pamięci)'],
+  ['ppc', 'PPC', 'PowerPC'],
+  ['other', 'INNE', 'przycisk Inne'],
+  ['apps', 'PROGRAMY', 'program, nie gra'],
 ];
+/* the card groups before WARP HUB 0.16: read as warp */
+const LEGACY_WARP = ['warp1260', 'warp1240', 'warp1260x', 'warp7060'];
 const KEY_OK = /^[a-z0-9][a-z0-9_-]{0,30}$/;
 const REPO_OK = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const W = 224, H = 140;
@@ -94,7 +99,10 @@ function parse(key, text) {
       if (word === 'REQ') (g.req[lang] = g.req[lang] || []).push(value);
       else g[word.toLowerCase()][lang] = value;
     } else if (word === 'TAGS') {
-      g.tags = rest.split(/[,\s]+/).filter(Boolean);
+      for (let t of rest.split(/[,\s]+/).filter(Boolean)) {
+        if (LEGACY_WARP.includes(t)) t = 'warp';
+        if (!g.tags.includes(t)) g.tags.push(t);
+      }
     } else if (word === 'REPO') {
       g.repo = rest;
     } else if (word === 'BRANCH') {
@@ -481,11 +489,12 @@ async function checkRepo() {
 
 function init() {
   const box = $('tags');
-  for (const [t, label] of TAGS) {
+  for (const [t, label, hint] of TAGS) {
     const l = document.createElement('label');
     const c = document.createElement('input');
     c.type = 'checkbox';
     c.id = 'tag_' + t;
+    l.title = hint;
     l.append(c, ' ' + label);
     box.appendChild(l);
   }

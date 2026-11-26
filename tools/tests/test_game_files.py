@@ -51,6 +51,24 @@ class GameFiles(unittest.TestCase):
         with self.assertRaises(ValueError):
             G.parse('x', 'NAME en X\nCOLOUR red\n')
 
+    def test_old_card_groups_read_as_warp(self):
+        g = G.parse('x', 'NAME en X\nTAGS apps,warp1260,warp1240,warp1260x,warp7060,ppc\n')
+        self.assertEqual(g['tags'], ['apps', 'warp', 'ppc'])
+        g = G.parse('x', 'NAME en X\nTAGS warp,warp_arm,warp7060\n')
+        self.assertEqual(g['tags'], ['warp', 'warp_arm'])
+
+    def test_catalog_tags_keep_old_buttons(self):
+        self.assertEqual(G.catalog_tags(['apps', 'warp', 'warp_arm']),
+                         ['apps', 'warp', 'warp_arm', 'warp1260', 'warp1240', 'warp1260x', 'warp7060'])
+        self.assertEqual(G.catalog_tags(['warp_arm', 'ppc']), ['warp_arm', 'ppc'])
+        self.assertEqual(G.catalog_tags([]), [])
+
+    def test_catalog_files_use_new_tags(self):
+        here = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        for g in G.load_games(os.path.join(here, 'catalog', 'games')):
+            for t in g['tags']:
+                self.assertIn(t, G.TAGS, g['key'])
+
     def test_load_games_order_and_bad_name(self):
         with tempfile.TemporaryDirectory() as d:
             for key, order in (('b', 20), ('a', 30), ('c', 10)):

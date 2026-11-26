@@ -163,6 +163,12 @@ class TestCatalog(unittest.TestCase):
             hashlib.sha256(GAME_FILES['Game/Game']).hexdigest()), lines)
         self.assertEqual(lines[-1], 'END')
 
+    def test_tags_with_old_card_groups(self):
+        g, _ = self.build(repo_with(GAME_FILES))
+        g['tags'] = ['warp', 'other']
+        lines = M.write_catalog([g]).splitlines()
+        self.assertIn('TAGS warp,other,warp1260,warp1240,warp1260x,warp7060', lines)
+
 
 
 OLD_SHA = 'a' * 40

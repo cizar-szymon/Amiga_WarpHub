@@ -3,7 +3,7 @@ NAME en AmiXcom (UFO: Enemy Unknown)
 DESC en UFO: Enemy Unknown on the OpenXcom engine: the Geoscape, the base and turn-based battles, made for Warp cards.
 DESC pl UFO: Enemy Unknown na silniku OpenXcom: Geoskop, baza i bitwy turowe, przygotowane dla kart Warp.
 DESC de UFO: Enemy Unknown mit der OpenXcom-Engine: Geoscape, Basis und Rundenkämpfe, für Warp-Karten gemacht.
-TAGS warp1260,warp1240,warp7060
+TAGS warp
 REQ en 68040 / 68060 (FPU)
 REQ en 100 MHz recommended
 REQ en 64 MB Fast RAM

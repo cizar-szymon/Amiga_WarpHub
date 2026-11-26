@@ -7,6 +7,7 @@
  * process of its own (hub_worker.c), so the window never waits.
  *
  * Shell / Tool Types: CATALOG=<https URL or file> LANG=pl|en|de
+ *   TESTCARD=<name>: as if this Warp card were here ("Warp 1260", "Warp 7060", NONE)
  *   TIMES: the times of the start and of every refresh to RAM:WarpHub-times.txt */
 
 #include <exec/types.h>
@@ -16,6 +17,7 @@
 #include <intuition/icclass.h>
 #include <graphics/gfx.h>
 #include <graphics/rastport.h>
+#include <graphics/gfxmacros.h>   /* SetAfPt */
 #include <datatypes/pictureclass.h>
 #include <libraries/asl.h>
 #include <libraries/locale.h>
@@ -72,10 +74,11 @@
 #include "hub_util.h"
 #include "hub_catalog.h"
 #include "hub_worker.h"
+#include "hub_card.h"
 
 extern struct WBStartup *_WBenchMsg;
 
-#define WARPHUB_VERSION "0.15"   /* tools/make_release.py reads it */
+#define WARPHUB_VERSION "0.16"   /* tools/make_release.py reads it */
 const char version_tag[] = "$VER: WarpHub " WARPHUB_VERSION " (19.11.2026)";
 
 unsigned long __stack = 65536;
@@ -118,6 +121,7 @@ enum {
   T_CLEAN_TITLE, T_CLEAN_OLD_HEAD, T_CLEAN_BUG_HEAD, T_CLEAN_SAVES, T_CLEAN_B_OLD, T_CLEAN_B_BUGS,
   T_CLEAN_SURE_OLD, T_CLEAN_SURE_BUGS, T_CLEAN_DELETED, T_CLEAN_FAILED,
   T_FILES_WIN, T_FILES_HEAD, T_FILES_NONE, T_FILES_PLAN, T_F_WAIT, T_F_CHECK, T_F_DONE, T_F_FAIL,
+  T_FAV_HINT, T_FAV_ON, T_FAV_OFF, T_NEEDS_PPC, T_NEEDS_ARM,
   T_COUNT
 };
 
@@ -167,7 +171,10 @@ static const char *const texts[3][T_COUNT] = {
     "Delete the bug reports of %s (%d files, %s)? They cannot be restored.", "Deleted.", "Not deleted: %s",
     "Downloaded files", "%s: %d of %d files downloaded (%s of %s)",
     "Nothing is being downloaded.", "%s: checking the files on the disk (%d of %d)...",
-    "waiting", "checking %ld%%", "done", "error"
+    "waiting", "checking %ld%%", "done", "error",
+    "Right-click a tile to add it to your favorites.", "Favorites: %s added.",
+    "Favorites: %s removed.", "Does not run on this Amiga (%s): needs PowerPC.",
+    "Does not run on this Amiga (%s): needs a Warp with ARM (1260X, 7060)."
   },
   { /* pl */
     "Odswiez", "Zainstaluj", "Aktualizuj", "Sprawdz pliki", "Przerwij", "Zainstalowana %s",
@@ -214,7 +221,10 @@ static const char *const texts[3][T_COUNT] = {
     "Usunac zgloszenia bledow %s (plikow: %d, %s)? Nie da sie ich odtworzyc.", "Usunieto.", "Nie usunieto: %s",
     "Pobierane pliki", "%s: pobrane %d z %d plikow (%s z %s)",
     "Nic nie jest teraz pobierane.", "%s: sprawdzanie plikow na dysku (%d z %d)...",
-    "czeka", "sprawdzanie %ld%%", "gotowe", "blad"
+    "czeka", "sprawdzanie %ld%%", "gotowe", "blad",
+    "Kliknij kafelek prawym przyciskiem, aby dodac go do ulubionych.", "Ulubione: dodano %s.",
+    "Ulubione: usunieto %s.", "Nie dziala na tej Amidze (%s): potrzebny PowerPC.",
+    "Nie dziala na tej Amidze (%s): potrzebna karta Warp z ARM (1260X, 7060)."
   },
   { /* de */
     "Aktualisieren", "Installieren", "Update", "Dateien pr\xfc" "fen", "Abbrechen",
@@ -262,26 +272,36 @@ static const char *const texts[3][T_COUNT] = {
     "Fehlermeldungen von %s loeschen (%d Dateien, %s)? Sie lassen sich nicht wiederherstellen.", "Geloescht.", "Nicht geloescht: %s",
     "Geladene Dateien", "%s: %d von %d Dateien geladen (%s von %s)",
     "Es wird nichts geladen.", "%s: pruefe die Dateien auf der Platte (%d von %d)...",
-    "wartet", "pruefe %ld%%", "fertig", "Fehler"
+    "wartet", "pruefe %ld%%", "fertig", "Fehler",
+    "Klicke mit der rechten Maustaste auf eine Kachel, um sie zu den Favoriten hinzuzuf\xfc" "gen.",
+    "Favoriten: %s hinzugef\xfc" "gt.", "Favoriten: %s entfernt.",
+    "L\xe4" "uft nicht auf diesem Amiga (%s): braucht PowerPC.",
+    "L\xe4" "uft nicht auf diesem Amiga (%s): braucht eine Warp mit ARM (1260X, 7060)."
   }
 };
 
 static int lang = HUB_EN;
 
-/* the filter buttons: the group (TAGS of the catalog) and its label */
+/* the group buttons (0.16): Favorites and Installed / Available from the
+ * settings, the others are groups of the catalog (TAGS); the eighth stays
+ * empty and disabled for later. filter_key: the group in the catalog, and the
+ * name of the button in WarpHub.prefs (FILTER). */
 #define FILTERS 8
-static const char *const filter_tag[FILTERS] = {
-  "", "apps", "warp1260", "warp1240", "warp1260x", "warp7060", "ppc", "other"
+enum { F_FAV, F_INSTALLED, F_AVAILABLE, F_APPS, F_ARM, F_PPC, F_OTHER, F_SPARE };
+static const char *const filter_key[FILTERS] = {
+  "favorites", "installed", "available", "apps", "warp_arm", "ppc", "other", ""
 };
 static const char *const filter_label[3][FILTERS] = {
-  {"All", "Programs", "Warp 560/1260", "Warp 1240", "Warp 1260X", "Warp 7060", "PowerPC", "Other"},
-  {"Wszystkie", "Programy", "Warp 560/1260", "Warp 1240", "Warp 1260X", "Warp 7060", "PowerPC", "Inne"},
-  {"Alle", "Programme", "Warp 560/1260", "Warp 1240", "Warp 1260X", "Warp 7060", "PowerPC", "Andere"}
+  {"Favorite", "Installed", "Available", "Programs", "ARM mode", "PowerPC", "Other", ""},
+  {"Ulubione", "Zainstalowane", "Dostepne", "Programy", "Tryb ARM", "PowerPC", "Inne", ""},
+  {"Favoriten", "Installiert", "Verf\xfc" "gbar", "Programme", "ARM-Modus", "PowerPC", "Andere", ""}
 };
-static int filter = 0;
+static int filter = F_AVAILABLE;
+static int filter_known;           /* FILTER read from the settings */
+static HubCard card;               /* the Warp card of this Amiga */
 static int view[128], nview;       /* the games shown (indices into the catalog) */
 /* tests from the Shell: install without requesters after the first refresh */
-static char test_key[32], test_dir[256], test_gamesdir[256];
+static char test_key[32], test_dir[256], test_gamesdir[256], test_card[32];
 #define TX(i) (texts[lang == HUB_PL ? 1 : lang == HUB_DE ? 2 : 0][i])
 
 /* --- state --------------------------------------------------------------- */
@@ -312,10 +332,10 @@ static struct MsgPort *app_port;
 static struct Hook gallery_hook, page_hook, req_hook;
 static BYTE work_signal = -1;
 
-enum { P_BG, P_TILE, P_TEXT, P_DIM, P_ACCENT, P_GREEN, P_SEL, P_COUNT };
+enum { P_BG, P_TILE, P_TEXT, P_DIM, P_ACCENT, P_GREEN, P_SEL, P_STAR, P_COUNT };
 static LONG pens[P_COUNT];
 static const ULONG pen_rgb[P_COUNT] = {
-  0x1b1e27, 0x2a2f3d, 0xf0f0f4, 0x9aa1b2, 0xf08c28, 0x5cc85c, 0xf0b040
+  0x1b1e27, 0x2a2f3d, 0xf0f0f4, 0x9aa1b2, 0xf08c28, 0x5cc85c, 0xf0b040, 0xffd820
 };
 
 /* --- small helpers -------------------------------------------------------- */
@@ -459,6 +479,60 @@ static void text_at(struct RastPort *rp, int x, int y, int maxw, const char *s, 
   Text(rp, (STRPTR)s, n);
 }
 
+/* the game cannot run on the Warp card of this Amiga: the text that says
+ * why (T_NEEDS_PPC / T_NEEDS_ARM), 0 when it can or it is not known. Without
+ * a Warp card (or cswarp.library) nothing is dimmed: the Amiga may have
+ * anything (PowerPC, an emulator). A Warp card has no PowerPC; ARM only on
+ * Warp 1260X and 7060. warp (also the old card groups) runs on every Warp. */
+static int not_here(HubGame *g)
+{
+  if (!card.warp || hub_game_has_tag(g, "warp") || hub_game_has_tag(g, "warp1260") ||
+      hub_game_has_tag(g, "warp1240") || hub_game_has_tag(g, "warp1260x") ||
+      hub_game_has_tag(g, "warp7060")) {
+    return 0;
+  }
+  if (hub_game_has_tag(g, "warp_arm")) return card.arm == 0 ? T_NEEDS_ARM : 0;
+  if (hub_game_has_tag(g, "ppc")) return T_NEEDS_PPC;
+  return 0;
+}
+
+static int favorite(HubGame *g)
+{
+  return hub_prefs_favorite(&prefs, g->key);
+}
+
+/* the yellow star of a favorite (11x11, a dark edge around) */
+static void draw_star(struct RastPort *rp, int x, int y)
+{
+  static const char *const star[11] = {
+    ".....#.....",
+    ".....#.....",
+    "....###....",
+    "###########",
+    ".#########.",
+    "..#######..",
+    "...#####...",
+    "..#######..",
+    "..###.###..",
+    ".##.....##.",
+    ".#.......#."
+  };
+  int pass, r, c;
+  for (pass = 0; pass < 2; pass++) {
+    SetAPen(rp, pens[pass == 0 ? P_BG : P_STAR]);
+    for (r = 0; r < 11; r++) {
+      for (c = 0; c < 11; c++) {
+        int e;
+        if (star[r][c] != '#') continue;
+        for (e = c; e + 1 < 11 && star[r][e + 1] == '#'; e++) {}
+        if (pass == 0) RectFill(rp, x + c - 1, y + r - 1, x + e + 1, y + r + 1);
+        else RectFill(rp, x + c, y + r, x + e, y + r);
+        c = e;
+      }
+    }
+  }
+}
+
 /* the status line of a game into out, its pen as the result */
 static int game_state(HubGame *g, char *out, int outlen, int with_version)
 {
@@ -505,14 +579,15 @@ static void draw_gallery(struct RastPort *rp, struct IBox *box)
   }
   gallery_layout(box, &x0, &tile_h);
   if (nview == 0) {
-    text_at(rp, box->Left + GAP, box->Top + GAP, box->Width - 2 * GAP, TX(T_EMPTY), pens[P_DIM]);
+    text_at(rp, box->Left + GAP, box->Top + GAP, box->Width - 2 * GAP,
+            TX(filter == F_FAV ? T_FAV_HINT : T_EMPTY), pens[P_DIM]);
     return;
   }
   for (v = 0; v < nview; v++) {
     HubGame *g = &cat->games[i = view[v]];
     int row = v / cols - top_row, col = v % cols;
     int x = x0 + col * (TILE_W + GAP), y = box->Top + GAP + row * (tile_h + GAP);
-    int pen, maxw = TILE_W;
+    int pen, maxw = TILE_W, dim, textw;
     if (row < 0 || y + tile_h > box->Top + box->Height) continue;
     if (x + TILE_W > box->Left + box->Width) maxw = box->Left + box->Width - x;
     if (maxw <= 0) continue;
@@ -525,12 +600,32 @@ static void draw_gallery(struct RastPort *rp, struct IBox *box)
       BltBitMapRastPort(tiles[i].bm, 0, 0, rp, x + (TILE_W - tiles[i].w) / 2 * (w == tiles[i].w),
                         y, w, tiles[i].h, 0xC0);
     }
+    dim = not_here(g) != 0;
+    if (dim) {
+      /* does not run on this card: every second pixel of the picture in the
+       * background colour (ghosted, as a disabled gadget) */
+      static UWORD ghost[2] = {0xAAAA, 0x5555};
+      ULONG mode = GetDrMd(rp);
+      SetDrMd(rp, JAM1);
+      SetAfPt(rp, ghost, 1);
+      SetAPen(rp, pens[P_BG]);
+      RectFill(rp, x, y, x + maxw - 1, y + TILE_H - 1);
+      SetAfPt(rp, NULL, 0);
+      SetDrMd(rp, mode);
+    }
+    /* the star: bottom right, beside the two lines under the picture (the
+     * picture stays uncovered); the texts end before it */
+    textw = maxw - 12;
+    if (favorite(g) && maxw >= TILE_W) {
+      draw_star(rp, x + TILE_W - 17, y + TILE_H + (tile_h - TILE_H - 11) / 2);
+      textw -= 18;
+    }
     latin(hub_text(g->name, lang), name, sizeof(name));
     SetSoftStyle(rp, FSF_BOLD, AskSoftStyle(rp));
-    text_at(rp, x + 6, y + TILE_H + 4, maxw - 12, name, pens[P_TEXT]);
+    text_at(rp, x + 6, y + TILE_H + 4, textw, name, pens[dim ? P_DIM : P_TEXT]);
     SetSoftStyle(rp, 0, AskSoftStyle(rp));
     pen = game_state(g, state, sizeof(state), 1);
-    text_at(rp, x + 6, y + TILE_H + 6 + line, maxw - 12, state, pen);
+    text_at(rp, x + 6, y + TILE_H + 6 + line, textw, state, pen);
   }
 }
 
@@ -613,6 +708,11 @@ static void draw_page(struct RastPort *rp, struct IBox *box)
   }
   p.pen = pens[P_DIM];
   page_line(&p, a, (int)strlen(a));
+  if (not_here(g)) {
+    snprintf(a, sizeof(a), TX(not_here(g)), card.name);
+    p.pen = pens[P_ACCENT];
+    wrap(rp, a, box->Width - 16, page_line, &p);
+  }
   if (g->local) {
     p.pen = pens[P_DIM];
     wrap(rp, TX(T_NOT_PUBLIC), box->Width - 16, page_line, &p);
@@ -824,8 +924,11 @@ static void update_layout(void)
   if (box != NULL && box->Width > 0 && box->Height > 0) gallery_layout(box, &x0, &th);
 }
 
+static void build_view(void);
+
 static void refresh_all(void)
 {
+  build_view();
   update_layout();
   update_scroller();
   redraw(g_gallery);
@@ -853,6 +956,8 @@ static void ready_status(const char *extra)
 
 /* --- the filter ------------------------------------------------------------- */
 
+static void set_filter_buttons(void);
+
 static int view_pos(int game)
 {
   int v;
@@ -862,16 +967,45 @@ static int view_pos(int game)
   return -1;
 }
 
-/* the games of the chosen group; the selection stays when it is in it */
-static void apply_filter(void)
+static int in_filter(HubGame *g)
+{
+  switch (filter) {
+    case F_FAV: return favorite(g);
+    case F_INSTALLED: return installed(g) != NULL;
+    case F_AVAILABLE: return installed(g) == NULL;
+    case F_SPARE: return 0;
+    default: return hub_game_has_tag(g, filter_key[filter]);
+  }
+}
+
+/* the games of the chosen group, again (an install, the star): the
+ * selection and the place stay, also when the selected game left the group */
+static void build_view(void)
 {
   int i;
   nview = 0;
   for (i = 0; cat != NULL && i < cat->ngames && nview < 128; i++) {
-    if (filter == 0 || hub_game_has_tag(&cat->games[i], filter_tag[filter])) view[nview++] = i;
+    if (in_filter(&cat->games[i])) view[nview++] = i;
   }
+}
+
+/* another group chosen (or a new catalog): its first game when the
+ * selection is not in it, from the top */
+static void apply_filter(void)
+{
+  build_view();
   if (view_pos(selected) < 0) selected = nview > 0 ? view[0] : -1;
   top_row = 0;
+}
+
+static void choose_filter(int f)
+{
+  if (f < 0 || f >= F_SPARE) return;
+  filter = f;
+  strcpy(prefs.filter, filter_key[f]);
+  set_filter_buttons();
+  apply_filter();
+  refresh_all();
 }
 
 static void set_filter_buttons(void)
@@ -881,7 +1015,7 @@ static void set_filter_buttons(void)
   for (i = 0; i < FILTERS; i++) {
     SetGadgetAttrs((struct Gadget *)g_filter[i], win, NULL,
                    GA_Text, (ULONG)filter_label[lang == HUB_PL ? 1 : lang == HUB_DE ? 2 : 0][i],
-                   GA_Selected, i == filter, TAG_DONE);
+                   GA_Selected, i == filter, GA_Disabled, i == F_SPARE, TAG_DONE);
   }
 }
 
@@ -2461,7 +2595,8 @@ static Object *filter_row(void)
     g_filter[i] = NewObject(BUTTON_GetClass(), NULL,
                             GA_ID, GID_FILTER + i, GA_RelVerify, TRUE,
                             GA_Text, (ULONG)filter_label[lang == HUB_PL ? 1 : lang == HUB_DE ? 2 : 0][i],
-                            BUTTON_PushButton, TRUE, GA_Selected, i == filter, TAG_END);
+                            BUTTON_PushButton, TRUE, GA_Selected, i == filter,
+                            GA_Disabled, i == F_SPARE, TAG_END);
     if (g_filter[i] != NULL) SetAttrs(row, LAYOUT_AddChild, (ULONG)g_filter[i], TAG_END);
   }
   return row;
@@ -2507,6 +2642,7 @@ static Object *make_window(void)
        * the last button (the user wants them the same height) */
       WA_InnerHeight, 50,
       WA_IDCMP, IDCMP_MOUSEBUTTONS | IDCMP_RAWKEY | IDCMP_GADGETUP,
+      WA_RMBTrap, TRUE,           /* no menus: the right button marks a favorite */
       WINDOW_Position, WPOS_CENTERSCREEN,
       WINDOW_IconifyGadget, TRUE,
       WINDOW_IconTitle, (ULONG)"WARP HUB",
@@ -2610,24 +2746,47 @@ static Object *make_window(void)
     TAG_END);
 }
 
-static void click(int mx, int my)
+/* the game of the tile under the mouse, -1 when none */
+static int tile_at(int mx, int my)
 {
   struct IBox *box = NULL;
   int x0, tile_h, col, row, i;
   GetAttr(SPACE_AreaBox, g_gallery, (ULONG *)&box);
-  if (box == NULL || cat == NULL) return;
+  if (box == NULL || cat == NULL) return -1;
   if (mx < box->Left || my < box->Top || mx >= box->Left + box->Width ||
       my >= box->Top + box->Height) {
-    return;
+    return -1;
   }
   gallery_layout(box, &x0, &tile_h);
-  if (mx < x0) return;
+  if (mx < x0) return -1;
   col = (mx - x0) / (TILE_W + GAP);
   row = (my - box->Top - GAP) / (tile_h + GAP);
-  if (col >= cols || my < box->Top + GAP) return;
-  if ((mx - x0) % (TILE_W + GAP) >= TILE_W) return;
+  if (col >= cols || my < box->Top + GAP) return -1;
+  if ((mx - x0) % (TILE_W + GAP) >= TILE_W) return -1;
   i = (row + top_row) * cols + col;
-  if (i < nview) select_game(view[i]);
+  return i < nview ? view[i] : -1;
+}
+
+static void click(int mx, int my)
+{
+  int i = tile_at(mx, my);
+  if (i >= 0) select_game(i);
+}
+
+/* the star on a game (right button on its tile, F for the selected one):
+ * on, or off again; kept in WarpHub.prefs (FAVORITES) */
+static void toggle_favorite(int i)
+{
+  char name[96], a[160];
+  int on;
+  if (cat == NULL || i < 0 || i >= cat->ngames) return;
+  on = hub_prefs_toggle_favorite(&prefs, cat->games[i].key);
+  hub_prefs_save(&prefs, PREFS_FILE);
+  latin(hub_text(cat->games[i].name, lang), name, sizeof(name));
+  snprintf(a, sizeof(a), TX(on ? T_FAV_ON : T_FAV_OFF), name);
+  set_status(a);
+  selected = i;
+  refresh_all();
 }
 
 static void scroll_rows(int d)
@@ -2701,9 +2860,9 @@ static void read_options(void)
     }
     CurrentDir(old);
   } else {
-    LONG args[6] = {0, 0, 0, 0, 0, 0};
+    LONG args[7] = {0, 0, 0, 0, 0, 0, 0};
     struct RDArgs *rd = ReadArgs((CONST_STRPTR)"CATALOG/K,LANG/K,TESTINSTALL/K,TESTTO/K,"
-                                 "TESTGAMESDIR/K,TIMES/S", args, NULL);
+                                 "TESTGAMESDIR/K,TIMES/S,TESTCARD/K", args, NULL);
     if (rd != NULL) {
       if (args[0]) strncpy(prefs.catalog, (char *)args[0], sizeof(prefs.catalog) - 1);
       if (args[1]) strncpy(prefs.language, (char *)args[1], sizeof(prefs.language) - 1);
@@ -2711,6 +2870,7 @@ static void read_options(void)
       if (args[3]) strncpy(test_dir, (char *)args[3], sizeof(test_dir) - 1);
       if (args[4]) strncpy(test_gamesdir, (char *)args[4], sizeof(test_gamesdir) - 1);
       if (args[5]) times_on = 1;
+      if (args[6]) strncpy(test_card, (char *)args[6], sizeof(test_card) - 1);
       FreeArgs(rd);
     }
   }
@@ -2743,6 +2903,22 @@ int main(void)
   hub_prefs_load(&prefs, PREFS_FILE);
   read_options();
   lang = prefs.language[0] ? hub_lang(prefs.language) : locale_lang();
+  for (i = 0; i < F_SPARE; i++) {
+    if (strcmp(prefs.filter, filter_key[i]) == 0) {
+      filter = i;
+      filter_known = 1;
+    }
+  }
+  hub_card_read(&card);
+  if (test_card[0]) {                 /* tests: another card, or none */
+    memset(&card, 0, sizeof(card));
+    card.arm = -1;
+    if (Stricmp((CONST_STRPTR)test_card, (CONST_STRPTR)"NONE") != 0) {
+      card.warp = 1;
+      strncpy(card.name, test_card, sizeof(card.name) - 1);
+      card.arm = (strstr(test_card, "7060") != NULL || strstr(test_card, "1260X") != NULL) ? 1 : 0;
+    }
+  }
   strcpy(work.cache, CACHE_DIR);
 
   if (!open_classes()) {
@@ -2762,6 +2938,8 @@ int main(void)
   }
   get_pens();
   times_log("WARP HUB %s, start", WARPHUB_VERSION);
+  times_log("card: %s (warp %d, type %d, arm %d)", card.warp ? card.name : "no Warp card",
+            card.warp, card.type, card.arm);
   load_cached_catalog();
   times_log("cached catalog read (%d games)", cat != NULL ? cat->ngames : 0);
   win_obj = make_window();
@@ -2793,6 +2971,19 @@ int main(void)
   }
   note_self();
   rescan_games(1);
+  /* the first start (no FILTER yet): Installed when the player has a game or
+   * program besides WARP HUB itself, Available otherwise */
+  if (!filter_known) {
+    int k;
+    for (k = 0; k < prefs.ninst; k++) {
+      if (strcmp(prefs.inst[k].key, SELF_KEY) != 0 && cat != NULL &&
+          hub_catalog_find(cat, prefs.inst[k].key) != NULL) {
+        filter = F_INSTALLED;
+      }
+    }
+    set_filter_buttons();
+    apply_filter();
+  }
   refresh_all();
 
   work_mask = 1UL << work_signal;
@@ -2829,6 +3020,7 @@ int main(void)
             break;
           case WMHI_MOUSEBUTTONS:
             if (code == SELECTDOWN && win != NULL) click(win->MouseX, win->MouseY);
+            else if (code == MENUDOWN && win != NULL) toggle_favorite(tile_at(win->MouseX, win->MouseY));
             break;
           case WMHI_RAWKEY:
             if (code == 0x7A || code == 0x4C) scroll_rows(-1);       /* wheel / up */
@@ -2837,12 +3029,8 @@ int main(void)
             else if (code == 0x5F) show_guide();                     /* Help */
             else if (code == 0x50) show_files();                     /* F1: downloaded files */
             else if (code == 0x44 || code == 0x43) run_game();       /* Return, Enter */
-            else if (code >= 0x01 && code <= 0x08) {                 /* 1..8: group */
-              filter = code - 0x01;
-              set_filter_buttons();
-              apply_filter();
-              refresh_all();
-            }
+            else if (code >= 0x01 && code <= 0x07) choose_filter(code - 0x01);   /* 1..7: group */
+            else if (code == 0x23) toggle_favorite(selected);        /* F: favorite */
             else if ((code == 0x4E || code == 0x4F) && nview > 0) {
               /* right / left: the next / previous game shown, kept in view */
               int i = view_pos(selected) + (code == 0x4E ? 1 : -1);
@@ -2872,10 +3060,7 @@ int main(void)
               case GID_APPSDIR: choose_games_dir(1); break;
               case GID_FILTER: case GID_FILTER + 1: case GID_FILTER + 2: case GID_FILTER + 3:
               case GID_FILTER + 4: case GID_FILTER + 5: case GID_FILTER + 6: case GID_FILTER + 7:
-                filter = (int)(result & WMHI_GADGETMASK) - GID_FILTER;
-                set_filter_buttons();
-                apply_filter();
-                refresh_all();
+                choose_filter((int)(result & WMHI_GADGETMASK) - GID_FILTER);
                 break;
               case GID_INSTALL:
                 if (cat != NULL && selected >= 0 && installed(&cat->games[selected]) != NULL)
@@ -2915,6 +3100,7 @@ out:
    * every change, this keeps it even if that write did not go through */
   if (win_obj != NULL) {
     strcpy(prefs.language, lang == HUB_PL ? "pl" : lang == HUB_DE ? "de" : "en");
+    strcpy(prefs.filter, filter_key[filter]);
     hub_prefs_save(&prefs, PREFS_FILE);
   }
   hub_worker_quit(&work);

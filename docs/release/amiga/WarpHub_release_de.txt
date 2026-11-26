@@ -1,11 +1,24 @@
 WARP HUB - Versionen
 ====================
 
-Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.15")
+Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.16")
 und in der Shell: Version SYS:WarpApps/WarpHub. Beschreibe, was
 passiert ist, mit der Versionsnummer:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.16 (26.11.2026, Beta)
+-----------------------
+- Neue Gruppen oben im Fenster: Favoriten, Installiert, Verfuegbar,
+  Programme, ARM-Modus, PowerPC, Andere (Tasten 1-7). Verfuegbar sind die
+  noch nicht installierten Spiele und Programme. WARP HUB merkt sich die
+  letzte Gruppe.
+- Favoriten: die rechte Maustaste auf einer Kachel oder die Taste F - ein
+  gelber Stern unten rechts in der Kachel; ein zweiter Klick nimmt ihn weg.
+  Die Liste bleibt in WarpHub.prefs.
+- WARP HUB erkennt die Warp-Karte und dunkelt die Kacheln der Spiele ab, die
+  darauf nicht laufen (nur PowerPC, ARM-Modus ohne ARM auf der Karte); der
+  Grund steht unter der Beschreibung des Spiels.
 
 0.15 (25.11.2026, Beta)
 -----------------------

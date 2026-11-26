@@ -191,8 +191,10 @@ Open an issue in **https://github.com/cizar-szymon/Amiga_WarpHub/issues** with:
 3. the requirements, one short line each: CPU (`68040 / 68060`), clock (`100 MHz
    recommended`), memory (`32 MB Fast RAM`), system and screen (`AmigaOS 3.2, RTG 16-bit`),
    data the player needs (`Data: original game files`);
-4. the Warp cards it runs on (the filter groups of WARP HUB): Warp 560/1260, Warp 1240
-   (68040), Warp 1260X, Warp 7060, PowerPC, other;
+4. where it runs (the groups of WARP HUB, several may apply): WARP (natively on the Warp
+   cards, 68040 / 68060), WARP_ARM (uses the ARM processor with much memory of the
+   Warp 1260X / 7060, e.g. switched on by an option or in the game menu), PPC (PowerPC),
+   other, programs;
 5. a picture: a title screen or a typical scene. WARP HUB shows it at 224x140 pixels in
    256 colours; we scale it.
 

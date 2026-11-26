@@ -156,6 +156,10 @@ void hub_prefs_load(HubPrefs *p, const char *file)
       strncpy(p->priv_pass, line + 13, sizeof(p->priv_pass) - 1);
     } else if (strncmp(line, "CATALOG ", 8) == 0) {
       strncpy(p->catalog, line + 8, sizeof(p->catalog) - 1);
+    } else if (strncmp(line, "FAVORITES ", 10) == 0) {
+      strncpy(p->favorites, line + 10, sizeof(p->favorites) - 1);
+    } else if (sscanf(line, "FILTER %15s", a) == 1) {
+      strcpy(p->filter, a);
     } else if (sscanf(line, "INSTALLED %31s %23s %255[^\n]", a, b, c) == 3) {
       hub_prefs_set_installed(p, a, b, c);
     }
@@ -165,7 +169,7 @@ void hub_prefs_load(HubPrefs *p, const char *file)
 
 int hub_prefs_save(const HubPrefs *p, const char *file)
 {
-  char buf[256 * 5 + 320 + HUB_MAX_INSTALLED * 330];
+  char buf[256 * 5 + 320 + HUB_MAX_INSTALLED * 330 + 1024 + 64];
   int n = 0, i;
   if (p->language[0]) n += snprintf(buf + n, sizeof(buf) - n, "LANGUAGE %s\n", p->language);
   if (p->catalog[0]) n += snprintf(buf + n, sizeof(buf) - n, "CATALOG %s\n", p->catalog);
@@ -174,6 +178,8 @@ int hub_prefs_save(const HubPrefs *p, const char *file)
   if (p->priv[0]) n += snprintf(buf + n, sizeof(buf) - n, "PRIVATE %s\n", p->priv);
   if (p->priv_cert[0]) n += snprintf(buf + n, sizeof(buf) - n, "PRIVATE-CERT %s\n", p->priv_cert);
   if (p->priv_pass[0]) n += snprintf(buf + n, sizeof(buf) - n, "PRIVATE-PASS %s\n", p->priv_pass);
+  if (p->favorites[0]) n += snprintf(buf + n, sizeof(buf) - n, "FAVORITES %s\n", p->favorites);
+  if (p->filter[0]) n += snprintf(buf + n, sizeof(buf) - n, "FILTER %s\n", p->filter);
   for (i = 0; i < p->ninst && n < (int)sizeof(buf); i++) {
     n += snprintf(buf + n, sizeof(buf) - n, "INSTALLED %s %s %s\n", p->inst[i].key,
                   p->inst[i].version, p->inst[i].dir);
@@ -209,6 +215,44 @@ void hub_prefs_remove_installed(HubPrefs *p, const char *key)
   HubInstalled *in = hub_prefs_installed(p, key);
   if (in == NULL) return;
   *in = p->inst[--p->ninst];
+}
+
+/* where key is in the list "a,b,c" (its first letter), NULL when not */
+static const char *fav_find(const char *list, const char *key)
+{
+  int n = (int)strlen(key);
+  const char *q = list;
+  while (n > 0 && *q) {
+    const char *e = strchr(q, ',');
+    int len = e != NULL ? (int)(e - q) : (int)strlen(q);
+    if (len == n && strncmp(q, key, n) == 0) return q;
+    if (e == NULL) break;
+    q = e + 1;
+  }
+  return NULL;
+}
+
+int hub_prefs_favorite(const HubPrefs *p, const char *key)
+{
+  return fav_find(p->favorites, key) != NULL;
+}
+
+int hub_prefs_toggle_favorite(HubPrefs *p, const char *key)
+{
+  char *list = p->favorites;
+  const char *at = fav_find(list, key);
+  int n = (int)strlen(key), len = (int)strlen(list);
+  if (at != NULL) {
+    char *s = list + (at - list), *e = s + n;
+    if (*e == ',') e++;                        /* "a,KEY,b" -> "a,b" */
+    else if (s > list) s--;                    /* "a,KEY" -> "a" */
+    memmove(s, e, strlen(e) + 1);
+    return 0;
+  }
+  if (n == 0 || strchr(key, ',') != NULL || len + n + 2 > (int)sizeof(p->favorites)) return 0;
+  if (len > 0) list[len++] = ',';
+  strcpy(list + len, key);
+  return 1;
 }
 
 /* --- remembered files ------------------------------------------------------ */

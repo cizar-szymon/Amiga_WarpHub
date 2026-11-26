@@ -13,8 +13,10 @@ Warp 1240, Warp 1260, Warp 1260 Extreme or Warp 7060.** On a Warp with firmware 
 CPU free. It was written and tested on an A4000 with a Warp 7060 (68060). Other Amigas with
 AmigaOS 3.2, AmiSSL 5 and a network connection run it too, without the speed of WarpSSL.
 
-- a gallery of the games and programs with pictures, filters: Programs, Warp 560/1260,
-  Warp 1240, Warp 1260X, Warp 7060, PowerPC, Other
+- a gallery of the games and programs with pictures, groups: Favorite, Installed, Available,
+  Programs, ARM mode, PowerPC, Other; favorites with the right mouse button (a yellow star)
+- the tiles of games that cannot run on the Warp card of the Amiga (PowerPC only, ARM mode on
+  a card without the ARM) are dimmed
 - English, Polish and German (the window, the descriptions and, where the game has them, the
   release notes)
 - **Install**: you pick a drawer, the game gets its own drawer with the WARP drawer icon

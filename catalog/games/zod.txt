@@ -3,7 +3,7 @@ NAME en Zod Engine (Z)
 DESC en Z, the real-time strategy of the Bitmap Brothers, on the Zod Engine: robots, forts and territories.
 DESC pl Z, strategia czasu rzeczywistego Bitmap Brothers, na silniku Zod Engine: roboty, forty i terytoria.
 DESC de Z, das Echtzeit-Strategiespiel der Bitmap Brothers, mit der Zod Engine: Roboter, Forts und Gebiete.
-TAGS warp1260,warp1240,warp1260x,warp7060
+TAGS warp
 REQ en 68060 / 68040
 REQ en 100 MHz recommended
 REQ en 32 MB Fast RAM

@@ -7,8 +7,13 @@ UTF-8 text, one item per line, "#" starts a comment:
 
     NAME <lang> <text>        en always, pl / de when they differ
     DESC <lang> <text>        one line per language
-    TAGS <tag>,<tag>...       apps, warp1260 (Warp 560/1260), warp1240,
-                              warp1260x, warp7060, ppc (PowerPC), other
+    TAGS <tag>,<tag>...       warp (runs natively on the Warp cards, 68040 /
+                              68060), warp_arm (uses the ARM of Warp 1260X /
+                              7060), ppc (PowerPC), other, apps (a program);
+                              they may overlap. The old card groups
+                              warp1260, warp1240, warp1260x, warp7060 are
+                              read as warp (catalog.txt still gets them, see
+                              catalog_tags)
     REQ <lang> <text>         one line of the requirements (several lines)
     REPO <owner>/<repo>       the GitHub repo with releases/amiga
     BRANCH <branch>           when the release is not on the default branch
@@ -35,6 +40,31 @@ import re
 
 KEY_OK = re.compile(r'^[a-z0-9][a-z0-9_-]{0,30}$')
 LANGS = ('en', 'pl', 'de')
+TAGS = ('warp', 'warp_arm', 'ppc', 'other', 'apps')
+# the groups of the card buttons of WARP HUB 0.15 and older: a game file with
+# them is read as warp, catalog.txt gets them again next to warp
+LEGACY_WARP = ('warp1260', 'warp1240', 'warp1260x', 'warp7060')
+
+
+def norm_tags(tags):
+    """The tags of a game file: the old card groups become warp, no doubles."""
+    out = []
+    for t in tags:
+        if t in LEGACY_WARP:
+            t = 'warp'
+        if t not in out:
+            out.append(t)
+    return out
+
+
+def catalog_tags(tags):
+    """The tags for catalog.txt: warp also as the old card groups, so the
+    card buttons of WARP HUB 0.15 and older still find the game (an unknown
+    tag is only a group without a button there)."""
+    out = list(tags)
+    if 'warp' in out:
+        out += [t for t in LEGACY_WARP if t not in out]
+    return out
 
 
 def parse(key, text):
@@ -54,7 +84,7 @@ def parse(key, text):
             else:
                 g[word.lower()][lang] = value.strip()
         elif word == 'TAGS':
-            g['tags'] = [t for t in re.split(r'[,\s]+', rest) if t]
+            g['tags'] = norm_tags([t for t in re.split(r'[,\s]+', rest) if t])
         elif word == 'REPO':
             g['repo'] = rest or None
         elif word == 'BRANCH':

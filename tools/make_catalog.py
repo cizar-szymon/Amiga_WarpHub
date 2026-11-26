@@ -30,8 +30,10 @@ space, the last field of a line may contain spaces):
     VERSION <version>
     ZIP <name> <size>
     REQ <lang> <text>             one line of the requirements (several lines)
-    TAGS <tag>,<tag>...           the groups of the filter buttons: apps, warp1260,
-                                  warp1240, warp1260x, warp7060, ppc, other
+    TAGS <tag>,<tag>...           the groups of the filter buttons: warp, warp_arm,
+                                  ppc, other, apps; with warp also the old card
+                                  groups warp1260, warp1240, warp1260x, warp7060
+                                  (the buttons of WARP HUB 0.15 and older)
     FLAT                          a program straight into the chosen drawer: the
                                   files of <Root>/ go there; the rest (doc/, the
                                   drawer icon) has flag X - for the window only
@@ -376,7 +378,7 @@ def write_catalog(games):
             if g.get('image'):
                 lines.insert(-1, 'IMAGE %d %s %s' % g['image'])
             if g.get('tags'):
-                lines.insert(1, 'TAGS ' + ','.join(g['tags']))
+                lines.insert(1, 'TAGS ' + ','.join(game_files.catalog_tags(g['tags'])))
             for k, line in enumerate(req_lines(g.get('req', {}))):
                 lines.insert(2 + k, line)
             out.extend(lines)
@@ -390,7 +392,7 @@ def write_catalog(games):
                 if lang == 'en' or (values.get(lang) and values[lang] != en):
                     out.append('%s %s %s' % (field, lang, one_line(values.get(lang, en))))
         if g.get('tags'):
-            out.append('TAGS ' + ','.join(g['tags']))
+            out.append('TAGS ' + ','.join(game_files.catalog_tags(g['tags'])))
         out.extend(req_lines(g.get('req', {})))
         out.append('REPO ' + g['repo'])
         out.append('BRANCH ' + g['branch'])

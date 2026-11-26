@@ -23,7 +23,9 @@ void hub_to_latin(const char *utf8, char *out, int outlen);
  *   LANGUAGE pl|en|de
  *   CATALOG <https URL or file>
  *   GAMESDIR <drawer of the games>   APPSDIR <drawer of the programs>
- *   INSTALLED <key> <version> <drawer>        one line per game        */
+ *   INSTALLED <key> <version> <drawer>        one line per game
+ *   FAVORITES <key>,<key>...   the games marked with the star (right click)
+ *   FILTER <group>             the group button chosen last              */
 
 #define HUB_MAX_INSTALLED 32
 
@@ -43,6 +45,8 @@ typedef struct HubPrefs {
   char priv_pass[64];        /* its password, only when "remember" was chosen */
   HubInstalled inst[HUB_MAX_INSTALLED];
   int ninst;
+  char favorites[1024];      /* "key,key" ("" = none) */
+  char filter[16];           /* the group chosen last ("" = not yet) */
 } HubPrefs;
 
 void hub_prefs_load(HubPrefs *p, const char *file);
@@ -51,6 +55,9 @@ HubInstalled *hub_prefs_installed(HubPrefs *p, const char *key);
 void hub_prefs_set_installed(HubPrefs *p, const char *key, const char *version,
                              const char *dir);
 void hub_prefs_remove_installed(HubPrefs *p, const char *key);
+int hub_prefs_favorite(const HubPrefs *p, const char *key);
+/* adds the key to the favorites or takes it away: 1 when it is one now */
+int hub_prefs_toggle_favorite(HubPrefs *p, const char *key);
 
 /* --- remembered files: PROGDIR:WarpHub-cache/versions.txt, sums.txt ----- *
  * A value (the $VER of a game program, the SHA-256 of a cache file) kept

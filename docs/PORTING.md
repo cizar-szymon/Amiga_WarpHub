@@ -1015,3 +1015,61 @@ to WARP HUB, ORDER 2, LOCAL ../AmigaSoft/Amiga_WarpNetMonitor), picture
 0.9, 17 files (program N, icon K, doc X). Fix: `--simulate` copies the blocks of public games
 from catalog.txt as text, `apply_flat` only for built entries (it failed on them since the
 refactor).
+
+## 0.16: group buttons, favorites, the Warp card (26.11.2026, user's decisions)
+**Buttons** (keys 1-7, the window is not larger; on 1280x1024 the row is narrower than the old
+one, the labels are shorter in every language): Ulubione / Favorite / Favoriten, Zainstalowane /
+Installed / Installiert, Dostepne / Available / Verfügbar (only not installed), Programy (`apps`),
+Tryb ARM / ARM mode / ARM-Modus (`warp_arm`), PowerPC (`ppc`), Inne (`other`), the eighth empty
+and disabled (for later). "Wszystkie" is gone. `filter_key[]` in `warphub.c`; the view is built
+again at every `refresh_all()` (an install moves a game from Available to Installed), the
+selection stays even when the game leaves the group (the page and Run stay; arrows go to the
+first tile).
+- **Start group:** the last one, `FILTER <name>` in `WarpHub.prefs` (written at the change and
+  at the end). The first start without it: Installed when the player has a game / program of
+  the catalog besides WARP HUB itself (WARP HUB is always "installed"), otherwise Available.
+- **Favorites:** `WA_RMBTrap` (the window has no menus), `MENUDOWN` on a tile toggles it, key
+  F (0x23) for the selected tile; `FAVORITES key,key` in `WarpHub.prefs`
+  (`hub_prefs_toggle_favorite`, up to 1 KB). The star (11x11, yellow 0xffd820 with a dark edge)
+  is drawn bottom right, beside the two text lines under the picture (coordinator: not on the
+  picture); name and state end 18 px before it. Title: "Ulubione: dodano X." / "usunieto X.".
+  Empty Favorites: "Kliknij kafelek prawym przyciskiem, aby dodac go do ulubionych."
+- **Card:** `hub_card.c` - FindConfigDev 0x1400/101, then `getDiagnostic()` of
+  `cswarp.library` (LVO -42, own minimal structure as `CsWarpMini.h`: `boardName` at 0,
+  `warpBoardType` at 344, checked at compile time), only read. ARM: type 9 (7060) or 13
+  (1260X); another known type: no ARM; type 0 (old library): by the name ("7060", "1260X"),
+  otherwise unknown. **Dimmed** (every second pixel of the picture in the background colour,
+  name grey, on the page in orange "Nie dziala na tej Amidze (<card>): potrzebny PowerPC /
+  karta Warp z ARM"): a game without `warp` (or the old card groups) with `ppc` on any Warp
+  card, with `warp_arm` on a Warp card without ARM. **Without a Warp card / library nothing
+  is dimmed** (the Amiga may have PowerPC or be an emulator; PowerPC is not looked for).
+  Shell option `TESTCARD=<name>|NONE` for tests; TIMES logs the card.
+- **Catalog tags:** game files and the editor have only `warp`, `warp_arm`, `ppc`, `other`,
+  `apps` (may overlap). All `warp1260/1240/1260x/7060` became `warp` (Syndicate
+  Wars without 1240 and AmiXcom without 1260X lost that difference - the user's decision);
+  no game has `warp_arm` yet. `game_files.parse` reads the old groups as `warp`;
+  `make_catalog.py` writes for `warp` also the old four (`catalog_tags`), so the card buttons of
+  0.15 and older still work (their parser only compares names; unknown tags do nothing).
+  Tests: 30 OK.
+
+Tested on **Amiga 1** (A1200, Warp 1260 Extreme, 1280x1024), `RAM:WarpHub-test` (copy of the
+user's settings and cache; the private login lines removed for the dimming test):
+- cswarp.library: `warp1260X`, type 13, ARM 1 (TIMES);
+- first start without FILTER -> Installed (9 tiles); F on Settlers and C&C TD: stars bottom
+  right, title "Ulubione: dodano ..."; key 1: the two favorites; key 3: OpenDUNE, Red Alert, ZOD;
+  after Esc `FAVORITES settlers,tiberiandawn` and `FILTER available` in the prefs;
+- a test catalog (OpenDUNE `TAGS ppc`, ZOD `TAGS warp_arm`): with `TESTCARD="Warp 1260"` both
+  dimmed, the reason on the page; with the real card (ARM) only OpenDUNE; ARM mode tab: ZOD,
+  PowerPC tab: OpenDUNE;
+- Favorites emptied (F, right, F): the hint text.
+Not tested: the right mouse button itself (AmiAgent has no mouse), 640x480 (Amiga 2, other
+network), German / English labels on the screen.
+
+**Amiga 2** (A4000, Warp 7060, Workbench 1920x1080, `RAM:WarpHub-test`, copy of the user's prefs
+and cache, LANGUAGE en, test catalog with OpenDUNE `ppc` / ZOD `warp_arm`): card `warp7060`,
+type 9, ARM 1. English buttons Favorite ... Other, the eighth disabled. The user marked WARP HUB
+and WARP NetMonitor with the **right mouse button** (first real test of it): stars bottom right,
+`FAVORITES warphub,warpnetmonitor`. Nothing dimmed, as it should be: ZOD runs with the ARM of the
+7060, and OpenDUNE comes from the private source (logged in), whose entry still has the old card
+tags. The refresh took 68 s (pictures and texts 63 s, NTP 8 s) - not looked into. 640x480 not
+checked (the user's Workbench would have to change its mode).

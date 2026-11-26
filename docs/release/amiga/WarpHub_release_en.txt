@@ -1,11 +1,24 @@
 WARP HUB - releases
 ===================
 
-Reporting bugs: the release number is in the screen title ("WARP HUB 0.15")
+Reporting bugs: the release number is in the screen title ("WARP HUB 0.16")
 and in the Shell: Version SYS:WarpApps/WarpHub. Describe what
 happened and give the release number:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.16 (26.11.2026, beta release)
+-------------------------------
+- New group buttons at the top of the window: Favorite, Installed,
+  Available, Programs, ARM mode, PowerPC, Other (keys 1-7). Available are
+  the games and programs not installed yet. WARP HUB remembers the last
+  group.
+- Favorites: the right mouse button on a tile or the key F - a yellow star
+  in the bottom right corner of the tile; a second click takes it away. The
+  list stays in WarpHub.prefs.
+- WARP HUB recognises the Warp card and dims the tiles of games that do not
+  run on it (PowerPC only, ARM mode without the ARM on the card); the reason
+  is under the description of the game.
 
 0.15 (25.11.2026, beta release)
 -------------------------------
