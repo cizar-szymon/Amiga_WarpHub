@@ -20,29 +20,29 @@ REQ de AmiSSL 5 (WarpSSL)
 REQ de TCP/IP, Internet
 REPO cizar-szymon/Amiga_WarpHub
 BRANCH main
-VERSION 0.15
+VERSION 0.16
 FLAT
-ZIP WarpHub-0.15.zip 93141
-SIZE 111916
+ZIP WarpHub-0.16.zip 97216
+SIZE 116576
 IMAGE 2485 e4c6fcc78037abd22d90858afbae99e98f8ac59fe96be8cd324f5c6d7de4cf86 images/warphub.png
 NOTES en WarpHub/doc/WarpHub_release_en.txt
 NOTES pl WarpHub/doc/WarpHub_release.txt
 NOTES de WarpHub/doc/WarpHub_release_de.txt
 FILE 6862 ea64fde17ae4daeac0823985da76ba69e9dd13132b8a7c1eb13c57cd533b5b74 X WarpHub.info
-FILE 108596 6a85933140a247b35d59e8acd895f53c0f9cb7020a816ba09025d6c6d35d03df N WarpHub/WarpHub
+FILE 113256 25f45f63abef813951cc8be3b979ba50b48420d1d5d56c87817392853c4c14e3 N WarpHub/WarpHub
 FILE 3320 ec8027ba82761c6c5ee4058c742bea0f7b7a44f393d1a2beb5ca325df12211f8 K WarpHub/WarpHub.info
 FILE 2514 40a9f307f7de340bd324734098f4edb73e61c0dd1f1fc355554de827049f812b X WarpHub/doc.info
-FILE 3612 9e58a221fea71e6331c02055e52d94d3ac5fab07818c79d16065bcf1f879f9ca X WarpHub/doc/WarpHub.txt
+FILE 4099 0f368d311dc21f1c7cbbd991919ee6f81ea329f5ce0be9a1d9b1ce985ed55ff2 X WarpHub/doc/WarpHub.txt
 FILE 3308 f6ca3a09267f0c9baa2abf16f3de2d17a5f179720c777543c34a3558b69f26eb X WarpHub/doc/WarpHub.txt.info
-FILE 3935 02af9b29cc6c606914cfc6c25708436f5e8fbe0aa475da1198c040405344c18d X WarpHub/doc/WarpHub_de.txt
+FILE 4489 05f756d967bd7501112a980253fd5896b9eef15abb6fd2259f66562cd9c845b5 X WarpHub/doc/WarpHub_de.txt
 FILE 3218 659bf5badbbfbd9f045a97fdeaddc68fa6d6e4b39c935d70b9f69388e1f6dcdb X WarpHub/doc/WarpHub_de.txt.info
-FILE 3665 3955581061cf3e45e651df77244fb914f095d90f16d5e3fa68f9288d64043c72 X WarpHub/doc/WarpHub_en.txt
+FILE 4187 b7fb9ea4712229a9a56a0ee174eca9fa1f47fcd4c88b9e0931b4e9b4302502df X WarpHub/doc/WarpHub_en.txt
 FILE 3354 f5d26b5dd3e1a7f7ac3872afe846b7298ed9203498da702caec9468fa7bb3832 X WarpHub/doc/WarpHub_en.txt.info
-FILE 5713 3d5b903f74eb694d9784dd3f60a4c2090105e9ed347e2c32d1f9d626707b6e80 X WarpHub/doc/WarpHub_release.txt
+FILE 6327 bf2c6418c19c9cf7d1bb92269de71eda1df49d52ccf5ae8a8825655cc5e7bec4 X WarpHub/doc/WarpHub_release.txt
 FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e X WarpHub/doc/WarpHub_release.txt.info
-FILE 6222 404bde1b25ea37e18803bef6c1fd8818f382ea81131c5ac20295ebe2b93bfbf0 X WarpHub/doc/WarpHub_release_de.txt
+FILE 6891 1192a09e46f32bbc75eb4180f8cb4e56d262dc6da0362d0a27a49b74b6c2270d X WarpHub/doc/WarpHub_release_de.txt
 FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e X WarpHub/doc/WarpHub_release_de.txt.info
-FILE 5899 39a0cfab527072e02eee20bdd3dfffed2bc7d4640f621bdfc8cbddbd1372bd79 X WarpHub/doc/WarpHub_release_en.txt
+FILE 6561 04f4dafdff48e57e894f199c79084b20d5b04d8e0f1e281498d0a23e3142c9f5 X WarpHub/doc/WarpHub_release_en.txt
 FILE 3354 b476e8587b9ec2cb2764412450168cc1473eb08f4c3bc1dffd7001589c51deb7 X WarpHub/doc/WarpHub_release_en.txt.info
 END
 GAME warpnetmonitor
