@@ -50,7 +50,7 @@ NAME en WARP NetMonitor
 DESC en How fast and steady the internet line of the Amiga is: download and upload charts (GitHub, Cloudflare, Hetzner, the WARP HUB private source), ping to the router and the internet, a plain-words result. In the style of WarpDashboard.
 DESC pl Jak szybkie i stabilne jest lacze Amigi: wykresy pobierania i wysylania (GitHub, Cloudflare, Hetzner, prywatne zrodlo WARP HUB), ping do routera i internetu, wynik prostymi slowami. W stylu WarpDashboard.
 DESC de Wie schnell und stabil die Internetleitung des Amiga ist: Download- und Upload-Diagramme (GitHub, Cloudflare, Hetzner, die private Quelle von WARP HUB), Ping zum Router und ins Internet, ein Ergebnis in klaren Worten. Im Stil von WarpDashboard.
-TAGS apps,warp1260,warp1240,warp1260x,warp7060
+TAGS apps,warp,warp1260,warp1240,warp1260x,warp7060
 REQ en Warp card (68040 / 68060)
 REQ en AmigaOS 3.2, RTG 15/16-bit or more
 REQ en AmiSSL 5 (WarpSSL)
@@ -97,7 +97,7 @@ NAME de Die Siedler
 DESC en Freeserf port of The Settlers: build an economy, roads and an army. Game against the computer and over the LAN.
 DESC pl Port Freeserf gry The Settlers: budowa gospodarki, dróg i armii. Gra z komputerem i przez sieć lokalną.
 DESC de Freeserf-Portierung von Die Siedler: Wirtschaft, Straßen und Armee aufbauen. Spiel gegen den Computer und im Netzwerk.
-TAGS warp1260,warp1240,warp1260x,warp7060
+TAGS warp,warp1260,warp1240,warp1260x,warp7060
 REQ en 68040 / 68060
 REQ en 100 MHz recommended
 REQ en 32 MB Fast RAM
@@ -154,7 +154,7 @@ NAME en OpenDUNE
 DESC en Dune II, the strategy classic, on the OpenDUNE engine. 800x600 on RTG, LAN game for three players.
 DESC pl Dune II, klasyka strategii, na silniku OpenDUNE. 800x600 na RTG, gra w sieci lokalnej dla trzech graczy.
 DESC de Dune II, der Strategieklassiker, mit der OpenDUNE-Engine. 800x600 auf RTG, Netzwerkspiel für drei Spieler.
-TAGS warp1260,warp1240,warp1260x,warp7060
+TAGS warp,warp1260,warp1240,warp1260x,warp7060
 REQ en 68040 / 68060
 REQ en 100 MHz recommended
 REQ en 32 MB Fast RAM
@@ -205,7 +205,7 @@ NAME en Diablo (DevilutionX)
 DESC en Diablo and Hellfire on the DevilutionX engine, made for Warp cards.
 DESC pl Diablo i Hellfire na silniku DevilutionX, przygotowane dla kart Warp.
 DESC de Diablo und Hellfire mit der DevilutionX-Engine, für Warp-Karten gemacht.
-TAGS warp1260,warp1240,warp1260x,warp7060
+TAGS warp,warp1260,warp1240,warp1260x,warp7060
 REQ en WARP accelerator MC68060 + RTG
 REQ en 100 MHz recommended
 REQ en AmigaOS 3.2
@@ -482,7 +482,7 @@ NAME en C&C: Tiberian Dawn
 DESC en Tiberian Dawn, the first Command & Conquer, on the Vanilla Conquer engine. 640x400 on RTG, game movies with sound, bug reports from the game.
 DESC pl Tiberian Dawn, pierwszy Command & Conquer, na silniku Vanilla Conquer. 640x400 na RTG, filmy z dzwiekiem, zgloszenia bledow z gry.
 DESC de Tiberian Dawn, das erste Command & Conquer, mit der Vanilla-Conquer-Engine. 640x400 auf RTG, Filme mit Ton, Fehlermeldungen aus dem Spiel.
-TAGS warp1260,warp1240,warp1260x,warp7060
+TAGS warp,warp1260,warp1240,warp1260x,warp7060
 REQ en 68040 / 68060
 REQ en 100 MHz recommended
 REQ en 32 MB Fast RAM
@@ -527,7 +527,7 @@ NAME en C&C: Red Alert
 DESC en Red Alert on the Vanilla Conquer engine. 640x400 on RTG, Allied and Soviet campaigns, game movies with sound, bug reports from the game.
 DESC pl Red Alert na silniku Vanilla Conquer. 640x400 na RTG, kampanie Aliantow i Sowietow, filmy z dzwiekiem, zgloszenia bledow z gry.
 DESC de Red Alert mit der Vanilla-Conquer-Engine. 640x400 auf RTG, Kampagnen der Allierten und Sowjets, Filme mit Ton, Fehlermeldungen aus dem Spiel.
-TAGS warp1260,warp1240,warp1260x,warp7060
+TAGS warp,warp1260,warp1240,warp1260x,warp7060
 REQ en 68040 / 68060
 REQ en 100 MHz recommended
 REQ en 32 MB Fast RAM
@@ -573,7 +573,7 @@ NAME en Syndicate Wars
 DESC en Syndicate Wars on the SyndWarsFX engine: cyborg agents in a 3D city.
 DESC pl Syndicate Wars na silniku SyndWarsFX: cyborgi-agenci w trójwymiarowym mieście.
 DESC de Syndicate Wars mit der SyndWarsFX-Engine: Cyborg-Agenten in einer 3D-Stadt.
-TAGS warp1260,warp1260x,warp7060
+TAGS warp,warp1260,warp1240,warp1260x,warp7060
 REQ en 68060
 REQ en 100 MHz recommended
 REQ en 64 MB Fast RAM
@@ -744,7 +744,7 @@ NAME en Xain'd Sleena
 DESC en The 1986 Technos arcade game: on foot on the planets, in flight between them.
 DESC pl Gra z automatu Technosu z 1986 roku: na piechotę na planetach, w locie między nimi.
 DESC de Das Technos-Arcadespiel von 1986: zu Fuß auf den Planeten, im Flug dazwischen.
-TAGS warp1260,warp1240,warp1260x,warp7060,other
+TAGS warp,other,warp1260,warp1240,warp1260x,warp7060
 REQ en 4 MB Fast RAM
 REQ en AmigaOS 3.1+, RTG
 REQ pl 4 MB Fast RAM
@@ -777,7 +777,7 @@ NAME en Zod Engine (Z)
 DESC en Z, the real-time strategy of the Bitmap Brothers, on the Zod Engine: robots, forts and territories.
 DESC pl Z, strategia czasu rzeczywistego Bitmap Brothers, na silniku Zod Engine: roboty, forty i terytoria.
 DESC de Z, das Echtzeit-Strategiespiel der Bitmap Brothers, mit der Zod Engine: Roboter, Forts und Gebiete.
-TAGS warp1260,warp1240,warp1260x,warp7060
+TAGS warp,warp1260,warp1240,warp1260x,warp7060
 REQ en 68060 / 68040
 REQ en 100 MHz recommended
 REQ en 32 MB Fast RAM
