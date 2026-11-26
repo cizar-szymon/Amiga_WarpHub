@@ -69,7 +69,7 @@ VERSION 0.9
 FLAT
 ZIP WarpNetMonitor-0.9.zip 122182
 SIZE 151303
-IMAGE 13073 8b13ac238dcf0eeac1f1415f221d08ce3a11ee535f38c8f57f24a3f6bef7d729 images/warpnetmonitor.png
+IMAGE 12496 db46574f1c755ac03aa51515263879c572b5132e1254f42a22cedec3f419fb0a images/warpnetmonitor.png
 NOTES en WarpNetMonitor/doc/WarpNetMonitor_release_en.txt
 NOTES pl WarpNetMonitor/doc/WarpNetMonitor_release.txt
 NOTES de WarpNetMonitor/doc/WarpNetMonitor_release_de.txt
