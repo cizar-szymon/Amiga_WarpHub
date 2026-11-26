@@ -573,7 +573,7 @@ NAME en Syndicate Wars
 DESC en Syndicate Wars on the SyndWarsFX engine: cyborg agents in a 3D city.
 DESC pl Syndicate Wars na silniku SyndWarsFX: cyborgi-agenci w trójwymiarowym mieście.
 DESC de Syndicate Wars mit der SyndWarsFX-Engine: Cyborg-Agenten in einer 3D-Stadt.
-TAGS warp,warp1260,warp1240,warp1260x,warp7060
+TAGS warp,warp_arm,warp1260,warp1240,warp1260x,warp7060
 REQ en 68060
 REQ en 100 MHz recommended
 REQ en 64 MB Fast RAM
