@@ -44,6 +44,10 @@ space, the last field of a line may contain spaces):
     NOTES <lang> <path>           history of releases (pl, en, de)
     README <path>                 an empty drawer for data the player adds
     FILE <size> <sha256> <N|K> <path>
+    FILE2 <size> <sha256> <N|K> <path>
+                                  the same for a path with '&' (0.18): WARP HUB
+                                  0.17 and older refuse the whole catalog on such
+                                  a FILE line, but skip unknown lines
     END
     ...
 
@@ -74,9 +78,9 @@ API = 'https://api.github.com'
 RAW = 'https://raw.githubusercontent.com'
 BASE = 'releases/amiga'
 FORMAT = 1
-# letters, digits, _.+- and single spaces inside a name (Diablo has
+# letters, digits, _.+-& and single spaces inside a name (Diablo has
 # "Floating Numbers - XP"); the path is the last field of a FILE line
-NAME = r'[A-Za-z0-9_.+-]+(?: [A-Za-z0-9_.+-]+)*'
+NAME = r'[A-Za-z0-9_.+&-]+(?: [A-Za-z0-9_.+&-]+)*'   # '&': Syndicate Wars maps/map030.b&b
 PATH_OK = re.compile(r'^%s(?:/%s)*$' % (NAME, NAME))
 KEEP_SUFFIX = ('.ini', '.prefs', '.cfg')
 LANGS = ('en', 'pl', 'de')
@@ -369,6 +373,11 @@ def one_line(text):
     return ' '.join(str(text).split())
 
 
+def file_word(path):
+    """FILE, or FILE2 for a path the parser of WARP HUB 0.17 and older refuses."""
+    return 'FILE2' if '&' in path else 'FILE'
+
+
 def write_catalog(games):
     out = ['WARPHUB-CATALOG %d' % FORMAT,
            '# made by tools/make_catalog.py from catalog/games/ (do not edit)']
@@ -411,7 +420,7 @@ def write_catalog(games):
         for r in g['readmes']:
             out.append('README ' + r)
         for path, size, sha, flag in g['files']:
-            out.append('FILE %d %s %s %s' % (size, sha, flag, path))
+            out.append('%s %d %s %s %s' % (file_word(path), size, sha, flag, path))
         out.append('END')
     return '\n'.join(out) + '\n'
 

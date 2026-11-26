@@ -50,6 +50,8 @@ class PrivateServerTest(unittest.TestCase):
             os.makedirs(os.path.dirname(path))
             with open(path, 'w') as f:
                 f.write(key)
+        with open(os.path.join(www, 'files', 'beta', 'Beta', 'map030.b&b'), 'w') as f:
+            f.write('map')                          # '&' in a name (Syndicate Wars)
         os.makedirs(os.path.join(www, 'images'))
         for key in ('alpha', 'beta'):
             with open(os.path.join(www, 'images', key + '.png'), 'wb') as f:
@@ -167,6 +169,10 @@ class PrivateServerTest(unittest.TestCase):
         self.assertIn('GAME alpha', text)
         self.assertIn('GAME beta', text)
         self.assertEqual(self.get('/files/beta/Beta/b.txt', 'main-password-1'), (200, 'beta'))
+
+    def test_ampersand_in_a_name(self):
+        # WARP HUB sends '&' as %26 (hub_url_path)
+        self.assertEqual(self.get('/files/beta/Beta/map030.b%26b', 'main-password-1'), (200, 'map'))
 
     def test_code_for_one_game(self):
         status, text = self.get('/catalog.txt', self.code_alpha)

@@ -1,11 +1,16 @@
 WARP HUB - releases
 ===================
 
-Reporting bugs: the release number is in the screen title ("WARP HUB 0.17")
+Reporting bugs: the release number is in the screen title ("WARP HUB 0.18")
 and in the Shell: Version SYS:WarpApps/WarpHub. Describe what
 happened and give the release number:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.18 (26.11.2026, beta release)
+-------------------------------
+- Game files may have the character & in their names (e.g. the map
+  map030.b&b of Syndicate Wars) - they are installed as any other.
 
 0.17 (26.11.2026, beta release)
 -------------------------------

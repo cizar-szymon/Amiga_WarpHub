@@ -27,7 +27,7 @@ def read_catalog(path):
                 g = {'key': rest, 'files': []}
             elif word in ('REPO', 'BRANCH') and g is not None:
                 g[word.lower()] = rest
-            elif word == 'FILE' and g is not None:
+            elif word in ('FILE', 'FILE2') and g is not None:
                 size, sha, flag, p = rest.split(' ', 3)
                 g['files'].append((p, int(size), sha))
             elif word == 'END' and g is not None:

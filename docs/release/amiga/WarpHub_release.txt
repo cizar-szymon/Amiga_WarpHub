@@ -1,10 +1,15 @@
 WARP HUB - wydania
 ==================
 
-Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.17") i w
+Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.18") i w
 Shellu: Version SYS:WarpApps/WarpHub. Opisz, co sie stalo, i podaj
 numer wydania: https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.18 (26.11.2026, wydanie beta)
+-------------------------------
+- Pliki gier moga miec w nazwie znak & (np. mapa map030.b&b Syndicate
+  Wars) - instaluja sie jak inne.
 
 0.17 (26.11.2026, wydanie beta)
 -------------------------------

@@ -1178,3 +1178,38 @@ Amiga 2, `WorkSD:WH-test/ZOD`, `TESTINSTALL=zod TESTTO=WorkSD:WH-test`:
   **0.44 s** (0 files read, 185 trusted by size), download 1.08 s (ZodLaunch 29 KB); list written;
 - the same with the version set to 0.11 (an update): full check - 85 files read in 42.9 s, then
   **Del (Stop)**: "Stopped." at once, nothing downloaded, the list keeps the 85 files read.
+
+## 0.18: '&' in file names (26.11.2026, user's decision)
+Syndicate Wars has `SyndWars/maps/map030.b&b`; `make_private.py` left it out ("bad path"), so full
+installs from the RP4 missed that map. '&' is a legal AmigaDOS character.
+- Allowed now: letters, digits, `_ - . + &`, single spaces inside a name; still no `..`, no `:`,
+  no leading `/` (`hub_path_ok` in `hub_catalog.c`, `NAME` / `PATH_OK` in `make_catalog.py`, used by
+  `make_private.py`; `check_release.py` and the editor do not check names).
+- URLs: `hub_url_path` already percent-encodes everything but `A-Z a-z 0-9 - _ . ~ /`, so `&` goes
+  as `%26` (also `+` as `%2B`) to raw.githubusercontent and to the private server, which
+  `unquote`s the path (test `test_ampersand_in_a_name`). No path goes to a Shell command line
+  (Run uses `OpenWorkbenchObject`).
+- **Compatibility:** WARP HUB 0.17 and older refuse the WHOLE catalog when a `FILE` line has a path
+  they do not accept ("Catalog: bad line N"). So `make_catalog.write_catalog` writes such a file as
+  `FILE2 <size> <sha> <flag> <path>` (`file_word`): old versions skip the unknown line (they only
+  miss that file), 0.18 reads `FILE2` as `FILE`. 0.18 also skips a FILE line with a path it does
+  not take, instead of refusing the catalog. `check_raw.py` reads FILE2 too.
+- Tests: 31 OK (a path with `&` taken and written as FILE2, `..` refused, the server gives
+  `map030.b%26b`). `make_private.py`: syndwars 0.230 full 755 files with
+  `FILE2 4 7368... N SyndWars/maps/map030.b&b`; pushed to the RP4 (restart).
+
+Tests on **Amiga 1** (26.11.2026):
+- WARP HUB **0.17** (the released program) with the new RP4 catalog (FILE2 line): refresh OK,
+  "Prywatne zrodlo: pelnych paczek: 11" - the old parser skips FILE2;
+- WARP HUB **0.18**, `TempSD:WH-test` (a copy of Syndicate Wars 0.230, `map030.b&b` deleted, no list,
+  INSTALLED syndwars 0.230 TempSD:WH-test): check 2.3 s (722 files trusted by size), download
+  0.94 s - 1 file, 4 B, `map030.b&b`, SHA-256 7368...0a4c as in the catalog (fetched as `%26`).
+
+**Mistake and test rule (26.11.2026):** an earlier run used a copy of the user's
+`WarpHub.prefs` (for the RP4 login) with `TESTINSTALL=syndwars TESTTO=TempSD:WH-test`; TESTTO was
+then used only for a game not installed, so the install went to the user's `Work:Games/SyndWars`
+and updated it 0.222 -> 0.230 (105 files; old program in `old/SyndWars-0.222`; the user kept
+0.230). Fixed: **TESTTO always installs into the given drawer** (an INSTALLED entry of another
+drawer is ignored for the test). **Rule:** never put a copy of the user's `WarpHub.prefs` into a
+test drawer unless all `INSTALLED` / `GONE` lines (and GAMESDIR / APPSDIR) are removed or
+redirected to the test drawer; keep only LANGUAGE and the PRIVATE lines.

@@ -137,6 +137,17 @@ class TestCatalog(unittest.TestCase):
             files = dict(GAME_FILES, **{bad: b'x'})
             with self.assertRaisesRegex(ValueError, 'bad path'):
                 self.build(repo_with(files))
+        for bad in ('Game/../a', 'Game/a/../b'):
+            files = dict(GAME_FILES, **{bad: b'x'})
+            with self.assertRaisesRegex(ValueError, 'bad path'):
+                self.build(repo_with(files))
+        files = dict(GAME_FILES, **{'Game/maps/map030.b&b': b'x'})
+        g, _ = self.build(repo_with(files))
+        self.assertIn('Game/maps/map030.b&b', {p for p, s, h, f in g['files']})
+        lines = M.write_catalog([g]).splitlines()
+        # FILE2: WARP HUB 0.17 and older refuse a FILE line with '&', but skip unknown lines
+        self.assertTrue(any(l.startswith('FILE2 1 ') and l.endswith(' N Game/maps/map030.b&b') for l in lines))
+        self.assertFalse(any(l.startswith('FILE ') and '&' in l for l in lines))
         files = dict(GAME_FILES, **{'Game/mods/Floating Numbers - XP/init.lua': b'x'})
         g, _ = self.build(repo_with(files))
         self.assertIn('Game/mods/Floating Numbers - XP/init.lua',

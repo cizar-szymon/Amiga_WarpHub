@@ -52,7 +52,7 @@ releases/amiga/<Name>/               the same files as in the ZIP, unpacked
   are refused.
 - Keep **only the current ZIP** in `releases/amiga/`. WARP HUB takes the highest version.
   Older ZIPs only make the repository bigger.
-- Names of files and drawers can use letters, digits, `_ - . +` and single spaces inside
+- Names of files and drawers can use letters, digits, `_ - . + &` and single spaces inside
   a name. No `..` and no other characters. A file with another name is left out.
 - Single files in git must stay under 100 MB, the GitHub limit.
 - The release can be on any branch. Tell us if it is not the default branch.

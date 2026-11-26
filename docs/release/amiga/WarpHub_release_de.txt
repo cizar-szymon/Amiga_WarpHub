@@ -1,11 +1,17 @@
 WARP HUB - Versionen
 ====================
 
-Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.17")
+Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.18")
 und in der Shell: Version SYS:WarpApps/WarpHub. Beschreibe, was
 passiert ist, mit der Versionsnummer:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.18 (26.11.2026, Beta)
+-----------------------
+- Spieldateien duerfen das Zeichen & im Namen haben (z. B. die Karte
+  map030.b&b von Syndicate Wars) - sie werden wie alle anderen
+  installiert.
 
 0.17 (26.11.2026, Beta)
 -----------------------

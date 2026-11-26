@@ -82,7 +82,7 @@
 
 extern struct WBStartup *_WBenchMsg;
 
-#define WARPHUB_VERSION "0.17"   /* tools/make_release.py reads it */
+#define WARPHUB_VERSION "0.18"   /* tools/make_release.py reads it */
 const char version_tag[] = "$VER: WarpHub " WARPHUB_VERSION " (19.11.2026)";
 
 unsigned long __stack = 65536;
@@ -1678,8 +1678,10 @@ static void start_install(void)
   latin(hub_text(g->name, lang), name, sizeof(name));
   latin(g->version, v, sizeof(v));
   if (test_dir[0]) {
-    strncpy(dir, in != NULL ? in->dir : test_dir, sizeof(dir) - 1);
+    /* tests: always the given drawer, never the player's installation */
+    strncpy(dir, test_dir, sizeof(dir) - 1);
     dir[sizeof(dir) - 1] = 0;
+    if (in != NULL && Stricmp((CONST_STRPTR)in->dir, (CONST_STRPTR)dir) != 0) in = NULL;
   } else if (in != NULL) {
     strncpy(dir, in->dir, sizeof(dir) - 1);
     dir[sizeof(dir) - 1] = 0;

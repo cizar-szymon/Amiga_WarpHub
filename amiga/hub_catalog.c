@@ -24,7 +24,8 @@ const char *hub_text(const char *const *texts, int lang)
 static int name_char(char c)
 {
   return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
-         (c >= '0' && c <= '9') || c == '_' || c == '.' || c == '+' || c == '-';
+         (c >= '0' && c <= '9') || c == '_' || c == '.' || c == '+' || c == '-' ||
+         c == '&';                     /* Syndicate Wars: maps/map030.b&b */
 }
 
 int hub_path_ok(const char *p)
@@ -155,7 +156,7 @@ HubCatalog *hub_catalog_parse(char *text, char *err, int errlen)
         /* count FILE lines up to END for one allocation */
         char *p = next;
         while (p != NULL && *p && strncmp(p, "END", 3) != 0) {
-          if (strncmp(p, "FILE ", 5) == 0) cap_files++;
+          if (strncmp(p, "FILE ", 5) == 0 || strncmp(p, "FILE2 ", 6) == 0) cap_files++;
           p = strchr(p, '\n');
           if (p != NULL) p++;
         }
@@ -210,13 +211,15 @@ HubCatalog *hub_catalog_parse(char *text, char *err, int errlen)
       g->image = rest;
     } else if (strcmp(cmd, "README") == 0 && rest != NULL) {
       if (g->readmes < HUB_MAX_README && hub_path_ok(rest)) g->readme[g->readmes++] = rest;
-    } else if (strcmp(cmd, "FILE") == 0 && rest != NULL) {
+    } else if ((strcmp(cmd, "FILE") == 0 || strcmp(cmd, "FILE2") == 0) && rest != NULL) {
+      /* FILE2: a path with '&' (0.18), which 0.17 and older refuse in a FILE line */
       HubFile *f;
       char *size = word(&rest), *sha = word(&rest), *flag = word(&rest);
       if (rest == NULL || g->nfiles >= cap_files || strlen(sha) != 64 ||
-          flag == NULL || flag[0] == 0 || !hub_path_ok(rest)) {
+          flag == NULL || flag[0] == 0) {
         goto bad;
       }
+      if (!hub_path_ok(rest)) continue;   /* a name this version does not take: skipped, not the whole catalog */
       f = &g->files[g->nfiles++];
       f->size = strtoul(size, NULL, 10);
       f->sha = sha;
