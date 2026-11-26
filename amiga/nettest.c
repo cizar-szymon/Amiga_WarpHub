@@ -1382,7 +1382,7 @@ static int priv_port_of(const HubPrefs *p)
 
 int main(void)
 {
-  HubPrefs prefs;
+  static HubPrefs prefs;
   char router_opt[64];
   ULONG start;
   UWORD attn = SysBase->AttnFlags;

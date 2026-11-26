@@ -21,12 +21,12 @@ $(OUT)/WBStart: tools/wbstart.c
 	mkdir -p $(OUT)
 	$(CC) $(CFLAGS) $(LDFLAGS) -s -o $@ $<
 
-$(OUT)/WarpHub: warphub.o hub_worker.o hub_card.o $(OBJS)
+$(OUT)/WarpHub: warphub.o hub_worker.o hub_card.o hub_clock.o $(OBJS)
 	mkdir -p $(OUT)
 	$(CC) $(LDFLAGS) -o $@ $^ -lamiga
 	m68k-amigaos-nm $@ | grep -q ___stkinit && m68k-amigaos-strip -o $@.s $@ && mv $@.s $@
 
-$(OUT)/WarpHubCLI: warphubcli.o $(OBJS)
+$(OUT)/WarpHubCLI: warphubcli.o hub_clock.o $(OBJS)
 	mkdir -p $(OUT)
 	$(CC) $(LDFLAGS) -o $@ $^
 	m68k-amigaos-nm $@ | grep -q ___stkinit && m68k-amigaos-strip -o $@.s $@ && mv $@.s $@
@@ -37,7 +37,7 @@ $(OUT)/WarpNetTest: nettest.o hub_https.o hub_time.o hub_util.o
 	$(CC) $(LDFLAGS) -o $@ $^
 	m68k-amigaos-nm $@ | grep -q ___stkinit && m68k-amigaos-strip -o $@.s $@ && mv $@.s $@
 
-%.o: %.c hub_https.h hub_time.h hub_catalog.h hub_install.h hub_util.h hub_worker.h hub_mem.h hub_card.h
+%.o: %.c hub_https.h hub_time.h hub_catalog.h hub_install.h hub_util.h hub_worker.h hub_mem.h hub_card.h hub_clock.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:

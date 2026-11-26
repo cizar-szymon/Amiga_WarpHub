@@ -124,6 +124,29 @@ static int alloc_buf(void)
 
 void hub_plan_progress(HubGame *g, const char *dest, HubPlan *plan, HubCheckProgress cb, void *user)
 {
+  hub_plan_manifest(g, dest, plan, cb, user, NULL, 0);
+}
+
+/* a file is there (the player's files: only that) */
+static int exists(const char *name, ULONG *size)
+{
+  BPTR lock = Lock((CONST_STRPTR)name, ACCESS_READ);
+  struct FileInfoBlock *fib;
+  int ok = 0;
+  if (lock == 0) return 0;
+  fib = (struct FileInfoBlock *)AllocDosObject(DOS_FIB, NULL);
+  if (fib != NULL && Examine(lock, fib) && fib->fib_DirEntryType < 0) {
+    *size = (ULONG)fib->fib_Size;
+    ok = 1;
+  }
+  if (fib != NULL) FreeDosObject(DOS_FIB, fib);
+  UnLock(lock);
+  return ok;
+}
+
+void hub_plan_manifest(HubGame *g, const char *dest, HubPlan *plan, HubCheckProgress cb, void *user,
+                       HubStamps *man, int trust)
+{
   char name[NAME_LEN], sha[65];
   int i, count = 0;
   ULONG all_total = 0, base = 0;
@@ -158,7 +181,28 @@ void hub_plan_progress(HubGame *g, const char *dest, HubPlan *plan, HubCheckProg
     ctx.index = ++count;
     ctx.base = base;
     if (cb != NULL) cb(user, f, ctx.index, ctx.count, base, all_total);
-    here = local_file(name, f->size, &size, sha, &ctx);
+    if (f->flag == 'K') {
+      here = exists(name, &size);              /* the player's file: only whether it is there */
+      sha[0] = 0;
+    } else {
+      const char *known = man != NULL && trust == HUB_TRUST_MANIFEST ? hub_stamps_get(man, name, &size) : NULL;
+      if (known != NULL) {
+        here = 1;                              /* size and date as remembered */
+        strcpy(sha, known);
+        plan->trusted++;
+      } else if (trust == HUB_TRUST_SIZE && exists(name, &size) && size == f->size) {
+        here = 1;                              /* a repair of the same version: the size is enough */
+        strcpy(sha, f->sha);
+        plan->trusted++;
+        if (man != NULL) hub_stamps_set(man, name, f->sha);
+      } else {
+        here = local_file(name, f->size, &size, sha, &ctx);
+        if (here && sha[0]) {
+          plan->read++;
+          if (man != NULL && !hub_break) hub_stamps_set(man, name, sha);
+        }
+      }
+    }
     base += f->size;
     if (hub_break) {
       plan->files = -1;
@@ -176,6 +220,20 @@ void hub_plan_progress(HubGame *g, const char *dest, HubPlan *plan, HubCheckProg
     }
   }
   if (cb != NULL) cb(user, NULL, count, ctx.count, all_total, all_total);
+}
+
+void hub_manifest_installed(HubGame *g, const char *dest, HubStamps *man)
+{
+  char name[NAME_LEN];
+  int i;
+  if (man == NULL) return;
+  for (i = 0; i < g->nfiles; i++) {
+    HubFile *f = &g->files[i];
+    if (f->flag != 'N' || !f->need) continue;
+    if (full_name(name, sizeof(name), dest, hub_local_path(g, f->path), "")) {
+      hub_stamps_set(man, name, f->sha);
+    }
+  }
 }
 
 void hub_plan(HubGame *g, const char *dest, HubPlan *plan)

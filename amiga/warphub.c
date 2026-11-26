@@ -8,6 +8,7 @@
  *
  * Shell / Tool Types: CATALOG=<https URL or file> LANG=pl|en|de
  *   TESTCARD=<name>: as if this Warp card were here ("Warp 1260", "Warp 7060", NONE)
+ *   FULLCHECK: Install / Update read every file of the game (not the manifest)
  *   TIMES: the times of the start and of every refresh to RAM:WarpHub-times.txt */
 
 #include <exec/types.h>
@@ -17,6 +18,7 @@
 #include <intuition/icclass.h>
 #include <graphics/gfx.h>
 #include <graphics/rastport.h>
+#include <devices/timer.h>
 #include <graphics/gfxmacros.h>   /* SetAfPt */
 #include <datatypes/pictureclass.h>
 #include <libraries/asl.h>
@@ -75,10 +77,12 @@
 #include "hub_catalog.h"
 #include "hub_worker.h"
 #include "hub_card.h"
+#include "hub_clock.h"
+#include "hub_time.h"
 
 extern struct WBStartup *_WBenchMsg;
 
-#define WARPHUB_VERSION "0.16"   /* tools/make_release.py reads it */
+#define WARPHUB_VERSION "0.17"   /* tools/make_release.py reads it */
 const char version_tag[] = "$VER: WarpHub " WARPHUB_VERSION " (19.11.2026)";
 
 unsigned long __stack = 65536;
@@ -122,6 +126,10 @@ enum {
   T_CLEAN_SURE_OLD, T_CLEAN_SURE_BUGS, T_CLEAN_DELETED, T_CLEAN_FAILED,
   T_FILES_WIN, T_FILES_HEAD, T_FILES_NONE, T_FILES_PLAN, T_F_WAIT, T_F_CHECK, T_F_DONE, T_F_FAIL,
   T_FAV_HINT, T_FAV_ON, T_FAV_OFF, T_NEEDS_PPC, T_NEEDS_ARM,
+  T_CLK_WIN, T_CLK_NOW, T_CLK_HAND, T_CLK_DATE, T_CLK_TIME, T_CLK_SET, T_CLK_INET, T_CLK_ZONE,
+  T_CLK_DST, T_CLK_GET, T_CLK_DONE, T_CLK_BATT, T_CLK_NOBATT, T_CLK_WEAK, T_CLK_BAD, T_CLK_ASK,
+  T_CLK_HANDSRC, T_CLK_FAIL, T_CLK_ERR, T_CLK_HINT1, T_CLK_HINT2, T_CLK_SUMMER,
+  T_CLK_SAVE, T_CLK_GOT, T_CLK_PRESS, T_CLK_LATER,
   T_COUNT
 };
 
@@ -174,7 +182,18 @@ static const char *const texts[3][T_COUNT] = {
     "waiting", "checking %ld%%", "done", "error",
     "Right-click a tile to add it to your favorites.", "Favorites: %s added.",
     "Favorites: %s removed.", "Does not run on this Amiga (%s): needs PowerPC.",
-    "Does not run on this Amiga (%s): needs a Warp with ARM (1260X, 7060)."
+    "Does not run on this Amiga (%s): needs a Warp with ARM (1260X, 7060).",
+    "Clock", "Clock of this Amiga: %s", "By hand", "Date (DD.MM.YYYY)", "Time (HH:MM:SS)", "Set",
+    "From the internet", "Time zone", "Summer time automatically (EU)", "Get from the internet",
+    "Clock set to %s (%s).", "The battery clock is set too.",
+    "No battery clock: the time lasts until the Amiga is switched off.",
+    "The battery clock had lost the time (battery?): it may be lost again.",
+    "Wrong date or time (DD.MM.YYYY, HH:MM:SS, 1978-2105).", "Asking the time servers...",
+    "by hand", "No time from the internet: %s", "Clock not set: %s",
+    "Choose the time zone and get the time from the internet,", "or type the date and time; then Set or Save.",
+    "summer time",
+    "Save", "Time from the internet: %s (%s).", "Press Set or Save.",
+    "Battery clock not changed - Save to set it."
   },
   { /* pl */
     "Odswiez", "Zainstaluj", "Aktualizuj", "Sprawdz pliki", "Przerwij", "Zainstalowana %s",
@@ -224,7 +243,18 @@ static const char *const texts[3][T_COUNT] = {
     "czeka", "sprawdzanie %ld%%", "gotowe", "blad",
     "Kliknij kafelek prawym przyciskiem, aby dodac go do ulubionych.", "Ulubione: dodano %s.",
     "Ulubione: usunieto %s.", "Nie dziala na tej Amidze (%s): potrzebny PowerPC.",
-    "Nie dziala na tej Amidze (%s): potrzebna karta Warp z ARM (1260X, 7060)."
+    "Nie dziala na tej Amidze (%s): potrzebna karta Warp z ARM (1260X, 7060).",
+    "Zegar", "Zegar tej Amigi: %s", "Recznie", "Data (DD.MM.RRRR)", "Godzina (GG:MM:SS)", "Ustaw",
+    "Z internetu", "Strefa czasowa", "Czas letni automatycznie (UE)", "Pobierz z internetu",
+    "Zegar ustawiony na %s (%s).", "Zegar z bateria tez jest ustawiony.",
+    "Brak zegara z bateria: czas zostanie do wylaczenia Amigi.",
+    "Zegar z bateria nie pamietal czasu (bateria?): moze go znow zgubic.",
+    "Zla data albo godzina (DD.MM.RRRR, GG:MM:SS, 1978-2105).", "Pytam serwery czasu...",
+    "recznie", "Brak czasu z internetu: %s", "Zegar nie ustawiony: %s",
+    "Wybierz strefe czasowa i pobierz czas z internetu", "albo wpisz date i godzine; potem Ustaw albo Zapisz.",
+    "czas letni",
+    "Zapisz", "Czas z internetu: %s (%s).", "Nacisnij Ustaw albo Zapisz.",
+    "Zegar z bateria nie zmieniony - Zapisz, aby go ustawic."
   },
   { /* de */
     "Aktualisieren", "Installieren", "Update", "Dateien pr\xfc" "fen", "Abbrechen",
@@ -276,7 +306,19 @@ static const char *const texts[3][T_COUNT] = {
     "Klicke mit der rechten Maustaste auf eine Kachel, um sie zu den Favoriten hinzuzuf\xfc" "gen.",
     "Favoriten: %s hinzugef\xfc" "gt.", "Favoriten: %s entfernt.",
     "L\xe4" "uft nicht auf diesem Amiga (%s): braucht PowerPC.",
-    "L\xe4" "uft nicht auf diesem Amiga (%s): braucht eine Warp mit ARM (1260X, 7060)."
+    "L\xe4" "uft nicht auf diesem Amiga (%s): braucht eine Warp mit ARM (1260X, 7060).",
+    "Uhr", "Uhr dieses Amiga: %s", "Von Hand", "Datum (TT.MM.JJJJ)", "Zeit (HH:MM:SS)", "Setzen",
+    "Aus dem Internet", "Zeitzone", "Sommerzeit automatisch (EU)", "Aus dem Internet holen",
+    "Uhr gestellt auf %s (%s).", "Die Batterie-Uhr ist auch gestellt.",
+    "Keine Batterie-Uhr: die Zeit bleibt bis zum Ausschalten.",
+    "Die Batterie-Uhr hatte die Zeit verloren (Batterie?): sie kann sie wieder verlieren.",
+    "Falsches Datum oder falsche Zeit (TT.MM.JJJJ, HH:MM:SS, 1978-2105).", "Frage die Zeitserver...",
+    "von Hand", "Keine Zeit aus dem Internet: %s", "Uhr nicht gestellt: %s",
+    "Zeitzone w\xe4" "hlen und die Zeit aus dem Internet holen,",
+    "oder Datum und Zeit eintippen; dann Setzen oder Speichern.",
+    "Sommerzeit",
+    "Speichern", "Zeit aus dem Internet: %s (%s).", "Setzen oder Speichern dr\xfc" "cken.",
+    "Batterie-Uhr nicht ge\xe4" "ndert - Speichern, um sie zu stellen."
   }
 };
 
@@ -307,7 +349,7 @@ static char test_key[32], test_dir[256], test_gamesdir[256], test_card[32];
 /* --- state --------------------------------------------------------------- */
 
 enum { GID_LANG = 1, GID_REFRESH, GID_GALLERY, GID_SCROLL, GID_PAGE, GID_INSTALL, GID_STOP,
-       GID_NOTES, GID_PROGRESS, GID_REQ, GID_GAMESDIR, GID_APPSDIR, GID_UPDATE, GID_GUIDE, GID_RUN, GID_LOCK, GID_FILES, GID_FILTER };     /* GID_FILTER + 0..FILTERS-1 */
+       GID_NOTES, GID_PROGRESS, GID_REQ, GID_GAMESDIR, GID_APPSDIR, GID_UPDATE, GID_GUIDE, GID_RUN, GID_LOCK, GID_FILES, GID_CLOCK, GID_FILTER };     /* GID_FILTER + 0..FILTERS-1 */
 
 typedef struct Tile {
   Object *dt;                /* the picture (datatype), NULL = none */
@@ -1342,7 +1384,10 @@ static int scan_games_dir(const char *dir, int save, int only_new)
     } else if (!only_new) {
       HubInstalled *in = hub_prefs_installed(&prefs, g->key);
       if (in != NULL && Stricmp((CONST_STRPTR)in->dir, (CONST_STRPTR)dir) == 0) {
-        hub_prefs_remove_installed(&prefs, g->key);   /* deleted or moved away */
+        /* deleted or moved away; its version is kept for a repair into the
+         * same drawer (no reading of every file, user's decision 26.11.2026) */
+        hub_prefs_set_gone(&prefs, in->key, in->version, in->dir);
+        hub_prefs_remove_installed(&prefs, g->key);
       }
     }
   }
@@ -1650,6 +1695,14 @@ static void start_install(void)
   strncpy(work.key, g->key, sizeof(work.key) - 1);
   strncpy(work.dir, dir, sizeof(work.dir) - 1);
   strncpy(work.old_version, in != NULL ? in->version : "", sizeof(work.old_version) - 1);
+  if (in == NULL) {
+    /* installed into this drawer before, its program is missing: a repair
+     * knows the version */
+    HubInstalled *was = hub_prefs_gone(&prefs, g->key);
+    if (was != NULL && Stricmp((CONST_STRPTR)was->dir, (CONST_STRPTR)dir) == 0) {
+      strncpy(work.old_version, was->version, sizeof(work.old_version) - 1);
+    }
+  }
   work.cat = cat;
   work.job = HUB_JOB_INSTALL;
   snprintf(body, sizeof(body), TX(T_CHECKING), name);
@@ -1866,6 +1919,8 @@ static void offer_cleanup(void)
 static Class *lock_class;
 static Object *lock_img;
 static Object *files_img;              /* the button "Downloaded files" left of it */
+static Object *clock_img;              /* the button "Clock" left of that */
+static struct Gadget *clock_gad;
 static struct Gadget *files_gad;
 static struct Gadget *lock_gad;
 static struct DrawInfo *dri;
@@ -1894,6 +1949,19 @@ static ULONG lock_dispatch(Class *cl, Object *o, Msg msg)
     Move(rp, x + w - 1, y + 1);
     Draw(rp, x + w - 1, y + h - 1);
     Draw(rp, x + 1, y + h - 1);
+    if (o == clock_img) {
+      /* a clock face: a ring (rounded square) and two hands */
+      int cx = x + w / 2, cy = y + h / 2, r = (h - 6) / 2;
+      if (r < 3) r = 3;
+      SetAPen(rp, dp[TEXTPEN]);
+      RectFill(rp, cx - r + 1, cy - r, cx + r - 1, cy - r);
+      RectFill(rp, cx - r + 1, cy + r, cx + r - 1, cy + r);
+      RectFill(rp, cx - r, cy - r + 1, cx - r, cy + r - 1);
+      RectFill(rp, cx + r, cy - r + 1, cx + r, cy + r - 1);
+      RectFill(rp, cx, cy - r + 2, cx, cy);                    /* minutes: up */
+      RectFill(rp, cx, cy, cx + r - 2, cy);                    /* hours: right */
+      return 0;
+    }
     if (o == files_img) {
       /* a list with an arrow down; green while an install downloads */
       int lx = x + w / 5, lw = w * 3 / 5, i, ay;
@@ -1933,6 +2001,15 @@ static ULONG lock_dispatch(Class *cl, Object *o, Msg msg)
 
 static void lock_remove(void)
 {
+  if (clock_gad != NULL) {
+    if (win != NULL) RemoveGList(win, clock_gad, 1);
+    DisposeObject((Object *)clock_gad);
+    clock_gad = NULL;
+  }
+  if (clock_img != NULL) {
+    DisposeObject(clock_img);
+    clock_img = NULL;
+  }
   if (files_gad != NULL) {
     if (win != NULL) RemoveGList(win, files_gad, 1);
     DisposeObject((Object *)files_gad);
@@ -2001,6 +2078,18 @@ static void lock_add(void)
     if (files_gad != NULL) {
       AddGList(win, files_gad, 0, 1, NULL);
       RefreshGList(files_gad, win, NULL, 1);
+    }
+  }
+  /* "Clock": left of "Downloaded files" */
+  clock_img = NewObject(lock_class, NULL, IA_Width, w, IA_Height, h, TAG_DONE);
+  if (clock_img != NULL) {
+    clock_gad = (struct Gadget *)NewObject(NULL, (ClassID)"buttongclass",
+        GA_ID, GID_CLOCK, GA_RelVerify, TRUE, GA_TopBorder, TRUE,
+        GA_RelRight, left - 2 * w, GA_Top, 0, GA_Width, w, GA_Height, h,
+        GA_Image, (ULONG)clock_img, TAG_DONE);
+    if (clock_gad != NULL) {
+      AddGList(win, clock_gad, 0, 1, NULL);
+      RefreshGList(clock_gad, win, NULL, 1);
     }
   }
 }
@@ -2228,6 +2317,8 @@ static void probe_result(void)
 
 /* --- the network process tells something ------------------------------------ */
 
+static void clock_net_done(void);
+
 static void worker_news(void)
 {
   char a[400];
@@ -2302,6 +2393,11 @@ static void worker_news(void)
       start_install();
     }
     return;
+  } else if (work.finished == HUB_JOB_TIME) {
+    work.finished = 0;
+    clock_net_done();
+    update_buttons();
+    return;
   } else if (work.finished == HUB_JOB_PROBE) {
     work.finished = 0;
     update_buttons();
@@ -2310,6 +2406,7 @@ static void worker_news(void)
   } else if (work.finished == HUB_JOB_INSTALL) {
     HubGame *g = hub_catalog_find(cat, work.key);
     work.finished = 0;
+    times_log("install %s: %s", work.ok ? "done" : "failed", work.timing);
     if (work.ok && g != NULL) {
       char name[96], v[32];
       int i, n;
@@ -2544,6 +2641,438 @@ static void show_files(void)
   }
   FreeListBrowserList(&files_list);
   files_n = 0;
+}
+
+/* --- the window "Clock" (0.17, user's decision 26.11.2026) ------------------
+ * The clock of the Amiga by hand, or from the internet (NTP, then the Date of
+ * web servers - the network process) with a time zone and the EU summer
+ * time. Only a click here sets the clock (timer.device and, when there is
+ * one, the battery clock); nothing else in WARP HUB changes it. */
+
+static Object *clk_obj, *clk_now, *clk_date, *clk_time, *clk_zone, *clk_dst, *clk_get,
+    *clk_stop, *clk_s1, *clk_s2;
+static struct Window *clk_win;
+static LONG clk_zone_min = 60;     /* minutes east of UTC */
+static int clk_dst_on = 1;
+static char clk_now_text[80], clk_s1_text[200], clk_s2_text[200], clk_date_text[16],
+    clk_time_text[16];
+static char zone_names[27][8];
+static struct List zone_list;
+static int clock_bad_at_start;     /* the clock was wrong when WARP HUB started */
+
+static void clk_label(Object *o, const char *text)
+{
+  if (clk_win != NULL && o != NULL) SetGadgetAttrs((struct Gadget *)o, clk_win, NULL, GA_Text, (ULONG)text, TAG_DONE);
+}
+
+/* the clock of the Amiga in the window; fields: also into date and time */
+/* the date and time fields: they hold clk_base (local Unix seconds) and go
+ * on with the time since clk_base_ms while nobody types in them. src: where
+ * the time came from (the clock, the internet) */
+static ULONG clk_base, clk_base_ms;
+static char clk_base_src[120];
+static int clk_base_net;            /* the fields hold the internet time */
+static ULONG clk_net_utc, clk_net_ms;   /* the last internet time (UTC), for another zone */
+
+static int clock_fields_untouched(void)
+{
+  ULONG d = 0, t = 0;
+  if (clk_win == NULL) return 1;
+  GetAttr(STRINGA_TextVal, clk_date, &d);
+  GetAttr(STRINGA_TextVal, clk_time, &t);
+  return d && t && strcmp((const char *)d, clk_date_text) == 0 && strcmp((const char *)t, clk_time_text) == 0;
+}
+
+static ULONG clock_fields_now(void)
+{
+  return clk_base + (hub_ms() - clk_base_ms) / 1000UL;
+}
+
+static void clock_write_fields(ULONG local)
+{
+  char t[32];
+  hub_clock_text(local, t, sizeof(t));
+  memcpy(clk_date_text, t, 10);
+  clk_date_text[10] = 0;
+  strcpy(clk_time_text, t + 11);
+  if (clk_win != NULL) {
+    SetGadgetAttrs((struct Gadget *)clk_date, clk_win, NULL, STRINGA_TextVal, (ULONG)clk_date_text, TAG_DONE);
+    SetGadgetAttrs((struct Gadget *)clk_time, clk_win, NULL, STRINGA_TextVal, (ULONG)clk_time_text, TAG_DONE);
+  }
+}
+
+static void clock_fill(ULONG local, const char *src, int net)
+{
+  clk_base_net = net;
+  clk_base = local;
+  clk_base_ms = hub_ms();
+  strncpy(clk_base_src, src, sizeof(clk_base_src) - 1);
+  clock_write_fields(local);
+}
+
+/* every second: the clock line, and the fields while untouched */
+static void clock_tick(void)
+{
+  char t[32];
+  hub_clock_text(hub_amiga_now(), t, sizeof(t));
+  snprintf(clk_now_text, sizeof(clk_now_text), TX(T_CLK_NOW), t);
+  clk_label(clk_now, clk_now_text);
+  if (clock_fields_untouched()) clock_write_fields(clock_fields_now());
+}
+
+static void clock_messages(const char *a, const char *b)
+{
+  strncpy(clk_s1_text, a, sizeof(clk_s1_text) - 1);
+  strncpy(clk_s2_text, b, sizeof(clk_s2_text) - 1);
+  clk_label(clk_s1, clk_s1_text);
+  clk_label(clk_s2, clk_s2_text);
+}
+
+static void clock_buttons(void)
+{
+  if (clk_win == NULL) return;
+  SetGadgetAttrs((struct Gadget *)clk_get, clk_win, NULL, GA_Disabled, work.busy, TAG_DONE);
+  SetGadgetAttrs((struct Gadget *)clk_stop, clk_win, NULL,
+                 GA_Disabled, !(work.busy && work.job == HUB_JOB_TIME), TAG_DONE);
+}
+
+/* the zone and summer time of the window */
+static void clock_read_zone(void)
+{
+  ULONG v = 12;
+  if (clk_win == NULL) return;
+  GetAttr(CHOOSER_Selected, clk_zone, &v);
+  clk_zone_min = ((LONG)v - 12) * 60;
+  v = 0;
+  GetAttr(GA_Selected, clk_dst, &v);
+  clk_dst_on = v != 0;
+}
+
+/* "NTP pool.ntp.org, UTC+1" for the internet time utc */
+static void clock_net_src(ULONG utc, char *out, int outlen)
+{
+  int summer = clk_dst_on && hub_eu_summer(utc);
+  LONG off = clk_zone_min + (summer ? 60 : 0);
+  snprintf(out, outlen, "%s, UTC%c%ld%s%s", work.time_how, off < 0 ? '-' : '+',
+           (long)((off < 0 ? -off : off) / 60), summer ? ", " : "", summer ? TX(T_CLK_SUMMER) : "");
+}
+
+/* Set (save 0) / Save (save 1): the clock from the fields; Save also the
+ * battery clock and the zone in WarpHub.prefs. 1 when the clock is set. */
+static int clock_apply(int save)
+{
+  ULONG d = 0, t = 0, local;
+  char err[120], tt[32], a[200];
+  const char *src = TX(T_CLK_HANDSRC);
+  int batt = 0;
+  if (clock_fields_untouched()) {
+    local = clock_fields_now();             /* as shown, a second later */
+    src = clk_base_src;
+  } else {
+    GetAttr(STRINGA_TextVal, clk_date, &d);
+    GetAttr(STRINGA_TextVal, clk_time, &t);
+    local = hub_clock_parse(d ? (const char *)d : "", t ? (const char *)t : "");
+    if (local == 0) {
+      clock_messages(TX(T_CLK_BAD), "");
+      return 0;
+    }
+  }
+  if (!hub_clock_set(local, 0, save, &batt, err, sizeof(err))) {
+    snprintf(a, sizeof(a), TX(T_CLK_ERR), err);
+    clock_messages(a, "");
+    set_status(a);
+    return 0;
+  }
+  if (save) {
+    clock_read_zone();
+    prefs.tz_set = 1;
+    prefs.tz_min = clk_zone_min;
+    prefs.dst_off = !clk_dst_on;
+    hub_prefs_save(&prefs, PREFS_FILE);
+  }
+  hub_clock_text(local, tt, sizeof(tt));
+  snprintf(a, sizeof(a), TX(T_CLK_DONE), tt, src);
+  clock_messages(a, TX(!hub_clock_has_batt() ? T_CLK_NOBATT : !save ? T_CLK_LATER :
+                       clock_bad_at_start ? T_CLK_WEAK : T_CLK_BATT));
+  set_status(a);
+  clock_fill(local, src, 0);
+  return 1;
+}
+
+static void clock_start_net(void)
+{
+  if (work.busy) {
+    clock_messages(TX(T_BUSY), "");
+    return;
+  }
+  clock_read_zone();
+  work.job = HUB_JOB_TIME;
+  hub_worker_go(&work);
+  if (!work.busy) {
+    char a[200];
+    snprintf(a, sizeof(a), TX(T_CLK_FAIL), work.net_info[0] ? work.net_info : "-");
+    clock_messages(a, "");
+    return;
+  }
+  clock_messages(TX(T_CLK_ASK), "");
+  set_status(TX(T_CLK_ASK));
+  clock_buttons();
+}
+
+/* the internet time into the fields, in the zone of the window */
+static void clock_fill_net(void)
+{
+  char a[200], src[120], t[32];
+  ULONG utc = clk_net_utc + (hub_ms() - clk_net_ms) / 1000UL, local;
+  clock_net_src(utc, src, sizeof(src));
+  local = hub_local_of_utc(utc, clk_zone_min, clk_dst_on);
+  clock_fill(local, src, 1);
+  hub_clock_text(local, t, sizeof(t));
+  snprintf(a, sizeof(a), TX(T_CLK_GOT), t, src);
+  clock_messages(a, TX(T_CLK_PRESS));
+}
+
+/* the network process brought the time (or not): only into the fields -
+ * the clock is set by Set or Save */
+static void clock_net_done(void)
+{
+  char a[200];
+  if (work.ok && work.time_utc) {
+    clk_net_utc = work.time_utc;
+    clk_net_ms = work.time_ms;
+    if (clk_win != NULL) {
+      clock_fill_net();
+      set_status(clk_s1_text);
+    }
+  } else {
+    snprintf(a, sizeof(a), TX(T_CLK_FAIL), work.msg[0] ? work.msg : "-");
+    clock_messages(a, "");
+    set_status(a);
+  }
+  clock_buttons();
+}
+
+/* another zone or summer time: the internet time in the fields follows */
+static void clock_zone_changed(void)
+{
+  clock_read_zone();
+  if (clk_net_utc != 0 && clk_base_net && clock_fields_untouched()) {
+    clock_fill_net();
+  }
+}
+
+/* the zone at the first opening: WarpHub.prefs, the Locale prefs, UTC+1 */
+static LONG clock_default_zone(void)
+{
+  if (prefs.tz_set) return prefs.tz_min;
+  if (LocaleBase != NULL) {
+    struct Locale *loc = OpenLocale(NULL);
+    if (loc != NULL) {
+      LONG west = loc->loc_GMTOffset;       /* minutes west of GMT */
+      CloseLocale(loc);
+      if (west != 0) return -west;
+    }
+  }
+  return 60;
+}
+
+static void show_clock(void)
+{
+  struct MsgPort *tport = NULL;
+  struct timerequest *treq = NULL;
+  ULONG sig = 0, result, wmask = work_signal >= 0 ? 1UL << work_signal : 0, tmask = 0;
+  UWORD code;
+  int done = 0, i, tpending = 0, zone_idx;
+  Object *lay;
+  if (win == NULL || clk_obj != NULL) return;
+  StringBase = OpenLibrary((CONST_STRPTR)"gadgets/string.gadget", 44);
+  CheckBoxBase = OpenLibrary((CONST_STRPTR)"gadgets/checkbox.gadget", 44);
+  LabelBase = OpenLibrary((CONST_STRPTR)"images/label.image", 44);
+  if (StringBase == NULL || CheckBoxBase == NULL || LabelBase == NULL) goto out;
+  NewList(&zone_list);
+  for (i = 0; i < 27; i++) {
+    struct Node *n;
+    if (i == 12) strcpy(zone_names[i], "UTC");
+    else snprintf(zone_names[i], sizeof(zone_names[i]), "UTC%c%d", i < 12 ? '-' : '+', i < 12 ? 12 - i : i - 12);
+    n = AllocChooserNode(CNA_Text, (ULONG)zone_names[i], TAG_DONE);
+    if (n != NULL) AddTail(&zone_list, n);
+  }
+  clk_zone_min = clock_default_zone();
+  clk_dst_on = !prefs.dst_off;
+  zone_idx = (int)(clk_zone_min / 60) + 12;
+  if (zone_idx < 0) zone_idx = 0;
+  if (zone_idx > 26) zone_idx = 26;
+  {
+    char t[32];
+    hub_clock_text(hub_amiga_now(), t, sizeof(t));
+    snprintf(clk_now_text, sizeof(clk_now_text), TX(T_CLK_NOW), t);
+    clk_net_utc = 0;
+    clock_fill(hub_amiga_now(), TX(T_CLK_HANDSRC), 0);
+  }
+  strcpy(clk_s1_text, TX(T_CLK_HINT1));
+  strcpy(clk_s2_text, TX(T_CLK_HINT2));
+  clk_obj = NewObject(WINDOW_GetClass(), NULL,
+      WA_Title, (ULONG)TX(T_CLK_WIN),
+      WA_PubScreen, (ULONG)scr,
+      WA_DragBar, TRUE, WA_DepthGadget, TRUE, WA_CloseGadget, TRUE,
+      WA_Activate, TRUE,
+      WA_IDCMP, IDCMP_RAWKEY,
+      WINDOW_RefWindow, (ULONG)win,
+      WINDOW_Position, WPOS_CENTERWINDOW,
+      WINDOW_Layout, (ULONG)(lay = NewObject(LAYOUT_GetClass(), NULL, LAYOUT_Orientation, LAYOUT_ORIENT_VERT,
+        LAYOUT_SpaceOuter, TRUE,
+        LAYOUT_AddChild, (ULONG)(clk_now = NewObject(BUTTON_GetClass(), NULL,
+          GA_ReadOnly, TRUE, GA_Text, (ULONG)clk_now_text, BUTTON_Justification, BCJ_LEFT,
+          BUTTON_BevelStyle, BVS_NONE, TAG_END)),
+        CHILD_WeightedHeight, 0,
+        /* the group title in the normal font (the bevel label is tiny) */
+        LAYOUT_AddChild, (ULONG)NewObject(BUTTON_GetClass(), NULL,
+          GA_ReadOnly, TRUE, GA_Text, (ULONG)TX(T_CLK_HAND), BUTTON_Justification, BCJ_LEFT,
+          BUTTON_BevelStyle, BVS_NONE, BUTTON_SoftStyle, FSF_BOLD, TAG_END),
+        CHILD_WeightedHeight, 0,
+        LAYOUT_AddChild, (ULONG)NewObject(LAYOUT_GetClass(), NULL, LAYOUT_Orientation, LAYOUT_ORIENT_HORIZ,
+          LAYOUT_BevelStyle, BVS_GROUP, LAYOUT_SpaceOuter, TRUE,
+          LAYOUT_AddChild, (ULONG)(clk_date = NewObject(STRING_GetClass(), NULL,
+            GA_ID, 1, GA_RelVerify, TRUE, GA_TabCycle, TRUE,
+            STRINGA_MaxChars, 11, STRINGA_TextVal, (ULONG)clk_date_text, STRINGA_MinVisible, 11,
+          TAG_END)),
+          CHILD_Label, (ULONG)NewObject(LABEL_GetClass(), NULL, LABEL_Text, (ULONG)TX(T_CLK_DATE), TAG_END),
+          LAYOUT_AddChild, (ULONG)(clk_time = NewObject(STRING_GetClass(), NULL,
+            GA_ID, 2, GA_RelVerify, TRUE, GA_TabCycle, TRUE,
+            STRINGA_MaxChars, 9, STRINGA_TextVal, (ULONG)clk_time_text, STRINGA_MinVisible, 9,
+          TAG_END)),
+          CHILD_Label, (ULONG)NewObject(LABEL_GetClass(), NULL, LABEL_Text, (ULONG)TX(T_CLK_TIME), TAG_END),
+        TAG_END),
+        CHILD_WeightedHeight, 0,
+        /* the group title in the normal font (the bevel label is tiny) */
+        LAYOUT_AddChild, (ULONG)NewObject(BUTTON_GetClass(), NULL,
+          GA_ReadOnly, TRUE, GA_Text, (ULONG)TX(T_CLK_INET), BUTTON_Justification, BCJ_LEFT,
+          BUTTON_BevelStyle, BVS_NONE, BUTTON_SoftStyle, FSF_BOLD, TAG_END),
+        CHILD_WeightedHeight, 0,
+        LAYOUT_AddChild, (ULONG)NewObject(LAYOUT_GetClass(), NULL, LAYOUT_Orientation, LAYOUT_ORIENT_VERT,
+          LAYOUT_BevelStyle, BVS_GROUP, LAYOUT_SpaceOuter, TRUE,
+          LAYOUT_AddChild, (ULONG)NewObject(LAYOUT_GetClass(), NULL, LAYOUT_Orientation, LAYOUT_ORIENT_HORIZ,
+            LAYOUT_AddChild, (ULONG)(clk_zone = NewObject(CHOOSER_GetClass(), NULL,
+              GA_ID, 4, GA_RelVerify, TRUE,
+              CHOOSER_Labels, (ULONG)&zone_list, CHOOSER_Selected, zone_idx, CHOOSER_MaxLabels, 27,
+            TAG_END)),
+            CHILD_Label, (ULONG)NewObject(LABEL_GetClass(), NULL, LABEL_Text, (ULONG)TX(T_CLK_ZONE), TAG_END),
+            CHILD_MinWidth, 100, CHILD_WeightedWidth, 0,
+            LAYOUT_AddChild, (ULONG)(clk_dst = NewObject(CHECKBOX_GetClass(), NULL,
+              GA_ID, 5, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_CLK_DST), GA_Selected, clk_dst_on,
+            TAG_END)),
+          TAG_END),
+          LAYOUT_AddChild, (ULONG)NewObject(LAYOUT_GetClass(), NULL, LAYOUT_Orientation, LAYOUT_ORIENT_HORIZ,
+            LAYOUT_EvenSize, TRUE,
+            LAYOUT_AddChild, (ULONG)(clk_get = NewObject(BUTTON_GetClass(), NULL,
+              GA_ID, 6, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_CLK_GET), TAG_END)),
+            LAYOUT_AddChild, (ULONG)(clk_stop = NewObject(BUTTON_GetClass(), NULL,
+              GA_ID, 7, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_STOP), GA_Disabled, TRUE, TAG_END)),
+          TAG_END),
+        TAG_END),
+        CHILD_WeightedHeight, 0,
+        LAYOUT_AddChild, (ULONG)(clk_s1 = NewObject(BUTTON_GetClass(), NULL,
+          GA_ReadOnly, TRUE, GA_Text, (ULONG)clk_s1_text, BUTTON_Justification, BCJ_LEFT,
+          BUTTON_BevelStyle, BVS_NONE, TAG_END)),
+        CHILD_WeightedHeight, 0,
+        LAYOUT_AddChild, (ULONG)(clk_s2 = NewObject(BUTTON_GetClass(), NULL,
+          GA_ReadOnly, TRUE, GA_Text, (ULONG)clk_s2_text, BUTTON_Justification, BCJ_LEFT,
+          BUTTON_BevelStyle, BVS_NONE, TAG_END)),
+        CHILD_WeightedHeight, 0,
+        /* as the Prefs editors: Save (clock, battery clock, zone), Set (the
+         * clock only, the window stays), Close (nothing) */
+        LAYOUT_AddChild, (ULONG)NewObject(LAYOUT_GetClass(), NULL, LAYOUT_Orientation, LAYOUT_ORIENT_HORIZ,
+          LAYOUT_EvenSize, TRUE,
+          LAYOUT_AddChild, (ULONG)NewObject(BUTTON_GetClass(), NULL,
+            GA_ID, 9, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_CLK_SAVE), TAG_END),
+          LAYOUT_AddChild, (ULONG)NewObject(BUTTON_GetClass(), NULL,
+            GA_ID, 3, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_CLK_SET), TAG_END),
+          LAYOUT_AddChild, (ULONG)NewObject(BUTTON_GetClass(), NULL,
+            GA_ID, 8, GA_RelVerify, TRUE, GA_Text, (ULONG)TX(T_CLOSE), TAG_END),
+        TAG_END),
+        CHILD_WeightedHeight, 0,
+      TAG_END)),
+    TAG_END);
+  if (clk_obj == NULL) goto out;
+  clk_win = (struct Window *)RA_OpenWindow(clk_obj);
+  if (clk_win == NULL) goto out;
+  GetAttr(WINDOW_SigMask, clk_obj, &sig);
+  clock_buttons();
+  /* the clock shown every second (timer.device) */
+  tport = CreateMsgPort();
+  if (tport != NULL) treq = (struct timerequest *)CreateIORequest(tport, sizeof(*treq));
+  if (treq != NULL && OpenDevice((CONST_STRPTR)TIMERNAME, UNIT_VBLANK, (struct IORequest *)treq, 0) == 0) {
+    tmask = 1UL << tport->mp_SigBit;
+    treq->tr_node.io_Command = TR_ADDREQUEST;
+    treq->tr_time.tv_secs = 1;
+    treq->tr_time.tv_micro = 0;
+    SendIO((struct IORequest *)treq);
+    tpending = 1;
+  } else if (treq != NULL) {
+    DeleteIORequest((struct IORequest *)treq);
+    treq = NULL;
+  }
+  while (!done) {
+    ULONG s = Wait(sig | wmask | tmask | SIGBREAKF_CTRL_C);
+    if (s & SIGBREAKF_CTRL_C) {
+      SetSignal(SIGBREAKF_CTRL_C, SIGBREAKF_CTRL_C);   /* for the main loop too */
+      done = 1;
+    }
+    if (s & wmask) worker_news();
+    if ((s & tmask) && tpending && CheckIO((struct IORequest *)treq)) {
+      WaitIO((struct IORequest *)treq);
+      clock_tick();
+      treq->tr_node.io_Command = TR_ADDREQUEST;
+      treq->tr_time.tv_secs = 1;
+      treq->tr_time.tv_micro = 0;
+      SendIO((struct IORequest *)treq);
+    }
+    while ((result = RA_HandleInput(clk_obj, &code)) != WMHI_LASTMSG) {
+      switch (result & WMHI_CLASSMASK) {
+        case WMHI_CLOSEWINDOW: done = 1; break;
+        case WMHI_RAWKEY:
+          if (code == 0x45) done = 1;                              /* Esc */
+          else if (code == 0x36) clock_start_net();                /* N: from the internet */
+          break;
+        case WMHI_GADGETUP:
+          switch (result & WMHI_GADGETMASK) {
+            case 3: clock_apply(0); break;
+            case 9: if (clock_apply(1)) done = 1; break;
+            case 4: case 5: clock_zone_changed(); break;
+            case 6: clock_start_net(); break;
+            case 7: hub_worker_break(); break;
+            case 8: done = 1; break;
+          }
+          break;
+      }
+    }
+  }
+out:
+  if (tpending) {
+    if (!CheckIO((struct IORequest *)treq)) AbortIO((struct IORequest *)treq);
+    WaitIO((struct IORequest *)treq);
+  }
+  if (treq != NULL) {
+    if (tmask) CloseDevice((struct IORequest *)treq);
+    DeleteIORequest((struct IORequest *)treq);
+  }
+  if (tport != NULL) DeleteMsgPort(tport);
+  if (clk_obj != NULL) DisposeObject(clk_obj);
+  clk_obj = NULL;
+  clk_win = NULL;
+  clk_now = clk_date = clk_time = clk_zone = clk_dst = clk_get = clk_stop = clk_s1 = clk_s2 = NULL;
+  {
+    struct Node *n;
+    while (zone_list.lh_Head != NULL && (n = RemHead(&zone_list)) != NULL) FreeChooserNode(n);
+  }
+  if (StringBase != NULL) CloseLibrary(StringBase);
+  if (CheckBoxBase != NULL) CloseLibrary(CheckBoxBase);
+  if (LabelBase != NULL) CloseLibrary(LabelBase);
+  StringBase = CheckBoxBase = LabelBase = NULL;
+  if (win_obj != NULL) {
+    while (RA_HandleInput(win_obj, &code) != WMHI_LASTMSG) {
+    }
+  }
 }
 
 /* --- the window ------------------------------------------------------------ */
@@ -2856,13 +3385,16 @@ static void read_options(void)
       if (FindToolType((CONST_STRPTR *)dobj->do_ToolTypes, (CONST_STRPTR)"TIMES") != NULL) {
         times_on = 1;
       }
+      if (FindToolType((CONST_STRPTR *)dobj->do_ToolTypes, (CONST_STRPTR)"FULLCHECK") != NULL) {
+        work.full_check = 1;
+      }
       FreeDiskObject(dobj);
     }
     CurrentDir(old);
   } else {
-    LONG args[7] = {0, 0, 0, 0, 0, 0, 0};
+    LONG args[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     struct RDArgs *rd = ReadArgs((CONST_STRPTR)"CATALOG/K,LANG/K,TESTINSTALL/K,TESTTO/K,"
-                                 "TESTGAMESDIR/K,TIMES/S,TESTCARD/K", args, NULL);
+                                 "TESTGAMESDIR/K,TIMES/S,TESTCARD/K,FULLCHECK/S", args, NULL);
     if (rd != NULL) {
       if (args[0]) strncpy(prefs.catalog, (char *)args[0], sizeof(prefs.catalog) - 1);
       if (args[1]) strncpy(prefs.language, (char *)args[1], sizeof(prefs.language) - 1);
@@ -2871,6 +3403,7 @@ static void read_options(void)
       if (args[4]) strncpy(test_gamesdir, (char *)args[4], sizeof(test_gamesdir) - 1);
       if (args[5]) times_on = 1;
       if (args[6]) strncpy(test_card, (char *)args[6], sizeof(test_card) - 1);
+      if (args[7]) work.full_check = 1;
       FreeArgs(rd);
     }
   }
@@ -2897,6 +3430,7 @@ int main(void)
   int done = 0, i;
 
   t_start = hub_ms();
+  clock_bad_at_start = !HUB_CLOCK_OK(hub_amiga_now());
   for (i = 0; i < P_COUNT; i++) pens[i] = -1;
   NewList(&notes_list);
   NewList(&lang_list);
@@ -3028,6 +3562,8 @@ int main(void)
             else if (code == 0x45) done = 1;                         /* Esc */
             else if (code == 0x5F) show_guide();                     /* Help */
             else if (code == 0x50) show_files();                     /* F1: downloaded files */
+            else if (code == 0x51) show_clock();                     /* F2: clock */
+            else if (code == 0x46 && work.busy) hub_worker_break();  /* Del: Stop */
             else if (code == 0x44 || code == 0x43) run_game();       /* Return, Enter */
             else if (code >= 0x01 && code <= 0x07) choose_filter(code - 0x01);   /* 1..7: group */
             else if (code == 0x23) toggle_favorite(selected);        /* F: favorite */
@@ -3057,6 +3593,7 @@ int main(void)
               case GID_RUN: run_game(); break;
               case GID_LOCK: login(); break;
               case GID_FILES: show_files(); break;
+              case GID_CLOCK: show_clock(); break;
               case GID_APPSDIR: choose_games_dir(1); break;
               case GID_FILTER: case GID_FILTER + 1: case GID_FILTER + 2: case GID_FILTER + 3:
               case GID_FILTER + 4: case GID_FILTER + 5: case GID_FILTER + 6: case GID_FILTER + 7:

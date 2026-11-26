@@ -1073,3 +1073,108 @@ and WARP NetMonitor with the **right mouse button** (first real test of it): sta
 7060, and OpenDUNE comes from the private source (logged in), whose entry still has the old card
 tags. The refresh took 68 s (pictures and texts 63 s, NTP 8 s) - not looked into. 640x480 not
 checked (the user's Workbench would have to change its mode).
+
+## 0.17: the window "Clock" (26.11.2026, user's decision)
+Until 0.16 WARP HUB never changed the clock (the internet time was only for the certificates).
+Now the user wants it settable (a colleague's Amiga loses the date at every power cycle).
+- **Button** in the title bar left of "Downloaded files" (a clock face, same image class),
+  key **F2**. The main window is not larger.
+- **Window** (ReAction, ~460x200, fits 640x480): "Zegar tej Amigi: <date time>" refreshed
+  every second (timer.device TR_ADDREQUEST), group "Recznie": date DD.MM.YYYY, time
+  HH:MM:SS (filled with the clock) + Ustaw; group "Z internetu": zone chooser UTC-12 ..
+  UTC+14 (hourly; `CHOOSER_MaxLabels 27` - the default 12 left the chooser empty for UTC+1),
+  checkbox "Czas letni automatycznie (UE)", Pobierz z internetu / Przerwij; two lines of
+  result; Zamknij. Key N in the window = Pobierz (tests without a mouse), Esc closes.
+- **Internet:** new worker job `HUB_JOB_TIME` (`hub_net_time`: NTP list, then HTTP Date; also
+  without AmiSSL, only the TCP/IP stack). Przerwij works: `WaitSelect` in `hub_time.c` waits
+  with the Ctrl-C mask (`wait_read`), the server loops stop on `hub_break`. The window sets the
+  clock at once when the answer comes, adding the time since the answer.
+- **Zone:** local = UTC + zone + 1 h in the EU summer time (last Sunday of March 01:00 UTC to
+  last Sunday of October 01:00 UTC, `hub_eu_summer`; checked for 2026/2027/2030 against
+  Python). Default: `TIMEZONE` of WarpHub.prefs, else the Locale prefs (`loc_GMTOffset`, minutes
+  west), else UTC+1; saved as `TIMEZONE +60` / `DST AUTO|OFF` when the zone is used.
+- **Setting** (`hub_clock.c`): timer.device TR_SETSYSTIME, then battclock.resource
+  WriteBattClock when it is there. Messages: "Zegar z bateria tez jest ustawiony" / "Brak zegara
+  z bateria: czas zostanie do wylaczenia Amigi" / when the clock was already wrong at the start
+  of WARP HUB (before the build date, e.g. 1978): "Zegar z bateria nie pamietal czasu
+  (bateria?): moze go znow zgubic". Only a click in this window (or the CLI command) sets it.
+- **Shell:** `WarpHubCLI SETCLOCK NET [TZ=+1|+60] [DST=AUTO|OFF]`,
+  `WarpHubCLI SETCLOCK "DD.MM.YYYY HH:MM:SS"` (hand: also without AmiSSL).
+
+Tested on **Amiga 1** (A1200, Warp 1260X, battery clock; PC in the home network, Amiga 2 not
+reachable): `SETCLOCK NET` -> "Clock set to 26.11.2026 15:40:28 (NTP pool.ntp.org, UTC+60 min).
+The battery clock is set too.", `Date` the same as the PC; a wrong date (31.02.2026) refused;
+by hand 3 s ahead, then in the window (F2, N) back from NTP: "Zegar ustawiony na 26.11.2026
+15:41:43 (NTP pool.ntp.org, UTC+1)", `Date` within 1 s of the PC. PL/EN/DE windows (screenshots),
+`TIMEZONE +60`, `DST AUTO` in the prefs. `Avail FLUSH` after 5 starts: no loss of Fast RAM.
+**Not yet tested on Amiga 2** (no battery, 1978) - the main case; the button itself not clicked
+(no mouse).
+
+**Amiga 2** (A4000, Warp 7060, 26.11.2026 16:05, Workbench 1920x1080, LANGUAGE en): `Date` before
+= Sunday 01-Jan-78 20:05. WARP HUB 0.17 from `RAM:WarpHub-test`, F2: "Clock of this Amiga:
+01.01.1978 20:06:16", zone UTC+1 (shown since `CHOOSER_MaxLabels`), group titles now normal bold
+text lines above the bevels (the bevel labels were tiny). The user clicked "Get from the
+internet": "Clock set to 26.11.2026 16:07:02 (NTP pool.ntp.org, UTC+1). No battery clock: the
+time lasts until the Amiga is switched off." - **this Amiga 4000 has no battclock.resource**
+(so the "battery lost the time" message does not appear here). `WarpHubCLI SETCLOCK NET`: the
+same, `Date` 1 s from the PC. Seen: the user pressed Set right after, the fields still held
+16:07:02, so the clock went back ~10 s - fixed: fields as WARP HUB filled them go on with the
+time since (`clk_fill_ms`); a typed time is taken as typed. That build is not yet on the Amiga
+(the user's window was left open).
+
+**Save / Set / Close (user's wish, 26.11.2026):** the small Set next to the time is gone; at the
+bottom Save | Set | Close as in the Prefs editors. Set: the system clock from the fields
+(timer.device only), the window stays, second line "Battery clock not changed - Save to set it."
+(or "No battery clock..."). Save: the same + battery clock + `TIMEZONE`/`DST` in WarpHub.prefs,
+then the window closes. Close: nothing. "Get from the internet" no longer sets the clock: it puts
+the internet time (in the chosen zone) into the fields - "Time from the internet: ... (NTP ...,
+UTC+1). Press Set or Save." The fields tick on every second while untouched (`clk_base` +
+elapsed); a typed value is taken as typed; changing the zone / summer time recomputes the
+internet time in the fields. `hub_clock_set(..., write_batt, ...)`; `WarpHubCLI SETCLOCK` still
+sets both clocks. Amiga 2: F2, N -> "Time from the internet: 26.11.2026 16:12:17 (NTP
+pool.ntp.org, UTC+1)", fields running 16:12:23; the user pressed Save (window closed, title
+"Clock set to 26.11.2026 16:11:52 (NTP pool.ntp.org, UTC+1)", `Date` right). Seen once: the first
+`start` of the test program from AmiAgent left no process and no window (the second, `Run`,
+worked) - not reproduced.
+
+### Manifest of the installed files (0.17, user's report 26.11.2026)
+The user deleted `ZodLaunch` from ZOD (Amiga 2); the reinstall took as long as a full install.
+Cause (code): `hub_plan` computed the SHA-256 of **every** file of the game before downloading
+the one missing file; only that file was downloaded. SHA-256 through AmiSSL runs at ~1.7 MB/s on
+the 060 (`WarpHubCLI SHA <file> TO=<KB>`: 26.8 MB in 15-16 s, buffer 32 or 256 KB the same - the
+hash, not the card's SD, is the limit; reading the same file alone ~4.8 MB/s).
+Fix: `WarpHub-cache/files-<key>.txt` (HubStamps: full name, size, date, SHA-256), written by every
+check and after every install (`hub_plan_manifest`, `hub_manifest_installed`). On Install /
+Update: a file with the remembered size and date is taken as remembered (no reading), a missing
+one is downloaded, another size or date: read and compared, then remembered. The player's files
+(K) are only looked for, never read. No manifest (games installed before 0.17) or Tool Type /
+option `FULLCHECK`: every file is read as before, and the manifest is written. The status line is
+the same "Checking files: X of N, <file> (%)", Stop works as before. TIMES logs
+"install done: <key> check N ms (R files read, M from the manifest), download ...".
+
+Amiga 2, a copy of the user's ZOD in `WorkSD:WH-test/ZOD` (186 files, 374.6 MB, ZodLaunch missing),
+test program `TESTINSTALL=zod TESTTO=WorkSD:WH-test`, private source:
+
+| Run | Check | Download |
+|---|---|---|
+| no manifest / FULLCHECK (as 0.16) | **243.4 s** (185 files read) | 1.2 s (2 files, 35.6 KB) |
+| manifest, ZodLaunch deleted again | **0.38 s** (0 read, 185 from the manifest) | 1.1 s (1 file, 29 KB) |
+| manifest, `SetDate` on E_INTRO.JV (26.8 MB) | 16.8 s (1 read, 185 trusted) | 0 files (same SHA) |
+
+The copy `WorkSD:WH-test` (375 MB) stays on Amiga 2 until the user says.
+
+**Repair without the list (user's decision 26.11.2026):** no `files-<key>.txt` and the installed
+version = the version of the catalog (a repair): a file of the right size is trusted without
+reading (`HUB_TRUST_SIZE`), a missing one is downloaded, another size is downloaded; the list is
+written. Full SHA check stays for an update to a newer version without the list, for an unknown
+version and with FULLCHECK. The version: INSTALLED, or - new - `GONE <key> <version> <drawer>` in
+WarpHub.prefs: when the scan finds the program of an installed game missing (ZodLaunch deleted),
+the game is shown as not installed as before, but its version is kept as GONE; an Install into the
+same drawer takes it as the installed version (GONE is dropped when the game is found again).
+New key **Del** = Stop in the main window (tests without a mouse).
+
+Amiga 2, `WorkSD:WH-test/ZOD`, `TESTINSTALL=zod TESTTO=WorkSD:WH-test`:
+- list and ZodLaunch deleted, INSTALLED zod 0.12 = catalog 0.12 -> scan: GONE zod 0.12 -> check
+  **0.44 s** (0 files read, 185 trusted by size), download 1.08 s (ZodLaunch 29 KB); list written;
+- the same with the version set to 0.11 (an update): full check - 85 files read in 42.9 s, then
+  **Del (Stop)**: "Stopped." at once, nothing downloaded, the list keeps the 85 files read.

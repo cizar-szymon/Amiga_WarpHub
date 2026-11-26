@@ -1,11 +1,26 @@
 WARP HUB - releases
 ===================
 
-Reporting bugs: the release number is in the screen title ("WARP HUB 0.16")
+Reporting bugs: the release number is in the screen title ("WARP HUB 0.17")
 and in the Shell: Version SYS:WarpApps/WarpHub. Describe what
 happened and give the release number:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.17 (26.11.2026, beta release)
+-------------------------------
+- Clock: a new button in the title bar, next to the button of the downloaded
+  files (or the key F2). In the window Clock the date and time of the Amiga
+  can be set by hand or from the internet: first choose the time zone
+  (UTC-12 to UTC+14) and the EU summer time (automatic or off). The system
+  clock is set, and the battery clock when the Amiga has one. The zone stays
+  in WarpHub.prefs.
+- WarpHubCLI SETCLOCK NET [TZ=+1] [DST=AUTO|OFF] or
+  WarpHubCLI SETCLOCK "DD.MM.YYYY HH:MM:SS" does the same from the Shell.
+- Install / Update no longer read every file of the game: WARP HUB
+  remembers the size, date and checksum of every installed file. Only
+  changed files are read, missing ones are downloaded (ZOD with one file
+  deleted: 0.4 s instead of 4 minutes). Full check: Tool Type FULLCHECK.
 
 0.16 (26.11.2026, beta release)
 -------------------------------

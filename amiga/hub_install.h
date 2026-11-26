@@ -4,11 +4,14 @@
 
 #include "hub_catalog.h"
 #include "hub_https.h"
+#include "hub_util.h"
 
 typedef struct HubPlan {
   int files;               /* to download */
   ULONG bytes;
   int kept;                /* player's files left as they are */
+  int read;                /* files whose SHA-256 was computed (read whole) */
+  int trusted;             /* files taken from the manifest (size and date as remembered) */
 } HubPlan;
 
 /* Progress: the file being downloaded, bytes of all so far. */
@@ -25,6 +28,20 @@ void hub_plan(HubGame *g, const char *dest, HubPlan *plan);
 typedef void (*HubCheckProgress)(void *user, const HubFile *f, int index, int count,
                                  ULONG all_done, ULONG all_total);
 void hub_plan_progress(HubGame *g, const char *dest, HubPlan *plan, HubCheckProgress cb, void *user);
+
+/* The same with the manifest of the installed files (WarpHub-cache/files-<key>.txt, HubStamps:
+ * full name, size, date, SHA-256). A file with the remembered size and date is taken as
+ * remembered without reading it; a missing one is downloaded; another size or date: read and
+ * compared (then remembered). trust HUB_TRUST_NONE: every file is read (full check) - the
+ * manifest is still written; HUB_TRUST_SIZE (no manifest, the installed version is the version
+ * of the catalog - a repair): a file of the right size is taken as right without reading it.
+ * man NULL: as hub_plan_progress. */
+enum { HUB_TRUST_NONE, HUB_TRUST_MANIFEST, HUB_TRUST_SIZE };
+void hub_plan_manifest(HubGame *g, const char *dest, HubPlan *plan, HubCheckProgress cb, void *user,
+                       HubStamps *man, int trust);
+
+/* After a successful hub_install: the files that came are remembered in the manifest. */
+void hub_manifest_installed(HubGame *g, const char *dest, HubStamps *man);
 
 /* Downloads the needed files into <file>.upd, checks size and SHA-256,
  * and only when all came whole puts them in place; a program that is

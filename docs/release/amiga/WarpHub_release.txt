@@ -1,10 +1,25 @@
 WARP HUB - wydania
 ==================
 
-Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.16") i w
+Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.17") i w
 Shellu: Version SYS:WarpApps/WarpHub. Opisz, co sie stalo, i podaj
 numer wydania: https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.17 (26.11.2026, wydanie beta)
+-------------------------------
+- Zegar: nowy przycisk na pasku tytulu, obok przycisku pobieranych plikow
+  (albo klawisz F2). W oknie Zegar date i godzine Amigi mozna ustawic
+  recznie albo pobrac z internetu: najpierw wybrac strefe czasowa (UTC-12
+  do UTC+14) i czas letni UE (automatycznie albo wylaczony). Ustawiany jest
+  zegar systemu i zegar z bateria, jesli Amiga go ma. Strefa zostaje
+  w WarpHub.prefs.
+- WarpHubCLI SETCLOCK NET [TZ=+1] [DST=AUTO|OFF] albo
+  WarpHubCLI SETCLOCK "DD.MM.RRRR GG:MM:SS" robi to samo z Shella.
+- Zainstaluj / Aktualizuj nie czyta juz wszystkich plikow gry: WARP HUB
+  pamieta rozmiar, date i sume kazdego zainstalowanego pliku. Czytane sa
+  tylko pliki zmienione, brakujace sa pobierane (ZOD po usunieciu jednego
+  pliku: 0,4 s zamiast 4 minut). Pelne sprawdzenie: Tool Type FULLCHECK.
 
 0.16 (26.11.2026, wydanie beta)
 -------------------------------

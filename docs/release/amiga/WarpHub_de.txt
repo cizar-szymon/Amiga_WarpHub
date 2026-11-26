@@ -34,6 +34,12 @@ DAS FENSTER
   oder nur ARM-Modus auf einer Karte ohne ARM), hat eine abgedunkelte Kachel,
   der Grund steht unter der Beschreibung. Ohne Warp-Karte wird nichts
   abgedunkelt.
+- Uhr: der Knopf mit dem Zifferblatt in der Titelleiste (oder die Taste F2)
+  oeffnet ein Fenster, in dem Datum und Zeit des Amiga von Hand (Stellen)
+  oder aus dem Internet gestellt werden (vorher die Zeitzone waehlen; die
+  EU-Sommerzeit kann automatisch gelten). Gestellt wird die Systemuhr und,
+  wenn vorhanden, die Batterie-Uhr. Ohne Klick in diesem Fenster aendert
+  WARP HUB die Uhr nie.
 - Die Galerie: Bild, Name und Zustand (installiert, neue Version, verfuegbar).
   Auswahl mit der Maus oder den Pfeiltasten.
 - Darunter: Beschreibung, Anforderungen und Versionsgeschichte.

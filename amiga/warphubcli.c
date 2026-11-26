@@ -8,6 +8,9 @@
  *   WarpHubCLI INSTALL <game> TO=<drawer>     install or update
  *   WarpHubCLI UNINSTALL <game> TO=<drawer>   delete the files of the game (what the player made stays)
  *   WarpHubCLI TIME                           the clock and the SNTP time
+ *   WarpHubCLI SETCLOCK NET [TZ=+60] [DST=AUTO|OFF]   set the clock from the internet
+ *   WarpHubCLI SETCLOCK "26.11.2026 14:05:00"         set the clock by hand
+ *     (TZ: minutes or hours east of UTC; without it the zone of WarpHub.prefs, else UTC+1)
  *
  *   CATALOG=<file or https URL>  another catalog (tests)
  *   CAFILE=<file>                extra trusted certificates (tests)
@@ -30,6 +33,8 @@
 #include "hub_time.h"
 #include "hub_catalog.h"
 #include "hub_install.h"
+#include "hub_clock.h"
+#include "hub_util.h"
 
 #define WARPHUB_VERSION "0.1"
 #ifndef BUILD_UNIX
@@ -237,6 +242,68 @@ static int set_verify_time(const char *ntp, int force_ntp, int verbose)
   return 1;
 }
 
+/* --- SETCLOCK: the clock of the Amiga (as the window "Clock") ------------- */
+
+static int clock_done(ULONG local, ULONG micro, const char *src)
+{
+  char t[32];
+  int batt = 0;
+  if (!hub_clock_set(local, micro, 1, &batt, err, sizeof(err))) {
+    printf("Clock not set: %s\n", err);
+    return RETURN_FAIL;
+  }
+  hub_clock_text(local, t, sizeof(t));
+  printf("Clock set to %s (%s).\n%s\n", t, src,
+         batt ? "The battery clock is set too." : "No battery clock: the time lasts until power off.");
+  return RETURN_OK;
+}
+
+/* "26.11.2026 14:05:00" (or the date alone: 00:00:00) */
+static int set_clock_by_hand(const char *text)
+{
+  char date[16];
+  const char *sp = strchr(text, ' ');
+  int n = sp != NULL ? (int)(sp - text) : (int)strlen(text);
+  ULONG local;
+  if (n >= (int)sizeof(date)) n = sizeof(date) - 1;
+  memcpy(date, text, n);
+  date[n] = 0;
+  local = hub_clock_parse(date, sp != NULL ? sp + 1 : "0");
+  if (local == 0) {
+    printf("Wrong date or time: DD.MM.YYYY HH:MM:SS (1978-2105).\n");
+    return RETURN_FAIL;
+  }
+  return clock_done(local, 0, "by hand");
+}
+
+static int set_clock_net(const char *ntp, const char *tz, const char *dst)
+{
+  static HubPrefs prefs;
+  LONG zone = 60;
+  int dst_on = 1, summer;
+  ULONG utc, t0;
+  char how[80] = "", src[160];
+  hub_prefs_load(&prefs, PREFS);
+  if (prefs.tz_set) zone = prefs.tz_min;
+  dst_on = !prefs.dst_off;
+  if (tz != NULL) {
+    zone = atol(tz + (*tz == '+'));
+    if (zone >= -14 && zone <= 14) zone *= 60;        /* hours */
+  }
+  if (dst != NULL) dst_on = stricmp(dst, "OFF") != 0;
+  t0 = hub_ms();
+  utc = hub_net_time(ntp, how, sizeof(how), err, sizeof(err));
+  if (utc == 0) {
+    printf("No time from the internet: %s\n", err);
+    return RETURN_FAIL;
+  }
+  utc += (hub_ms() - t0) / 2000UL;                   /* half of the asking */
+  summer = dst_on && hub_eu_summer(utc);
+  snprintf(src, sizeof(src), "%s, UTC%+ld min%s", how, (long)(zone + (summer ? 60 : 0)),
+           summer ? ", summer time" : "");
+  return clock_done(hub_local_of_utc(utc, zone, dst_on), 0, src);
+}
+
 /* --- commands ----------------------------------------------------------- */
 
 static void progress(void *user, const HubFile *f, ULONG done, ULONG total)
@@ -263,8 +330,8 @@ static void print_kb(ULONG bytes)
 int main(void)
 {
   static const char tmpl[] =
-      "CMD/A,GAME,TO/K,LANG/K,CATALOG/K,CAFILE/K,NTP/K,USENTP/S";
-  enum { A_CMD, A_GAME, A_TO, A_LANG, A_CATALOG, A_CAFILE, A_NTP, A_USENTP, A_N };
+      "CMD/A,GAME,TO/K,LANG/K,CATALOG/K,CAFILE/K,NTP/K,USENTP/S,TZ/K,DST/K";
+  enum { A_CMD, A_GAME, A_TO, A_LANG, A_CATALOG, A_CAFILE, A_NTP, A_USENTP, A_TZ, A_DST, A_N };
   LONG args[A_N];
   struct RDArgs *rd;
   const char *cmd, *ntp, *catalog_src;
@@ -277,7 +344,8 @@ int main(void)
   if (rd == NULL) {
     PrintFault(IoErr(), (CONST_STRPTR)"WarpHubCLI");
     printf("Usage: WarpHubCLI LIST | INFO <game> | CHECK <game> TO=<drawer> |\n"
-           "       INSTALL <game> TO=<drawer> | UNINSTALL <game> TO=<drawer> | TIME   [LANG=pl|en|de]\n");
+           "       INSTALL <game> TO=<drawer> | UNINSTALL <game> TO=<drawer> | TIME   [LANG=pl|en|de]\n"
+           "       SETCLOCK NET [TZ=+60] [DST=AUTO|OFF] | SETCLOCK \"DD.MM.YYYY HH:MM:SS\"\n");
     return RETURN_FAIL;
   }
   cmd = (const char *)args[A_CMD];
@@ -285,10 +353,51 @@ int main(void)
   lang = hub_lang((const char *)args[A_LANG]);
   printf("WARP HUB %s (Shell)\n", WARPHUB_VERSION);
 
+  if (stricmp(cmd, "SETCLOCK") == 0 && args[A_GAME] != NULL &&
+      stricmp((const char *)args[A_GAME], "NET") != 0) {
+    rc = set_clock_by_hand((const char *)args[A_GAME]);
+    FreeArgs(rd);
+    return rc;
+  }
   if (!hub_https_init((const char *)args[A_CAFILE], err, sizeof(err))) {
     printf("%s\n", err);
     FreeArgs(rd);
     return RETURN_FAIL;
+  }
+  if (stricmp(cmd, "SHA") == 0 && args[A_GAME] != NULL) {
+    /* test: SHA-256 of a file and how fast (TO=<buffer KB>, default 32) */
+    LONG kb = args[A_TO] ? atol((const char *)args[A_TO]) : 32;
+    UBYTE *b = (UBYTE *)hub_malloc(kb * 1024);
+    BPTR fh = Open((CONST_STRPTR)args[A_GAME], MODE_OLDFILE);
+    ULONG t0 = hub_ms(), total = 0, t1, t2 = 0;
+    LONG n;
+    char hex[65];
+    HubSha *s = hub_sha_new();
+    if (b == NULL || fh == 0 || s == NULL) {
+      printf("cannot open / no memory\n");
+    } else {
+      while ((n = Read(fh, b, kb * 1024)) > 0) {
+        ULONG ts = hub_ms();
+        hub_sha_add(s, b, n);
+        t2 += hub_ms() - ts;
+        total += n;
+      }
+      hub_sha_end(s, hex);
+      t1 = hub_ms() - t0;
+      printf("%s\n%lu bytes, %lu ms (SHA %lu ms), %lu KB/s, buffer %ld KB\n", hex, total, t1, t2,
+             t1 ? (total / 1024UL) * 1000UL / t1 : 0, (long)kb);
+    }
+    if (fh) Close(fh);
+    if (b) hub_free(b);
+    hub_https_cleanup();
+    FreeArgs(rd);
+    return RETURN_OK;
+  }
+  if (stricmp(cmd, "SETCLOCK") == 0) {
+    rc = set_clock_net(ntp, (const char *)args[A_TZ], (const char *)args[A_DST]);
+    hub_https_cleanup();
+    FreeArgs(rd);
+    return rc;
   }
   if (stricmp(cmd, "TIME") == 0) {
     /* every source: the clock, NTP, the Date of the web servers */

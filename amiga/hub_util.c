@@ -6,6 +6,7 @@
 #include <proto/dos.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "hub_mem.h"
@@ -158,8 +159,15 @@ void hub_prefs_load(HubPrefs *p, const char *file)
       strncpy(p->catalog, line + 8, sizeof(p->catalog) - 1);
     } else if (strncmp(line, "FAVORITES ", 10) == 0) {
       strncpy(p->favorites, line + 10, sizeof(p->favorites) - 1);
+    } else if (strncmp(line, "TIMEZONE ", 9) == 0) {
+      p->tz_min = atol(line + 9 + (line[9] == '+'));
+      p->tz_set = 1;
+    } else if (strncmp(line, "DST ", 4) == 0) {
+      p->dst_off = strncmp(line + 4, "OFF", 3) == 0;
     } else if (sscanf(line, "FILTER %15s", a) == 1) {
       strcpy(p->filter, a);
+    } else if (sscanf(line, "GONE %31s %23s %255[^\n]", a, b, c) == 3) {
+      hub_prefs_set_gone(p, a, b, c);
     } else if (sscanf(line, "INSTALLED %31s %23s %255[^\n]", a, b, c) == 3) {
       hub_prefs_set_installed(p, a, b, c);
     }
@@ -169,7 +177,7 @@ void hub_prefs_load(HubPrefs *p, const char *file)
 
 int hub_prefs_save(const HubPrefs *p, const char *file)
 {
-  char buf[256 * 5 + 320 + HUB_MAX_INSTALLED * 330 + 1024 + 64];
+  char buf[256 * 5 + 320 + HUB_MAX_INSTALLED * 330 * 2 + 1024 + 64];
   int n = 0, i;
   if (p->language[0]) n += snprintf(buf + n, sizeof(buf) - n, "LANGUAGE %s\n", p->language);
   if (p->catalog[0]) n += snprintf(buf + n, sizeof(buf) - n, "CATALOG %s\n", p->catalog);
@@ -180,9 +188,17 @@ int hub_prefs_save(const HubPrefs *p, const char *file)
   if (p->priv_pass[0]) n += snprintf(buf + n, sizeof(buf) - n, "PRIVATE-PASS %s\n", p->priv_pass);
   if (p->favorites[0]) n += snprintf(buf + n, sizeof(buf) - n, "FAVORITES %s\n", p->favorites);
   if (p->filter[0]) n += snprintf(buf + n, sizeof(buf) - n, "FILTER %s\n", p->filter);
+  if (p->tz_set) {
+    n += snprintf(buf + n, sizeof(buf) - n, "TIMEZONE %+ld\nDST %s\n", (long)p->tz_min,
+                  p->dst_off ? "OFF" : "AUTO");
+  }
   for (i = 0; i < p->ninst && n < (int)sizeof(buf); i++) {
     n += snprintf(buf + n, sizeof(buf) - n, "INSTALLED %s %s %s\n", p->inst[i].key,
                   p->inst[i].version, p->inst[i].dir);
+  }
+  for (i = 0; i < p->ngone && n < (int)sizeof(buf); i++) {
+    n += snprintf(buf + n, sizeof(buf) - n, "GONE %s %s %s\n", p->gone[i].key,
+                  p->gone[i].version, p->gone[i].dir);
   }
   if (n > (int)sizeof(buf)) n = sizeof(buf);
   return hub_write_file(file, buf, n);
@@ -197,10 +213,34 @@ HubInstalled *hub_prefs_installed(HubPrefs *p, const char *key)
   return NULL;
 }
 
+HubInstalled *hub_prefs_gone(HubPrefs *p, const char *key)
+{
+  int i;
+  for (i = 0; i < p->ngone; i++) {
+    if (strcmp(p->gone[i].key, key) == 0) return &p->gone[i];
+  }
+  return NULL;
+}
+
+void hub_prefs_set_gone(HubPrefs *p, const char *key, const char *version, const char *dir)
+{
+  HubInstalled *in = hub_prefs_gone(p, key);
+  if (in == NULL) {
+    if (p->ngone >= HUB_MAX_INSTALLED) return;
+    in = &p->gone[p->ngone++];
+  }
+  memset(in, 0, sizeof(*in));
+  strncpy(in->key, key, sizeof(in->key) - 1);
+  strncpy(in->version, version, sizeof(in->version) - 1);
+  strncpy(in->dir, dir, sizeof(in->dir) - 1);
+}
+
 void hub_prefs_set_installed(HubPrefs *p, const char *key, const char *version,
                              const char *dir)
 {
-  HubInstalled *in = hub_prefs_installed(p, key);
+  HubInstalled *in = hub_prefs_gone(p, key);
+  if (in != NULL) *in = p->gone[--p->ngone];   /* there again */
+  in = hub_prefs_installed(p, key);
   if (in == NULL) {
     if (p->ninst >= HUB_MAX_INSTALLED) return;
     in = &p->inst[p->ninst++];

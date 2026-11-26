@@ -32,6 +32,12 @@ THE WINDOW
 - A game that does not run on the Warp card of this Amiga (PowerPC only, or
   ARM mode only on a card without the ARM) has a dimmed tile, and the reason
   is under its description. Without a Warp card nothing is dimmed.
+- Clock: the button with a clock face in the title bar (or the key F2) opens
+  a window to set the date and time of the Amiga by hand (Set) or from the
+  internet (choose the time zone first; the EU summer time can be applied
+  automatically). The system clock is set, and the battery clock when the
+  Amiga has one. Without a click in this window WARP HUB never changes the
+  clock.
 - The gallery: picture, name and state (installed, new version, available).
   Choose with the mouse or the arrow keys.
 - Below: the description of the game, its requirements and its history of

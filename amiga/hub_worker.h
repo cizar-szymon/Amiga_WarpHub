@@ -11,7 +11,7 @@
 #include "hub_catalog.h"
 #include "hub_install.h"
 
-enum { HUB_JOB_NONE, HUB_JOB_REFRESH, HUB_JOB_INSTALL, HUB_JOB_PROBE, HUB_JOB_QUIT };
+enum { HUB_JOB_NONE, HUB_JOB_REFRESH, HUB_JOB_INSTALL, HUB_JOB_PROBE, HUB_JOB_QUIT, HUB_JOB_TIME };
 
 /* the private source after a job */
 enum { HUB_PRIV_NONE, HUB_PRIV_OK, HUB_PRIV_BAD_PASSWORD, HUB_PRIV_BLOCKED,
@@ -52,6 +52,10 @@ typedef struct HubWork {
   ULONG cat_sum;             /* refresh: FNV-1a of the catalog text (has it changed) */
   ULONG net_ms;              /* the start of the network (AmiSSL, NTP) in ms */
   char timing[200];          /* refresh: how long its steps took (TIMES) */
+  ULONG time_utc;            /* time: UTC from NTP / HTTP Date, 0 = none */
+  ULONG time_ms;             /* time: hub_ms() when it came (for the delay) */
+  char time_how[80];         /* time: where it came from */
+  int full_check;            /* install: read every file (FULLCHECK), not the manifest */
 } HubWork;
 
 /* Starts the process; signal: the bit the window waits on. 0 on failure. */

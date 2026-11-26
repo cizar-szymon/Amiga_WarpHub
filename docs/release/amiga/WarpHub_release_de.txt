@@ -1,11 +1,27 @@
 WARP HUB - Versionen
 ====================
 
-Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.16")
+Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.17")
 und in der Shell: Version SYS:WarpApps/WarpHub. Beschreibe, was
 passiert ist, mit der Versionsnummer:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.17 (26.11.2026, Beta)
+-----------------------
+- Uhr: ein neuer Knopf in der Titelleiste, neben dem Knopf der geladenen
+  Dateien (oder die Taste F2). Im Fenster Uhr werden Datum und Zeit des
+  Amiga von Hand oder aus dem Internet gestellt: vorher die Zeitzone
+  (UTC-12 bis UTC+14) und die EU-Sommerzeit (automatisch oder aus) waehlen.
+  Gestellt wird die Systemuhr und, wenn vorhanden, die Batterie-Uhr. Die
+  Zone bleibt in WarpHub.prefs.
+- WarpHubCLI SETCLOCK NET [TZ=+1] [DST=AUTO|OFF] oder
+  WarpHubCLI SETCLOCK "TT.MM.JJJJ HH:MM:SS" macht dasselbe in der Shell.
+- Installieren / Update lesen nicht mehr alle Dateien des Spiels: WARP HUB
+  merkt sich Groesse, Datum und Pruefsumme jeder installierten Datei. Nur
+  geaenderte Dateien werden gelesen, fehlende geladen (ZOD mit einer
+  geloeschten Datei: 0,4 s statt 4 Minuten). Volle Pruefung: Tool Type
+  FULLCHECK.
 
 0.16 (26.11.2026, Beta)
 -----------------------

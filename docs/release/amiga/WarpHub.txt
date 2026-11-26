@@ -32,6 +32,12 @@ OKNO
 - Gra, ktora nie zadziala na karcie Warp w tej Amidze (tylko PowerPC albo
   tylko tryb ARM na karcie bez ARM), ma przyciemniony kafelek, a pod opisem
   powod. Bez karty Warp nic nie jest przyciemniane.
+- Zegar: przycisk z tarcza zegara na pasku tytulu (albo klawisz F2) otwiera
+  okno, w ktorym mozna ustawic date i godzine Amigi recznie (Ustaw) albo
+  pobrac czas z internetu (najpierw wybrac strefe czasowa; czas letni UE
+  moze byc wlaczany automatycznie). Ustawiany jest zegar systemu i zegar
+  z bateria, jesli Amiga go ma. Bez klikniecia w tym oknie WARP HUB zegara
+  nie zmienia.
 - Galeria gier: obrazek, nazwa i stan (zainstalowana, nowa wersja, do
   pobrania). Wybor myszka albo strzalkami.
 - Pod galeria: opis gry, wymagania i historia wydan.

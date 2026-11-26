@@ -586,25 +586,74 @@ static void job_install(HubWork *w)
     snprintf(w->msg, sizeof(w->msg), "No game %s.", w->key);
     return;
   }
-  w->checking = 1;
-  w->chk_index = 0;
-  w->chk_count = 0;
-  hub_plan_progress(g, w->dir, &w->plan, check_progress, w);
-  w->checking = 0;
-  if (w->plan.files < 0) {
-    snprintf(w->msg, sizeof(w->msg), "Stopped.");
-    w->plan.files = 0;
-    w->ok = 0;
+  {
+    /* the manifest of the installed files: files with the remembered size
+     * and date are not read again (a reinstall after one deleted file of
+     * ZOD read all 490 MB before 0.17) */
+    char mname[128];
+    HubStamps man;
+    ULONG t0 = hub_ms(), t1;
+    int had, trust;
+    memset(&man, 0, sizeof(man));
+    snprintf(mname, sizeof(mname), "%s/files-%s.txt", w->cache, g->key);
+    hub_stamps_load(&man, mname);
+    had = man.n > 0;
+    w->checking = 1;
+    w->chk_index = 0;
+    w->chk_count = 0;
+    /* the manifest; without it a repair of the same version trusts the sizes
+     * (user's decision 26.11.2026); an update without it, an unknown version or
+     * FULLCHECK: every file is read */
+    trust = w->full_check ? HUB_TRUST_NONE : had ? HUB_TRUST_MANIFEST :
+            (w->old_version[0] && strcmp(w->old_version, g->version) == 0) ? HUB_TRUST_SIZE : HUB_TRUST_NONE;
+    hub_plan_manifest(g, w->dir, &w->plan, check_progress, w, &man, trust);
+    w->checking = 0;
+    t1 = hub_ms();
+    if (w->plan.files < 0) {
+      snprintf(w->msg, sizeof(w->msg), "Stopped.");
+      w->plan.files = 0;
+      w->ok = 0;
+    } else {
+      w->total = w->plan.bytes;
+      w->done = 0;
+      tell_window();
+      if (w->plan.files == 0) {
+        w->ok = 1;
+      } else {
+        w->ok = hub_install(g, w->dir, w->old_version, progress, w, w->msg, sizeof(w->msg));
+        if (w->ok) hub_manifest_installed(g, w->dir, &man);
+      }
+    }
+    hub_stamps_save(&man, mname);
+    hub_stamps_free(&man);
+    snprintf(w->timing, sizeof(w->timing), "%s check %lu ms (%d files read, %d from the manifest%s), "
+             "download %lu ms (%d files, %lu B)", g->key, (unsigned long)(t1 - t0), w->plan.read,
+             w->plan.trusted, trust == HUB_TRUST_MANIFEST ? "" : trust == HUB_TRUST_SIZE ?
+             ", no manifest: sizes (same version)" : w->full_check ? ", FULLCHECK" : ", no manifest: full check",
+             (unsigned long)(hub_ms() - t1), w->plan.files, (unsigned long)w->plan.bytes);
+  }
+}
+
+/* the window "Clock": the time from the internet (the user pressed the
+ * button; the window sets the clock with its zone) */
+extern struct Library *SocketBase;     /* hub_https.c */
+
+static void job_time(HubWork *w)
+{
+  char how[80] = "";
+  w->time_utc = 0;
+  w->time_how[0] = 0;
+  if (SocketBase == NULL) {
+    snprintf(w->msg, sizeof(w->msg), "No TCP/IP stack (bsdsocket.library).");
     return;
   }
-  w->total = w->plan.bytes;
-  w->done = 0;
-  tell_window();
-  if (w->plan.files == 0) {
+  w->time_utc = hub_net_time(NULL, how, sizeof(how), w->msg, sizeof(w->msg));
+  w->time_ms = hub_ms();
+  if (w->time_utc) {
+    strcpy(w->time_how, how);
+    w->msg[0] = 0;
     w->ok = 1;
-    return;
   }
-  w->ok = hub_install(g, w->dir, w->old_version, progress, w, w->msg, sizeof(w->msg));
 }
 
 /* --- the process ----------------------------------------------------------- */
@@ -654,7 +703,9 @@ static void net_main(void)
     w->priv_status = HUB_PRIV_NONE;
     w->priv_msg[0] = 0;
     hub_install_private(w->priv_host, w->priv_port, w->priv_pin, w->priv_pass);
-    if (!net_ok) {
+    if (w->job == HUB_JOB_TIME) {
+      job_time(w);                       /* also without AmiSSL: only the network */
+    } else if (!net_ok) {
       snprintf(w->msg, sizeof(w->msg), "%s", w->net_info);
     } else if (w->job == HUB_JOB_REFRESH) {
       job_refresh(w);

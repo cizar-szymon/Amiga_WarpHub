@@ -25,7 +25,10 @@ void hub_to_latin(const char *utf8, char *out, int outlen);
  *   GAMESDIR <drawer of the games>   APPSDIR <drawer of the programs>
  *   INSTALLED <key> <version> <drawer>        one line per game
  *   FAVORITES <key>,<key>...   the games marked with the star (right click)
- *   FILTER <group>             the group button chosen last              */
+ *   FILTER <group>             the group button chosen last
+ *   TIMEZONE +60               the zone of the window Clock (minutes east of UTC)
+ *   DST AUTO|OFF               EU summer time in the window Clock
+ *   GONE <key> <version> <drawer>   was installed, its program is gone (repair) */
 
 #define HUB_MAX_INSTALLED 32
 
@@ -47,6 +50,11 @@ typedef struct HubPrefs {
   int ninst;
   char favorites[1024];      /* "key,key" ("" = none) */
   char filter[16];           /* the group chosen last ("" = not yet) */
+  int tz_set;                /* TIMEZONE was there */
+  LONG tz_min;               /* minutes east of UTC (+60 = UTC+1) */
+  int dst_off;               /* DST OFF: no EU summer time */
+  HubInstalled gone[HUB_MAX_INSTALLED];   /* installed before, the program is not found now */
+  int ngone;
 } HubPrefs;
 
 void hub_prefs_load(HubPrefs *p, const char *file);
@@ -55,6 +63,10 @@ HubInstalled *hub_prefs_installed(HubPrefs *p, const char *key);
 void hub_prefs_set_installed(HubPrefs *p, const char *key, const char *version,
                              const char *dir);
 void hub_prefs_remove_installed(HubPrefs *p, const char *key);
+/* the version a game had before its program went missing (a repair keeps
+ * knowing it); hub_prefs_set_installed forgets it */
+void hub_prefs_set_gone(HubPrefs *p, const char *key, const char *version, const char *dir);
+HubInstalled *hub_prefs_gone(HubPrefs *p, const char *key);
 int hub_prefs_favorite(const HubPrefs *p, const char *key);
 /* adds the key to the favorites or takes it away: 1 when it is one now */
 int hub_prefs_toggle_favorite(HubPrefs *p, const char *key);

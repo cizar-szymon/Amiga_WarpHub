@@ -21,6 +21,25 @@
 
 #include "hub_time.h"
 
+/* Stop (hub_https.c): Ctrl-C to the process ends the wait at once */
+extern volatile int hub_break;
+
+/* waits for an answer at most secs; Ctrl-C sets hub_break */
+static long wait_read(long sock, long secs)
+{
+  fd_set rd;
+  struct timeval tv;
+  ULONG sig = SIGBREAKF_CTRL_C;
+  long n;
+  FD_ZERO(&rd);
+  FD_SET(sock, &rd);
+  tv.tv_secs = secs;
+  tv.tv_micro = 0;
+  n = WaitSelect(sock + 1, &rd, NULL, NULL, &tv, &sig);
+  if (sig & SIGBREAKF_CTRL_C) hub_break = 1;
+  return hub_break ? 0 : n;
+}
+
 /* 1978-01-01 - 1970-01-01 */
 #define AMIGA_EPOCH 252460800UL
 #define NTP_TO_UNIX 2208988800UL
@@ -57,9 +76,7 @@ ULONG hub_sntp(const char *server, char *err, int errlen)
     snprintf(err, errlen, "No socket.");
     return 0;
   }
-  for (attempt = 0; attempt < 3 && result == 0; attempt++) {
-    fd_set rd;
-    struct timeval tv;
+  for (attempt = 0; attempt < 3 && result == 0 && !hub_break; attempt++) {
     long n;
     memset(pkt, 0, sizeof(pkt));
     pkt[0] = 0x1B;                    /* LI 0, version 3, mode 3 (client) */
@@ -67,11 +84,7 @@ ULONG hub_sntp(const char *server, char *err, int errlen)
                sizeof(addr)) != sizeof(pkt)) {
       continue;
     }
-    FD_ZERO(&rd);
-    FD_SET(sock, &rd);
-    tv.tv_secs = 2;
-    tv.tv_micro = 0;
-    if (WaitSelect(sock + 1, &rd, NULL, NULL, &tv, NULL) <= 0) continue;
+    if (wait_read(sock, 2) <= 0) continue;
     n = recv(sock, pkt, sizeof(pkt), 0);
     if (n >= 48 && (pkt[0] & 7) == 4) {   /* mode 4: server */
       ULONG secs = ((ULONG)pkt[40] << 24) | ((ULONG)pkt[41] << 16) |
@@ -169,12 +182,7 @@ ULONG hub_http_time(const char *host, char *err, int errlen)
   }
   /* the headers (up to the empty line), at most 5 s per piece */
   while (len < (int)sizeof(buf) - 1) {
-    fd_set rd;
-    FD_ZERO(&rd);
-    FD_SET(sock, &rd);
-    tv.tv_secs = 5;
-    tv.tv_micro = 0;
-    if (WaitSelect(sock + 1, &rd, NULL, NULL, &tv, NULL) <= 0) break;
+    if (wait_read(sock, 5) <= 0) break;
     n = recv(sock, buf + len, sizeof(buf) - 1 - len, 0);
     if (n <= 0) break;
     len += n;
@@ -215,12 +223,12 @@ ULONG hub_net_time(const char *ntp, char *how, int howlen, char *err, int errlen
     t = hub_sntp(ntp, err, errlen);
     if (t) snprintf(how, howlen, "NTP %s", ntp);
   } else {
-    for (i = 0; t == 0 && ntp_servers[i] != NULL; i++) {
+    for (i = 0; t == 0 && !hub_break && ntp_servers[i] != NULL; i++) {
       t = hub_sntp(ntp_servers[i], err, errlen);
       if (t) snprintf(how, howlen, "NTP %s", ntp_servers[i]);
     }
   }
-  for (i = 0; t == 0 && http_servers[i] != NULL; i++) {
+  for (i = 0; t == 0 && !hub_break && http_servers[i] != NULL; i++) {
     t = hub_http_time(http_servers[i], err, errlen);
     if (t) snprintf(how, howlen, "HTTP Date of %s", http_servers[i]);
   }
