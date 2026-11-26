@@ -20,16 +20,16 @@ REQ de AmiSSL 5 (WarpSSL)
 REQ de TCP/IP, Internet
 REPO cizar-szymon/Amiga_WarpHub
 BRANCH main
-VERSION 0.17
+VERSION 0.18
 FLAT
-ZIP WarpHub-0.17.zip 106742
-SIZE 133292
+ZIP WarpHub-0.18.zip 106930
+SIZE 133228
 IMAGE 2485 e4c6fcc78037abd22d90858afbae99e98f8ac59fe96be8cd324f5c6d7de4cf86 images/warphub.png
 NOTES en WarpHub/doc/WarpHub_release_en.txt
 NOTES pl WarpHub/doc/WarpHub_release.txt
 NOTES de WarpHub/doc/WarpHub_release_de.txt
 FILE 6862 ea64fde17ae4daeac0823985da76ba69e9dd13132b8a7c1eb13c57cd533b5b74 X WarpHub.info
-FILE 129972 0e24ca15ab78110600861384578853088a4f6f4dfb07e51e38cf83f277d7c488 N WarpHub/WarpHub
+FILE 129908 a5fad08461346f6de194d882f678ef960da9a2243625760211db60a34e77d9d4 N WarpHub/WarpHub
 FILE 3320 ec8027ba82761c6c5ee4058c742bea0f7b7a44f393d1a2beb5ca325df12211f8 K WarpHub/WarpHub.info
 FILE 2514 40a9f307f7de340bd324734098f4edb73e61c0dd1f1fc355554de827049f812b X WarpHub/doc.info
 FILE 4484 754632c3ac4260c1db63e94f817f975cbe44392c9dbfdf3a1d3625d66d8db47f X WarpHub/doc/WarpHub.txt
@@ -38,11 +38,11 @@ FILE 4885 e9499b37f7f481fcbeb7ad1ae48aff7a57addc957f0cbe9156ac161ea69148ea X War
 FILE 3218 659bf5badbbfbd9f045a97fdeaddc68fa6d6e4b39c935d70b9f69388e1f6dcdb X WarpHub/doc/WarpHub_de.txt.info
 FILE 4571 2feb03a2637975b546c76894cfe242ce0a8f7785949a121044ab2ac80c0f795b X WarpHub/doc/WarpHub_en.txt
 FILE 3354 f5d26b5dd3e1a7f7ac3872afe846b7298ed9203498da702caec9468fa7bb3832 X WarpHub/doc/WarpHub_en.txt.info
-FILE 7187 de2634ab134a6e560aa4e83c0fe45784e058d423ba412adfc2e01c0deea438c8 X WarpHub/doc/WarpHub_release.txt
+FILE 7356 1f3e20bda0e4f3445b9c435f9e6269d084c5efbd8eec52e9f1cdad95d76a7cc7 X WarpHub/doc/WarpHub_release.txt
 FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e X WarpHub/doc/WarpHub_release.txt.info
-FILE 7764 6a5a74890ade3d8bd2d7eec55aef71eca23731fd20881b462375e9dacd95bdba X WarpHub/doc/WarpHub_release_de.txt
+FILE 7960 811c975d45d90c3d06b44c360894968658e47e934b338f6a3fa51e17963e2f71 X WarpHub/doc/WarpHub_release_de.txt
 FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e X WarpHub/doc/WarpHub_release_de.txt.info
-FILE 7430 73e5e4f51d79e0bde397feb3b28acb426c3a0e68ba9b4b45df24a2a262bec2fa X WarpHub/doc/WarpHub_release_en.txt
+FILE 7629 bdad95a8c73e69e7d0af64513c5c07792449b5b8177015280ec30f59e19bc4d7 X WarpHub/doc/WarpHub_release_en.txt
 FILE 3354 b476e8587b9ec2cb2764412450168cc1473eb08f4c3bc1dffd7001589c51deb7 X WarpHub/doc/WarpHub_release_en.txt.info
 END
 GAME warpnetmonitor
@@ -588,15 +588,15 @@ REQ de 64 MB Fast RAM
 REQ de AmigaOS 3.2, RTG 8-Bit
 REPO cizar-szymon/Amiga_Game_SyndicateWars
 BRANCH amiga
-VERSION 0.230
-ZIP SyndWars-0.230.zip 3714396
-SIZE 5817973
+VERSION 0.233
+ZIP SyndWars-0.233.zip 3714568
+SIZE 5818616
 IMAGE 20439 9ebe42a698a4ed609f4344192b9f767829e6fe612b6c64427c8d289d4a452af7 images/syndwars.png
 NOTES en SyndWars/doc/SyndWars_release_en.txt
 NOTES pl SyndWars/doc/SyndWars_release.txt
 NOTES de SyndWars/doc/SyndWars_release_de.txt
 FILE 2444 cf0bdbb9e6eed68de2a893bb1d8106e3a85847b40ca12c78af2d0f4e7d326d15 K SyndWars.info
-FILE 1540344 d29f39db7103158ada9d2b8661097bab911edc00108795b4e77e5ab8d44649b2 N SyndWars/SyndWars
+FILE 1540344 64c3486a39df884eee6a2048e462d803fd21176bded99397fb8e6c20eb25b328 N SyndWars/SyndWars
 FILE 8722 75db79b76df2db556bd46c84ada597ce5fffe778f880ac285e12b95255662596 K SyndWars/SyndWars.info
 FILE 1336363 d2769247e01837946f9c7540d22e7e3e99cf49cf660f5efeaff58f0dbe73ea68 N SyndWars/conf/Tone_000/000_Acoustic_Grand_Piano.pat
 FILE 308691 6cc159965b284f9588578e91ab7d2c6b24a62ffa4e957fdadbb016d3c376856d N SyndWars/conf/Tone_000/004_Electric_Piano_1_Rhodes.pat
@@ -632,21 +632,21 @@ FILE 8359 4a5e0c1ee16f624bf484493cce5a5dddbff89a8e0896c07425f5aa7b4b48b3be K Syn
 FILE 138 6504df64eabbf85dc9d13c07b34746d204632b29216c8c5468971b96ba5bd93e K SyndWars/config.ini
 FILE 2514 8c5191c714830fa82bfe6ddc12d681ec4aa579186d7bc73abbc791e3caf5c450 N SyndWars/doc.info
 FILE 632 2129194e0de18d3979f6df277e2dd72813c12b27f01dc0ecb6b63c60c1e81777 N SyndWars/doc/COPYING
-FILE 5021 e28bd0ceb9bd2e29740a24251d9e24b6b5f3a2bb018efb6309d795c709c91152 N SyndWars/doc/Install.txt
+FILE 5021 8b2c81086114beb5237c33528b634515d93b481c36910c1635fbc5c5cc2d86ae N SyndWars/doc/Install.txt
 FILE 3218 659bf5badbbfbd9f045a97fdeaddc68fa6d6e4b39c935d70b9f69388e1f6dcdb N SyndWars/doc/Install.txt.info
-FILE 4364 bab316972bb44ce9c701c9778387028c1a48b6ada06e667cbae4d6f579fe9d7c N SyndWars/doc/SyndWars.txt
+FILE 4364 982fdb0964261deffe495ce8cf0f68dd3bb5a913e6c651740f0207015f92b84a N SyndWars/doc/SyndWars.txt
 FILE 3308 f6ca3a09267f0c9baa2abf16f3de2d17a5f179720c777543c34a3558b69f26eb N SyndWars/doc/SyndWars.txt.info
-FILE 2849 3b4ce687fd5af9a9fe583af693064b8838994abe846002abdeea2ee3677793b3 N SyndWars/doc/SyndWars_dev.txt
+FILE 2849 57d6cf4ae3038f63dc8c67fd452fc19c8a83ce625882552b04439810d9829d81 N SyndWars/doc/SyndWars_dev.txt
 FILE 3308 6596e79960c09303d6b26ed8f54cf35fad8324d71897060bc8b93d7f2ab7621d N SyndWars/doc/SyndWars_dev.txt.info
-FILE 3097 f1974e869e4c78cf71f08b10971ca90328a41763d74e0c2a7279ad34beb13f6c N SyndWars/doc/SyndWars_dev_en.txt
+FILE 3097 9befcd3fad80fc014e897d0f08380b3bd79fb90c1d5664617c5fd5b1e313cebc N SyndWars/doc/SyndWars_dev_en.txt
 FILE 3354 0c36a8c180591227a22f688265dbeb1fbb2be9bd3cb0c64a4a1e3906c108054a N SyndWars/doc/SyndWars_dev_en.txt.info
-FILE 4548 a745970e8c9b7c881a76eee83fd2b8b42a02c95820269e5c31b5ce963b1dd44b N SyndWars/doc/SyndWars_en.txt
+FILE 4548 f83aa12f010315f1e402ea1a1ce2e155658358d15555df27c639262d75a872a4 N SyndWars/doc/SyndWars_en.txt
 FILE 3354 f5d26b5dd3e1a7f7ac3872afe846b7298ed9203498da702caec9468fa7bb3832 N SyndWars/doc/SyndWars_en.txt.info
-FILE 1397 b3741001eebb090d7ae0477ffef50aa5ed01689acdc4be5622721b82e2a2a340 N SyndWars/doc/SyndWars_release.txt
+FILE 1563 81eb7b32ed00eb0328edf5ec138aef50664a89600837e65ca0968f1dbd712c44 N SyndWars/doc/SyndWars_release.txt
 FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e N SyndWars/doc/SyndWars_release.txt.info
-FILE 1646 3c0e555ecc2e7fec001f6002aa513f4507866b26a7ac273eb812c1ccf8b2ad85 N SyndWars/doc/SyndWars_release_de.txt
+FILE 1830 beb7d306fa48105621409b3bd81c5636d2c1939b082a62bfd628d00bc2a62700 N SyndWars/doc/SyndWars_release_de.txt
 FILE 3354 3b7774306140c8567be346b0e9bbc1e00d7c58f5eb18b2cf7cc11f8ca8724021 N SyndWars/doc/SyndWars_release_de.txt.info
-FILE 1598 1e92e3d8216bdbb007c4c857274f5b20f8510d2ce3ca323e651588a42102b7ce N SyndWars/doc/SyndWars_release_en.txt
+FILE 1775 3717200d4d1735f8ee68bf977dd443a7f944e7a6a5dcbdd1f41abe5879d70731 N SyndWars/doc/SyndWars_release_en.txt
 FILE 3354 b476e8587b9ec2cb2764412450168cc1473eb08f4c3bc1dffd7001589c51deb7 N SyndWars/doc/SyndWars_release_en.txt.info
 FILE 27032 1e7e6bae5a5bde32f1ae5a7c37a082d1ab03cf89354f7f936ac40be9e39a6531 N SyndWars/doc/libsmacker-COPYING
 FILE 580 8b4693ca0a0d27a8b04e5989e9330a589160a67728cfee9d455eac05f57d2237 N SyndWars/language/eng/alltext-p.idx
@@ -703,8 +703,8 @@ FILE 11129 65daa459b1774fb27bc19db6eb76c29f1c2e426e325f5f5e8652ca4c8b977c03 N Sy
 FILE 4606 ca0b4f6f8529b78685b470a703cba97089714310634307486c66d92d896b71c8 N SyndWars/pc/cdimage.py
 FILE 3071 f56253700a702931dc4901522c03032080d26560fa6a8c0fec8e17c66d4f11ff N SyndWars/pc/make_music.py
 FILE 4022 a6fda2146dff5e2342d607a24a3b4fd6f7b7a3e88c9eedd1ff29e1a5de93b5d2 N SyndWars/pc/make_sound_bank.py
-FILE 920576 b4e1f5ee4a10071d5f2c6f26f47690db59df8819c36f4447b258bdd98e0078df N SyndWars/swcore.wxt
-FILE 85332 c8503558a2693402b9ad37b55a22f13e85840abba213fb29b6f5215df75552cc N SyndWars/swhost
+FILE 920560 be7f147ea2023ccb9ba08c2585b1adc52ed20878364fa08c06a0d91569537d0e N SyndWars/swcore.wxt
+FILE 85464 1aaa299c5b200447196797fa020b78a576deba56ec34d4acbc7df996a7437a03 N SyndWars/swhost
 END
 GAME vastar
 NAME en Vastar
