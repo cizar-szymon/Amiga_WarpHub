@@ -23,8 +23,17 @@ legt WARP HUB seine Einstellungen (WarpHub.prefs) und seinen Zwischenspeicher
 (Schublade WarpHub-cache) ab.
 
 DAS FENSTER
-- Oben die Gruppen: Alle, Programme, Warp 560/1260, Warp 1240, Warp 1260X,
-  Warp 7060, PowerPC, Andere (die Karten, auf denen ein Spiel laeuft).
+- Oben die Gruppen (Tasten 1-7): Favoriten, Installiert, Verfuegbar (noch
+  nicht installiert), Programme, ARM-Modus (Spiele, die den ARM-Prozessor der
+  Warp 1260X und 7060 nutzen), PowerPC, Andere. WARP HUB merkt sich die
+  zuletzt gewaehlte Gruppe.
+- Favoriten: die rechte Maustaste auf einer Kachel (oder die Taste F fuer das
+  gewaehlte Spiel) macht das Spiel zum Favoriten - ein gelber Stern unten
+  rechts in der Kachel; ein zweiter Klick nimmt ihn weg.
+- Ein Spiel, das auf der Warp-Karte dieses Amiga nicht laeuft (nur PowerPC,
+  oder nur ARM-Modus auf einer Karte ohne ARM), hat eine abgedunkelte Kachel,
+  der Grund steht unter der Beschreibung. Ohne Warp-Karte wird nichts
+  abgedunkelt.
 - Die Galerie: Bild, Name und Zustand (installiert, neue Version, verfuegbar).
   Auswahl mit der Maus oder den Pfeiltasten.
 - Darunter: Beschreibung, Anforderungen und Versionsgeschichte.

@@ -1,10 +1,22 @@
 WARP HUB - wydania
 ==================
 
-Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.15") i w
+Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.16") i w
 Shellu: Version SYS:WarpApps/WarpHub. Opisz, co sie stalo, i podaj
 numer wydania: https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.16 (26.11.2026, wydanie beta)
+-------------------------------
+- Nowe przyciski grup u gory okna: Ulubione, Zainstalowane, Dostepne,
+  Programy, Tryb ARM, PowerPC, Inne (klawisze 1-7). Dostepne to gry
+  i programy jeszcze nie zainstalowane. WARP HUB pamieta ostatnia grupe.
+- Ulubione: prawy przycisk myszy na kafelku albo klawisz F - zolta gwiazdka
+  w prawym dolnym rogu kafelka; drugie klikniecie ja zdejmuje. Lista zostaje
+  w WarpHub.prefs.
+- WARP HUB rozpoznaje karte Warp i przyciemnia kafelki gier, ktore na niej
+  nie zadzialaja (tylko PowerPC, tryb ARM bez ARM na karcie); pod opisem
+  gry jest powod.
 
 0.15 (25.11.2026, wydanie beta)
 -------------------------------

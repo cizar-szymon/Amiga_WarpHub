@@ -22,8 +22,16 @@ programow Warp) i uruchomic ikone. Obok programu WARP HUB zapisuje swoje
 ustawienia (WarpHub.prefs) i pamiec podreczna (szuflada WarpHub-cache).
 
 OKNO
-- U gory przyciski grup: Wszystkie, Programy, Warp 560/1260, Warp 1240,
-  Warp 1260X, Warp 7060, PowerPC, Inne (karty, na ktorych gra dziala).
+- U gory przyciski grup (klawisze 1-7): Ulubione, Zainstalowane, Dostepne
+  (jeszcze nie zainstalowane), Programy, Tryb ARM (gry korzystajace
+  z procesora ARM kart Warp 1260X i 7060), PowerPC, Inne. WARP HUB pamieta
+  ostatnio wybrana grupe.
+- Ulubione: prawy przycisk myszy na kafelku (albo klawisz F dla wybranej
+  gry) dodaje gre do ulubionych - zolta gwiazdka w prawym dolnym rogu
+  kafelka; drugie klikniecie ja zdejmuje.
+- Gra, ktora nie zadziala na karcie Warp w tej Amidze (tylko PowerPC albo
+  tylko tryb ARM na karcie bez ARM), ma przyciemniony kafelek, a pod opisem
+  powod. Bez karty Warp nic nie jest przyciemniane.
 - Galeria gier: obrazek, nazwa i stan (zainstalowana, nowa wersja, do
   pobrania). Wybor myszka albo strzalkami.
 - Pod galeria: opis gry, wymagania i historia wydan.

@@ -22,8 +22,16 @@ the other Warp programs) and start the icon. Next to the program WARP HUB keeps
 its settings (WarpHub.prefs) and its cache (the drawer WarpHub-cache).
 
 THE WINDOW
-- At the top the group buttons: All, Programs, Warp 560/1260, Warp 1240,
-  Warp 1260X, Warp 7060, PowerPC, Other (the cards a game runs on).
+- At the top the group buttons (keys 1-7): Favorite, Installed, Available
+  (not installed yet), Programs, ARM mode (games that use the ARM processor
+  of the Warp 1260X and 7060), PowerPC, Other. WARP HUB remembers the group
+  chosen last.
+- Favorites: the right mouse button on a tile (or the key F for the chosen
+  game) adds the game to the favorites - a yellow star in the bottom right
+  corner of the tile; a second click takes it away.
+- A game that does not run on the Warp card of this Amiga (PowerPC only, or
+  ARM mode only on a card without the ARM) has a dimmed tile, and the reason
+  is under its description. Without a Warp card nothing is dimmed.
 - The gallery: picture, name and state (installed, new version, available).
   Choose with the mouse or the arrow keys.
 - Below: the description of the game, its requirements and its history of
