@@ -64,17 +64,18 @@ def sha_of_file(path):
     return h.hexdigest()
 
 
-def unpack(zip_path, dest, extra, log):
+def unpack(zip_path, dest, extra, log, progress=None):
     """Files of the ZIP (and extra {path: bytes}) into dest; returns
     {path: (size, sha256)}. A file already there with the same size and
-    SHA-256 is not written again (the copy to the server sends only changes)."""
+    SHA-256 is not written again (the copy to the server sends only changes).
+    progress(done_bytes, all_bytes, path) after every file, when given."""
     out = {}
     with zipfile.ZipFile(zip_path) as z:
-        for zi in z.infolist():
-            if zi.is_dir():
-                continue
+        infos = [zi for zi in z.infolist() if not zi.is_dir()]
+        total, done = sum(zi.file_size for zi in infos), 0
+        for zi in infos:
             rel = zi.filename
-            if not make_catalog.PATH_OK.match(rel) or '..' in rel.split('/'):
+            if not make_catalog.path_ok(rel):
                 log('  WARNING bad path %s - left out' % rel)
                 continue
             target = os.path.join(dest, *rel.split('/'))
@@ -90,6 +91,9 @@ def unpack(zip_path, dest, extra, log):
                     shutil.copyfileobj(src, f, CHUNK)
                 os.replace(target + '.tmp', target)
             out[rel] = (zi.file_size, sha)
+            done += zi.file_size
+            if progress is not None:
+                progress(done, total, rel)
     for rel, data in extra.items():
         if rel in out:
             continue
@@ -125,6 +129,14 @@ def build(game, projects, www, log):
             extra[root + '.info'] = f.read()
     dest = os.path.join(www, 'files', game['key'])
     files = unpack(zip_path, dest, extra, log)
+    g = entry(game, root, version, zip_name, os.path.getsize(zip_path), files)
+    log('%s %s (full): %d files, %d bytes' % (game['key'], version, len(g['files']),
+                                               sum(e[1] for e in g['files'])))
+    return g
+
+
+def entry(game, root, version, zip_name, zip_size, files):
+    """The catalog entry of a full package unpacked as files {path: (size, sha256)}."""
     names = set(files)
     entries = [(rel, files[rel][0], files[rel][1], make_catalog.flag_of(rel, root, names))
                for rel in sorted(files)]
@@ -135,11 +147,9 @@ def build(game, projects, www, log):
             notes[lang] = p
     readmes = sorted(p for p in files if p.rsplit('/', 1)[-1] == 'ReadMe.txt'
                      and p.count('/') >= 2)
-    log('%s %s (full): %d files, %d bytes' % (game['key'], version, len(entries),
-                                               sum(e[1] for e in entries)))
     return {'key': game['key'], 'name': game.get('name', {}), 'desc': game.get('desc', {}),
             'repo': game.get('repo') or 'private/' + game['key'], 'branch': 'private',
-            'version': version, 'zip': (zip_name, os.path.getsize(zip_path)),
+            'version': version, 'zip': (zip_name, zip_size),
             'source': 'private', 'notes': notes, 'readmes': readmes, 'files': entries,
             'tags': game.get('tags', []), 'req': game.get('req', {})}
 

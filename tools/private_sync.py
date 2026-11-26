@@ -2,8 +2,14 @@
 """Sends only the changed files of www/ (tools/make_private.py) to the private
 server, swapped in one step like a whole send (tools/push_private.sh).
 
-  python tools/private_sync.py user@host LOCAL_WWW [REMOTE_DIR] [--dry]
+  python tools/private_sync.py user@host LOCAL_WWW [REMOTE_DIR] [--dry] [--take-over KEY ...]
   --dry: only says what would be sent
+
+Paths listed in <REMOTE_DIR>/keep.txt on the server (one a line, e.g.
+files/<key>, images/<key>.png) belong to the server: they are never replaced
+or removed. When LOCAL_WWW has files of such a path, nothing is sent unless
+--take-over <key> is given (then the key is taken off keep.txt). After the
+swap <REMOTE_DIR>/after_sync.py is run on the server when it is there.
 
 1. The server's list of www/ (size, modification time; tar keeps the times,
    make_private.py leaves a file that did not change as it is).
@@ -51,15 +57,59 @@ def run(host, cmd, data=None):
     subprocess.run(SSH + [host, cmd], check=True, input=data)
 
 
+def remote_keep(host, d):
+    out = subprocess.run(SSH + [host, 'cat %s/keep.txt 2>/dev/null || true' % d], check=True,
+                         capture_output=True).stdout.decode('utf-8')
+    return [l.strip().strip('/') for l in out.splitlines() if l.strip() and not l.startswith('#')]
+
+
+def kept_by(path, keep):
+    for k in keep:
+        if path == k or path.startswith(k + '/'):
+            return k
+    return None
+
+
+def key_of(k):
+    """files/<key> or images/<key>.png -> <key>"""
+    parts = k.split('/')
+    if len(parts) >= 2 and parts[0] == 'files':
+        return parts[1]
+    if len(parts) == 2 and parts[0] == 'images':
+        return parts[1].rsplit('.', 1)[0]
+    return k
+
+
+def plan(local, remote, keep, take_over=()):
+    """(changed, removed, refused keys, keep after): kept paths are never
+    changed or removed; local files of a kept path are refused unless its key
+    is taken over."""
+    keep = [k for k in keep if key_of(k) not in take_over]
+    refused = sorted({key_of(kept_by(p, keep)) for p in local if kept_by(p, keep)})
+    changed = sorted(p for p, v in local.items() if remote.get(p) != v and not kept_by(p, keep))
+    removed = sorted(p for p in remote if p not in local and not kept_by(p, keep))
+    return changed, removed, refused, keep
+
+
 def main():
     dry = '--dry' in sys.argv
-    args = [a for a in sys.argv[1:] if a != '--dry']
+    argv = [a for a in sys.argv[1:] if a != '--dry']
+    take_over, args = [], []
+    while argv:
+        a = argv.pop(0)
+        if a == '--take-over' and argv:
+            take_over.append(argv.pop(0))
+        else:
+            args.append(a)
     host, www = args[0], args[1]
     d = args[2] if len(args) > 2 else 'warphub-private'
     local = local_list(www)
     remote = remote_list(host, d)
-    changed = sorted(p for p, v in local.items() if remote.get(p) != v)
-    removed = sorted(p for p in remote if p not in local)
+    keep_before = remote_keep(host, d)
+    changed, removed, refused, keep = plan(local, remote, keep_before, take_over)
+    if refused:
+        sys.exit('not sent: the server keeps %s. Leave it out of the local www/ '
+                 'or give --take-over %s to replace it from here.' % (', '.join(refused), refused[0]))
     size = sum(local[p][0] for p in changed)
     total = sum(v[0] for v in local.values())
     games = sorted(set(p.split('/')[1] for p in changed + removed if p.startswith('files/') and p.count('/') >= 2))
@@ -93,6 +143,11 @@ def main():
         run(host, 'cd %s/www.new && find . -type d -empty -delete' % d)
     run(host, 'cd %s && rm -rf www.old && { [ ! -d www ] || mv www www.old; } && mv www.new www && rm -rf www.old' % d)
     print('www/ swapped')
+    if keep != keep_before:
+        run(host, 'cd %s && cat > keep.txt.tmp && mv keep.txt.tmp keep.txt' % d,
+            ''.join(k + '\n' for k in keep).encode('utf-8'))
+        print('taken over: %s' % ', '.join(take_over))
+    run(host, 'cd %s && if [ -f after_sync.py ]; then python3 after_sync.py; fi' % d)
 
 
 if __name__ == '__main__':

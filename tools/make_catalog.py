@@ -82,6 +82,17 @@ FORMAT = 1
 # "Floating Numbers - XP"); the path is the last field of a FILE line
 NAME = r'[A-Za-z0-9_.+&-]+(?: [A-Za-z0-9_.+&-]+)*'   # '&': Syndicate Wars maps/map030.b&b
 PATH_OK = re.compile(r'^%s(?:/%s)*$' % (NAME, NAME))
+MAX_NAME = 30          # FFS: the longest name of a file or drawer (an icon: with ".info")
+
+
+def path_ok(rel, max_name=None):
+    """The rules of a path of a release: PATH_OK, no '..'; with max_name every
+    name at most that long."""
+    if not PATH_OK.match(rel) or '..' in rel.split('/'):
+        return False
+    if max_name and any(len(part) > max_name for part in rel.split('/')):
+        return False
+    return True
 KEEP_SUFFIX = ('.ini', '.prefs', '.cfg')
 LANGS = ('en', 'pl', 'de')
 
