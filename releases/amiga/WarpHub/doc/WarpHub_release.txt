@@ -1,10 +1,20 @@
 WARP HUB - wydania
 ==================
 
-Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.18") i w
+Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.19") i w
 Shellu: Version SYS:WarpApps/WarpHub. Opisz, co sie stalo, i podaj
 numer wydania: https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.19 (28.11.2026, wydanie beta)
+-------------------------------
+- Gdy kod dostepu do prywatnego zrodla nie obejmuje gry, WARP HUB mowi to
+  wprost i odswieza katalog: gra instaluje sie wtedy z GitHuba (wersja
+  publiczna), jesli taka jest.
+- Gra z prywatnego zrodla zainstalowana w tej samej wersji, ale bez danych
+  pelnej paczki na dysku: kafelek pokazuje "Dane: Aktualizuj", strona gry
+  "Pelna paczka: kliknij Aktualizuj, zeby pobrac dane gry". Aktualizuj
+  pobiera tylko brakujace pliki.
 
 0.18 (26.11.2026, wydanie beta)
 -------------------------------

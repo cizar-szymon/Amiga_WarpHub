@@ -1,11 +1,21 @@
 WARP HUB - Versionen
 ====================
 
-Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.18")
+Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.19")
 und in der Shell: Version SYS:WarpApps/WarpHub. Beschreibe, was
 passiert ist, mit der Versionsnummer:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.19 (28.11.2026, Beta)
+-----------------------
+- Wenn der Zugangscode der privaten Quelle ein Spiel nicht umfasst, sagt
+  WARP HUB das und aktualisiert den Katalog: das Spiel wird dann von GitHub
+  installiert (die oeffentliche Version), falls es sie gibt.
+- Ein Spiel der privaten Quelle in derselben Version, aber ohne die Daten des
+  vollen Pakets auf der Platte: die Kachel zeigt "Daten: Update",
+  die Seite des Spiels "Volles Paket: Update druecken, um die Daten des
+  Spiels zu laden". Update laedt nur die fehlenden Dateien.
 
 0.18 (26.11.2026, Beta)
 -----------------------
