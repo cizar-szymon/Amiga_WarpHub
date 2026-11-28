@@ -1,10 +1,18 @@
 WARP HUB - wydania
 ==================
 
-Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.19") i w
+Zglaszanie bledow: numer wydania widac w tytule ekranu ("WARP HUB 0.20") i w
 Shellu: Version SYS:WarpApps/WarpHub. Opisz, co sie stalo, i podaj
 numer wydania: https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.20 (28.11.2026, wydanie beta)
+-------------------------------
+- Gry WHDLoad: ikona gry (projekt z narzedziem WHDLoad) jest rozpoznawana
+  jako gra - "Uruchom" otwiera ja jak dwuklik, a jej Tool Types gracza
+  zostaja przy aktualizacji. Gra bez numeru wersji w programie ma wersje
+  zapisana przy instalacji.
+- Pliki gier moga miec w nazwie nawiasy ( ), apostrof ' i przecinek ,.
 
 0.19 (28.11.2026, wydanie beta)
 -------------------------------

@@ -1,11 +1,19 @@
 WARP HUB - Versionen
 ====================
 
-Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.19")
+Fehler melden: die Versionsnummer steht im Bildschirmtitel ("WARP HUB 0.20")
 und in der Shell: Version SYS:WarpApps/WarpHub. Beschreibe, was
 passiert ist, mit der Versionsnummer:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.20 (28.11.2026, Beta)
+-----------------------
+- WHDLoad-Spiele: das Icon des Spiels (ein Projekt mit dem Werkzeug WHDLoad)
+  wird als Spiel erkannt - "Starten" oeffnet es wie ein Doppelklick, und die
+  Tool Types des Spielers bleiben beim Update. Ein Spiel ohne Versionsnummer
+  im Programm behaelt die Version der Installation.
+- Spieldateien duerfen Klammern ( ), den Apostroph ' und das Komma , im Namen haben.
 
 0.19 (28.11.2026, Beta)
 -----------------------
