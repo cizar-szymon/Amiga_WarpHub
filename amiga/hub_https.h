@@ -42,6 +42,11 @@ int hub_get(HubConn *c, const char *path, HubSink sink, void *user,
 /* The next request of c only with "If-None-Match: etag": the answer is then
  * 304 (no body) when the file has not changed. */
 void hub_conn_if_none_match(HubConn *c, const char *etag);
+
+/* X-WarpHub-Denied of the last answer of the private source: "code" (the code
+ * of the player does not cover this game), "blocked" (too many bad passwords),
+ * "" (not sent - an older server) */
+const char *hub_conn_denied(HubConn *c);
 /* 1 when the last request of c failed in the network (lost, no data within
  * the time limit), not by an answer of the server: worth one more try. */
 int hub_conn_net_error(HubConn *c);

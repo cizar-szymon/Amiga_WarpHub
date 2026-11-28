@@ -15,7 +15,7 @@ enum { HUB_JOB_NONE, HUB_JOB_REFRESH, HUB_JOB_INSTALL, HUB_JOB_PROBE, HUB_JOB_QU
 
 /* the private source after a job */
 enum { HUB_PRIV_NONE, HUB_PRIV_OK, HUB_PRIV_BAD_PASSWORD, HUB_PRIV_BLOCKED,
-       HUB_PRIV_ERROR, HUB_PRIV_PROBED };
+       HUB_PRIV_ERROR, HUB_PRIV_PROBED, HUB_PRIV_NOT_IN_CODE };
 
 typedef struct HubWork {
   /* the job (written by the window while the process is idle) */

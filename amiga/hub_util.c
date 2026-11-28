@@ -325,6 +325,11 @@ static HubStamp *stamp_find(HubStamps *t, const char *name)
   return NULL;
 }
 
+int hub_stamps_has(HubStamps *t, const char *name)
+{
+  return stamp_find(t, name) != NULL;
+}
+
 static HubStamp *stamp_add(HubStamps *t, const char *name)
 {
   HubStamp *e;

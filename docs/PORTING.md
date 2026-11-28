@@ -1213,3 +1213,53 @@ and updated it 0.222 -> 0.230 (105 files; old program in `old/SyndWars-0.222`; t
 drawer is ignored for the test). **Rule:** never put a copy of the user's `WarpHub.prefs` into a
 test drawer unless all `INSTALLED` / `GONE` lines (and GAMESDIR / APPSDIR) are removed or
 redirected to the test drawer; keep only LANGUAGE and the PRIVATE lines.
+
+## 0.19: a code that does not cover a game (28.11.2026, user's request)
+A code for some games (`private_server.py code NAME --game KEY`) gets `catalog.txt` with only
+those games, and 403 for the files and pictures of the others. A 403 also means "too many bad
+passwords from this address", and WARP HUB showed that message for both.
+- Server: the 403 now carries `X-WarpHub-Denied: code` (game outside the code) or
+  `X-WarpHub-Denied: blocked` (the address blocked). Older WARP HUB only see the 403, as before.
+- WARP HUB (`hub_https` reads the header, `hub_conn_denied`): `HUB_PRIV_NOT_IN_CODE`.
+  - Install / update of a private game that meets it: "Twoj kod dostepu nie obejmuje gry <Nazwa>.
+    Katalog zostanie odswiezony: gra zainstaluje sie wtedy z GitHuba (wersja publiczna), jesli
+    taka jest - albo popros o kod obejmujacy te gre." (EN / DE too), then a refresh: the filtered
+    private catalog no longer lists the game, so its public entry (if any) is shown and Install
+    takes it from GitHub.
+  - During a refresh (a picture or text): logged in all the same, "Prywatne zrodlo: twoj kod nie
+    obejmuje czesci plikow - pokazane sa tylko gry z kodu."
+- When it happens at all: the catalog of the window comes from the last refresh; the server
+  filters it by the code of that login. So a 403 "code" only comes when the code changed or was
+  revoked / narrowed since the last refresh (the window still lists the game as private). A game
+  installed from the RP4 with a code for everything and refreshed with a code for one other game:
+  its private entry is gone from the catalog; with a public entry WARP HUB shows that one and an
+  update takes the public files only (the data of the full package stays on the disk); without a
+  public entry the game is not listed (also not under Installed).
+- Tests: `test_why_403` (code -> `code`, blocked address -> `blocked`, an allowed file 200).
+  RP4 (28.11.2026): a test code for vastar only: catalog with `GAME vastar` only,
+  `/images/vastar.png` 200, `/images/opendune.png` and an OpenDUNE file 403 `code`; revoked
+  (401), `codes.json` the same as before (SHA-256) here and on the RP4.
+
+### The data of the full package missing (0.19, user's request 28.11.2026)
+A game of the private source installed in the same version as the catalog (e.g. the public release
+without the data, then a login with a code for it): before, the tile was green "Zainstalowana" and only
+the enabled Update button and "Pelna paczka (prywatne zrodlo)" on the page hinted at the data.
+Now `check_need_data()` (`warphub.c`) marks such a game when its files are not all there:
+- with the list `WarpHub-cache/files-<key>.txt`: every N file of the catalog entry (its full name in
+  the install drawer) must be in the list - only the list is read, not the disk
+  (`hub_stamps_has`, new in `hub_util`);
+- without the list (installed before 0.17): the 3 largest N files of the entry (the data) are
+  looked for with `Lock`.
+Worked out only after a new catalog, a scan of the drawers, an install or an uninstall
+(`need_data_dirty`), not at every redraw. The tile: "Dane: Aktualizuj" / "Data: press Update" /
+"Daten: Update" in the accent colour; the page: an extra line "Pelna paczka: kliknij
+Aktualizuj, zeby pobrac dane gry." (EN / DE). After the update the list has every file, so the hint
+goes. A file deleted later by the player is not noticed while the list says it is there (the disk is
+not read). Build OK, tests 39 OK.
+Amiga 2 (28.11.2026, `RAM:WH19`, test settings: LANGUAGE, the PRIVATE lines, GAMESDIR of the test):
+public Vastar 0.1 installed without a login (11 files, 193 KB); after the login the tile shows
+"Data: press Update" (accent), the page "Full package: press Update to get the data of the game.";
+Update (`TESTINSTALL`): check 40 ms (9 files from the list), download 19 files (83 KB), then the tile
+"Installed 0.1" in green and no hint line. The message "your code does not cover the game" was not
+tried on an Amiga (a test code needs the RP4, which was in the other network).
+

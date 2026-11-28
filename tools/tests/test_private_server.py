@@ -195,6 +195,33 @@ class PrivateServerTest(unittest.TestCase):
         self.assertEqual(self.get('/files/beta/Beta/b.txt', self.code_alpha)[0], 403)
         self.assertEqual(self.get('/images/beta.png', self.code_alpha)[0], 403)
 
+    def denied(self, path, password):
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        req = urllib.request.Request('https://127.0.0.1:%d%s' % (self.port, path))
+        req.add_header('Authorization', 'Basic ' + base64.b64encode(('x:' + password).encode()).decode())
+        try:
+            with urllib.request.urlopen(req, context=ctx, timeout=10) as r:
+                return r.status, r.headers.get('X-WarpHub-Denied')
+        except urllib.error.HTTPError as e:
+            return e.code, e.headers.get('X-WarpHub-Denied')
+
+    def test_why_403(self):
+        # a game outside the code and a blocked address: both 403 (older WARP HUB),
+        # told apart by X-WarpHub-Denied
+        self.assertEqual(self.denied('/files/beta/Beta/b.txt', self.code_alpha), (403, 'code'))
+        self.assertEqual(self.denied('/images/beta.png', self.code_alpha), (403, 'code'))
+        self.assertEqual(self.denied('/files/alpha/Alpha/a.txt', self.code_alpha), (200, None))
+        st = ps.Handler.state
+        with st.lock:
+            st.blocked['127.0.0.1'] = time.time() + 30
+        try:
+            self.assertEqual(self.denied('/catalog.txt', 'main-password-1'), (403, 'blocked'))
+        finally:
+            with st.lock:
+                st.blocked.pop('127.0.0.1', None)
+
     def test_code_for_a_day_everything(self):
         status, text = self.get('/catalog.txt', self.code_day)
         self.assertEqual((status, text), (200, CATALOG))

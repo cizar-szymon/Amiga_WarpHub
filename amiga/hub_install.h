@@ -54,6 +54,10 @@ int hub_install(HubGame *g, const char *dest, const char *old_version,
  * its certificate, password); host "" = none. */
 void hub_install_private(const char *host, int port, const char *pin, const char *password);
 
+/* 1 when the last hub_install stopped on a 403 of the private source because
+ * the code of the player does not cover the game */
+int hub_install_not_in_code(void);
+
 /* The drawer of the game: the first part of its paths ("Settlers"). */
 void hub_game_dir(HubGame *g, char *out, int outlen);
 /* where a file of the catalog lies under the chosen drawer: its path, or for a

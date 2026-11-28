@@ -23,6 +23,13 @@ static UBYTE *buf;
 static char priv_host[128], priv_pin[65], priv_pass[64];
 static int priv_port;
 
+static int not_in_code;
+
+int hub_install_not_in_code(void)
+{
+  return not_in_code;
+}
+
 void hub_install_private(const char *host, int port, const char *pin, const char *password)
 {
   strncpy(priv_host, host, sizeof(priv_host) - 1);
@@ -382,6 +389,9 @@ static int fetch_one(HubConn *c, HubGame *g, const char *dest, HubFile *file,
   DeleteFile((CONST_STRPTR)name);
   if (f.write_failed) {
     snprintf(err, errlen, "Cannot write %s (disk full?).", file->path);
+  } else if (status == 403 && g->priv && strcmp(hub_conn_denied(c), "code") == 0) {
+    not_in_code = 1;
+    snprintf(err, errlen, "%s: HTTP 403 (code).", file->path);
   } else if (status > 0 && status != 200) {
     snprintf(err, errlen, "%s: HTTP %d.", file->path, status);
   } else if (status == 200) {
@@ -458,6 +468,7 @@ int hub_install(HubGame *g, const char *dest, const char *old_version,
   int i;
   BPTR lock;
 
+  not_in_code = 0;
   lock = Lock((CONST_STRPTR)dest, ACCESS_READ);
   if (lock == 0) {
     snprintf(err, errlen, "Drawer %s not found.", dest);

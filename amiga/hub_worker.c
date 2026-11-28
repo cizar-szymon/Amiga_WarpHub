@@ -304,7 +304,7 @@ static char *get_private_inm(HubWork *w, HubConn *c, const char *path, ULONG max
   if (status == 401) {
     w->priv_status = HUB_PRIV_BAD_PASSWORD;
   } else if (status == 403) {
-    w->priv_status = HUB_PRIV_BLOCKED;
+    w->priv_status = strcmp(hub_conn_denied(c), "code") == 0 ? HUB_PRIV_NOT_IN_CODE : HUB_PRIV_BLOCKED;
   } else {
     w->priv_status = HUB_PRIV_ERROR;
     if (status > 0) snprintf(err, sizeof(err), "HTTP %d: %s", status, path);
@@ -622,6 +622,7 @@ static void job_install(HubWork *w)
       } else {
         w->ok = hub_install(g, w->dir, w->old_version, progress, w, w->msg, sizeof(w->msg));
         if (w->ok) hub_manifest_installed(g, w->dir, &man);
+        else if (hub_install_not_in_code()) w->priv_status = HUB_PRIV_NOT_IN_CODE;
       }
     }
     hub_stamps_save(&man, mname);

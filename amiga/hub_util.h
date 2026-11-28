@@ -99,6 +99,8 @@ void hub_stamps_free(HubStamps *t);
 const char *hub_stamps_get(HubStamps *t, const char *name, ULONG *size);
 /* remembers value with the size and the date the file has now */
 void hub_stamps_set(HubStamps *t, const char *name, const char *value);
+/* 1 when name is remembered (the disk is not looked at) */
+int hub_stamps_has(HubStamps *t, const char *name);
 
 /* FNV-1a of a text: has the catalog changed (not a check of the content) */
 ULONG hub_fnv(const char *data, ULONG len);

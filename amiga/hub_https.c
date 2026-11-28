@@ -69,6 +69,7 @@ struct HubConn {
   char auth[120];         /* base64 of "warphub:<password>" or "" */
   char inm[100];          /* If-None-Match of the next request ("" = none) */
   char etag[100];         /* ETag of the last answer ("" = none) */
+  char denied[16];        /* X-WarpHub-Denied of the last answer ("" = none) */
   int timed_out;          /* the last wait ended without data (TIMEOUT_S) */
   int net_error;          /* the last request failed in the network */
 };
@@ -555,6 +556,7 @@ static int request(HubConn *c, const char *path, HubSink sink, void *user,
 
   *retry = 0;
   c->etag[0] = 0;
+  c->denied[0] = 0;
   c->net_error = 0;
   if (c->ssl == NULL && !conn_open(c, err, errlen)) {
     /* no connection or no TLS in time: the network, worth another try (not a
@@ -619,6 +621,9 @@ static int request(HubConn *c, const char *path, HubSink sink, void *user,
       chunked = starts(value_of(line), "chunked");
     } else if (starts(line, "connection:")) {
       if (starts(value_of(line), "close")) close_after = 1;
+    } else if (starts(line, "x-warphub-denied:")) {
+      strncpy(c->denied, value_of(line), sizeof(c->denied) - 1);
+      c->denied[sizeof(c->denied) - 1] = 0;
     } else if (starts(line, "etag:")) {
       strncpy(c->etag, value_of(line), sizeof(c->etag) - 1);
       c->etag[sizeof(c->etag) - 1] = 0;
@@ -708,6 +713,11 @@ void hub_conn_if_none_match(HubConn *c, const char *etag)
 const char *hub_conn_etag(HubConn *c)
 {
   return c->etag;
+}
+
+const char *hub_conn_denied(HubConn *c)
+{
+  return c->denied;
 }
 
 void hub_url_path(char *out, int outlen, const char *path)

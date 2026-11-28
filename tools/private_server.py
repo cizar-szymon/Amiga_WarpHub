@@ -356,9 +356,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.request.do_handshake()
         super().setup()
 
-    def reply(self, code, text=b''):
+    def reply(self, code, text=b'', denied=None):
         self.send_response(code)
         self.send_header('Content-Type', 'text/plain; charset=utf-8')
+        if denied:
+            # why a 403: "blocked" (too many bad passwords from this address) or
+            # "code" (the code does not cover this game); WARP HUB 0.19+ tells
+            # them apart, older ones only see the 403
+            self.send_header('X-WarpHub-Denied', denied)
         self.send_header('Content-Length', str(len(text)))
         if code == 401:
             self.send_header('WWW-Authenticate', 'Basic realm="WARP HUB"')
@@ -378,7 +383,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 blocked = False
                 st.blocked.pop(ip, None)
         if blocked:
-            self.reply(403, b'blocked for a while\n')
+            self.reply(403, b'blocked for a while\n', 'blocked')
             return False
         auth = self.headers.get('Authorization', '')
         password = None
@@ -528,7 +533,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self.wfile.write(body)
             return
         if games is not None and game not in games:
-            self.reply(403, b'not for this code\n')
+            self.reply(403, b'not for this code\n', 'code')
             return
         if game is not None and self.path.startswith('/files/'):
             st = self.state

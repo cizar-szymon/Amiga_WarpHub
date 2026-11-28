@@ -82,7 +82,7 @@
 
 extern struct WBStartup *_WBenchMsg;
 
-#define WARPHUB_VERSION "0.18"   /* tools/make_release.py reads it */
+#define WARPHUB_VERSION "0.19"   /* tools/make_release.py reads it */
 const char version_tag[] = "$VER: WarpHub " WARPHUB_VERSION " (19.11.2026)";
 
 unsigned long __stack = 65536;
@@ -129,7 +129,8 @@ enum {
   T_CLK_WIN, T_CLK_NOW, T_CLK_HAND, T_CLK_DATE, T_CLK_TIME, T_CLK_SET, T_CLK_INET, T_CLK_ZONE,
   T_CLK_DST, T_CLK_GET, T_CLK_DONE, T_CLK_BATT, T_CLK_NOBATT, T_CLK_WEAK, T_CLK_BAD, T_CLK_ASK,
   T_CLK_HANDSRC, T_CLK_FAIL, T_CLK_ERR, T_CLK_HINT1, T_CLK_HINT2, T_CLK_SUMMER,
-  T_CLK_SAVE, T_CLK_GOT, T_CLK_PRESS, T_CLK_LATER,
+  T_CLK_SAVE, T_CLK_GOT, T_CLK_PRESS, T_CLK_LATER, T_NOT_IN_CODE, T_NOT_IN_CODE_CAT,
+  T_DATA_SHORT, T_DATA_HINT,
   T_COUNT
 };
 
@@ -193,7 +194,11 @@ static const char *const texts[3][T_COUNT] = {
     "Choose the time zone and get the time from the internet,", "or type the date and time; then Set or Save.",
     "summer time",
     "Save", "Time from the internet: %s (%s).", "Press Set or Save.",
-    "Battery clock not changed - Save to set it."
+    "Battery clock not changed - Save to set it.",
+    "Your access code does not cover %s.\nThe catalog is refreshed now: the game then installs from GitHub "
+    "(the public version), if there is one - or ask for a code that covers it.",
+    "Private source: your code does not cover some files - only the games of the code are shown.",
+    "Data: press Update", "Full package: press Update to get the data of the game."
   },
   { /* pl */
     "Odswiez", "Zainstaluj", "Aktualizuj", "Sprawdz pliki", "Przerwij", "Zainstalowana %s",
@@ -254,7 +259,11 @@ static const char *const texts[3][T_COUNT] = {
     "Wybierz strefe czasowa i pobierz czas z internetu", "albo wpisz date i godzine; potem Ustaw albo Zapisz.",
     "czas letni",
     "Zapisz", "Czas z internetu: %s (%s).", "Nacisnij Ustaw albo Zapisz.",
-    "Zegar z bateria nie zmieniony - Zapisz, aby go ustawic."
+    "Zegar z bateria nie zmieniony - Zapisz, aby go ustawic.",
+    "Twoj kod dostepu nie obejmuje gry %s.\nKatalog zostanie odswiezony: gra zainstaluje sie wtedy z GitHuba "
+    "(wersja publiczna), jesli taka jest - albo popros o kod obejmujacy te gre.",
+    "Prywatne zrodlo: twoj kod nie obejmuje czesci plikow - pokazane sa tylko gry z kodu.",
+    "Dane: Aktualizuj", "Pelna paczka: kliknij Aktualizuj, zeby pobrac dane gry."
   },
   { /* de */
     "Aktualisieren", "Installieren", "Update", "Dateien pr\xfc" "fen", "Abbrechen",
@@ -318,7 +327,11 @@ static const char *const texts[3][T_COUNT] = {
     "oder Datum und Zeit eintippen; dann Setzen oder Speichern.",
     "Sommerzeit",
     "Speichern", "Zeit aus dem Internet: %s (%s).", "Setzen oder Speichern dr\xfc" "cken.",
-    "Batterie-Uhr nicht ge\xe4" "ndert - Speichern, um sie zu stellen."
+    "Batterie-Uhr nicht ge\xe4" "ndert - Speichern, um sie zu stellen.",
+    "Dein Zugangscode umfasst %s nicht.\nDer Katalog wird jetzt aktualisiert: das Spiel wird dann von GitHub "
+    "installiert (die \xf6" "ffentliche Version), falls es sie gibt - oder bitte um einen Code daf\xfc" "r.",
+    "Private Quelle: dein Code umfasst einige Dateien nicht - nur die Spiele des Codes werden gezeigt.",
+    "Daten: Update", "Volles Paket: Update dr\xfc" "cken, um die Daten des Spiels zu laden."
   }
 };
 
@@ -576,6 +589,80 @@ static void draw_star(struct RastPort *rp, int x, int y)
 }
 
 /* the status line of a game into out, its pen as the result */
+/* --- the full package and the disk (0.19): a game of the private source,
+ * installed in the same version, whose files are not all there (e.g. the
+ * public release without the data): the tile and the page say "press Update".
+ * With the list of the installed files (WarpHub-cache/files-<key>.txt) the
+ * files of the catalog entry are looked up in it - no disk access; without it
+ * the 3 largest files of the entry (the data) are looked for. Worked out again
+ * only after a new catalog, a scan of the drawers or an install. */
+static unsigned char *need_data;
+static int need_data_n, need_data_dirty = 1;
+
+static int data_missing(HubGame *g, HubInstalled *in)
+{
+  char name[400], mname[128];
+  HubStamps man;
+  int i, k, missing = 0;
+  memset(&man, 0, sizeof(man));
+  snprintf(mname, sizeof(mname), "%s/files-%s.txt", CACHE_DIR, g->key);
+  hub_stamps_load(&man, mname);
+  if (man.n > 0) {
+    for (i = 0; i < g->nfiles && !missing; i++) {
+      HubFile *f = &g->files[i];
+      if (f->flag != 'N') continue;
+      strncpy(name, in->dir, sizeof(name) - 1);
+      name[sizeof(name) - 1] = 0;
+      if (!AddPart((STRPTR)name, (CONST_STRPTR)hub_local_path(g, f->path), sizeof(name))) continue;
+      if (!hub_stamps_has(&man, name)) missing = 1;
+    }
+  } else {
+    int used[3] = {-1, -1, -1};
+    for (k = 0; k < 3 && !missing; k++) {
+      int best = -1;
+      BPTR lock;
+      for (i = 0; i < g->nfiles; i++) {
+        if (g->files[i].flag != 'N' || i == used[0] || i == used[1]) continue;
+        if (best < 0 || g->files[i].size > g->files[best].size) best = i;
+      }
+      if (best < 0) break;
+      used[k] = best;
+      strncpy(name, in->dir, sizeof(name) - 1);
+      name[sizeof(name) - 1] = 0;
+      if (!AddPart((STRPTR)name, (CONST_STRPTR)hub_local_path(g, g->files[best].path), sizeof(name))) continue;
+      lock = Lock((CONST_STRPTR)name, ACCESS_READ);
+      if (lock == 0) missing = 1;
+      else UnLock(lock);
+    }
+  }
+  hub_stamps_free(&man);
+  return missing;
+}
+
+static void check_need_data(void)
+{
+  int i;
+  need_data_dirty = 0;
+  hub_free(need_data);
+  need_data = NULL;
+  need_data_n = 0;
+  if (cat == NULL || cat->ngames == 0) return;
+  need_data = (unsigned char *)hub_calloc(cat->ngames, 1);
+  if (need_data == NULL) return;
+  need_data_n = cat->ngames;
+  for (i = 0; i < cat->ngames; i++) {
+    HubGame *g = &cat->games[i];
+    HubInstalled *in = installed(g);
+    if (g->priv && in != NULL && version_cmp(in->version, g->version) == 0) need_data[i] = data_missing(g, in);
+  }
+}
+
+static int needs_data(HubGame *g)
+{
+  int i = cat != NULL ? (int)(g - cat->games) : -1;
+  return need_data != NULL && i >= 0 && i < need_data_n && need_data[i];
+}
+
 static int game_state(HubGame *g, char *out, int outlen, int with_version)
 {
   HubInstalled *in = installed(g);
@@ -590,6 +677,12 @@ static int game_state(HubGame *g, char *out, int outlen, int with_version)
   if (version_cmp(in->version, g->version) < 0) {
     if (with_version) snprintf(out, outlen, TX(T_NEW_SHORT), v);    /* tile */
     else snprintf(out, outlen, TX(T_NEW_VERSION), v, in->version);
+    return pens[P_ACCENT];
+  }
+  if (needs_data(g) && with_version) {
+    /* the same version, the data of the full package not on the disk (the
+     * page says it in a line of its own) */
+    snprintf(out, outlen, "%s", TX(T_DATA_SHORT));
     return pens[P_ACCENT];
   }
   snprintf(out, outlen, TX(T_INSTALLED), in->version);
@@ -754,6 +847,10 @@ static void draw_page(struct RastPort *rp, struct IBox *box)
     snprintf(a, sizeof(a), TX(not_here(g)), card.name);
     p.pen = pens[P_ACCENT];
     wrap(rp, a, box->Width - 16, page_line, &p);
+  }
+  if (needs_data(g)) {
+    p.pen = pens[P_ACCENT];
+    wrap(rp, TX(T_DATA_HINT), box->Width - 16, page_line, &p);
   }
   if (g->local) {
     p.pen = pens[P_DIM];
@@ -968,8 +1065,12 @@ static void update_layout(void)
 
 static void build_view(void);
 
+static void check_need_data(void);
+static int need_data_dirty;
+
 static void refresh_all(void)
 {
+  if (need_data_dirty) check_need_data();
   build_view();
   update_layout();
   update_scroller();
@@ -1077,6 +1178,7 @@ static void take_catalog(HubCatalog *c)
     if (strcmp(cat->games[i].key, key) == 0) selected = i;
   }
   load_tiles(old, old_tiles);
+  need_data_dirty = 1;
   /* the pictures the new catalog did not take */
   for (i = 0; old != NULL && old_tiles != NULL && i < old->ngames; i++) {
     if (old_tiles[i].dt != NULL) DisposeDTObject(old_tiles[i].dt);
@@ -1443,6 +1545,7 @@ static void rescan_games(int at_start)
   set_status(TX(T_SCANNING));
   for (k = 0; k < ndirs; k++) scan_games_dir(dirs[k], 0, 0);
   hub_prefs_save(&prefs, PREFS_FILE);
+  need_data_dirty = 1;
   set_status("");
   times_log("drawers looked at (%s): %d drawers, %lu ms, %d programs read for $VER",
             at_start ? "start" : "after the refresh", ndirs,
@@ -1741,6 +1844,7 @@ static void start_uninstall(void)
   }
   hub_prefs_remove_installed(&prefs, g->key);
   hub_prefs_save(&prefs, PREFS_FILE);
+  need_data_dirty = 1;
   if (left) snprintf(body, sizeof(body), TX(T_UNINSTALLED_LEFT), name, removed, dir);
   else snprintf(body, sizeof(body), TX(T_UNINSTALLED), name, removed);
   set_status(body);
@@ -2284,6 +2388,11 @@ static void private_result(void)
       snprintf(a, sizeof(a), TX(T_PRIV_ERR), work.priv_msg);
       set_status(a);
       break;
+    case HUB_PRIV_NOT_IN_CODE:
+      /* a picture or text of a game the code does not cover: logged in all the same */
+      sess_on = 1;
+      set_status(TX(T_NOT_IN_CODE_CAT));
+      break;
   }
   memset(work.priv_pass, 0, sizeof(work.priv_pass));
   lock_redraw();
@@ -2320,6 +2429,8 @@ static void probe_result(void)
 /* --- the network process tells something ------------------------------------ */
 
 static void clock_net_done(void);
+
+static int refresh_after_not_in_code;   /* an install met a 403 "code": refresh after it */
 
 static void worker_news(void)
 {
@@ -2413,6 +2524,7 @@ static void worker_news(void)
       char name[96], v[32];
       int i, n;
       hub_prefs_set_installed(&prefs, g->key, g->version, work.dir);
+      need_data_dirty = 1;
       hub_prefs_save(&prefs, PREFS_FILE);
       latin(hub_text(g->name, lang), name, sizeof(name));
       latin(g->version, v, sizeof(v));
@@ -2437,6 +2549,17 @@ static void worker_news(void)
         /* stopped by the user (the Stop button or Ctrl-C): not an error, nothing to confirm */
         set_status(TX(T_STOPPED));
         set_progress(0, 0);
+      } else if (work.priv_status == HUB_PRIV_NOT_IN_CODE && g != NULL) {
+        /* the code of the player does not cover this game (the catalog of the window is
+         * older than the code): say so, and refresh - the game then comes from the public
+         * catalog, when it is there */
+        char name[96];
+        latin(hub_text(g->name, lang), name, sizeof(name));
+        snprintf(a, sizeof(a), TX(T_NOT_IN_CODE), name);
+        set_status(a);
+        set_progress(0, 0);
+        if (!test_dir[0]) ask(a, TX(T_OK));
+        refresh_after_not_in_code = 1;
       } else {
         snprintf(a, sizeof(a), TX(T_FAILED), work.msg);
         set_status(a);
@@ -2445,6 +2568,11 @@ static void worker_news(void)
       }
     }
     refresh_all();
+    if (refresh_after_not_in_code) {
+      refresh_after_not_in_code = 0;
+      refresh_by_user = 1;
+      start_refresh();
+    }
   }
   update_buttons();
 }
@@ -3649,6 +3777,7 @@ out:
   if (dri != NULL) FreeScreenDrawInfo(scr, dri);
   if (win_obj != NULL) DisposeObject(win_obj);
   free_tiles();
+  hub_free(need_data);
   hub_catalog_free(cat);
   if (scr != NULL) {
     free_pens();

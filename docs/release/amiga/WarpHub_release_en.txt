@@ -1,11 +1,21 @@
 WARP HUB - releases
 ===================
 
-Reporting bugs: the release number is in the screen title ("WARP HUB 0.18")
+Reporting bugs: the release number is in the screen title ("WARP HUB 0.19")
 and in the Shell: Version SYS:WarpApps/WarpHub. Describe what
 happened and give the release number:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.19 (28.11.2026, beta release)
+-------------------------------
+- When the access code of the private source does not cover a game, WARP HUB
+  says so and refreshes the catalog: the game then installs from GitHub (the
+  public version), if there is one.
+- A game of the private source installed in the same version but without the
+  data of the full package on the disk: the tile shows "Data: press Update",
+  the page of the game "Full package: press Update to get the data of the
+  game". Update downloads only the missing files.
 
 0.18 (26.11.2026, beta release)
 -------------------------------
