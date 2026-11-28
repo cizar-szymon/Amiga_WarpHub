@@ -82,7 +82,7 @@
 
 extern struct WBStartup *_WBenchMsg;
 
-#define WARPHUB_VERSION "0.19"   /* tools/make_release.py reads it */
+#define WARPHUB_VERSION "0.20"   /* tools/make_release.py reads it */
 const char version_tag[] = "$VER: WarpHub " WARPHUB_VERSION " (19.11.2026)";
 
 unsigned long __stack = 65536;
@@ -1437,6 +1437,8 @@ static void program_version_known(const char *file, char *out, int outlen)
  * Remembered in WarpHub.prefs. */
 /* only_new: only the games WARP HUB does not know yet (no INSTALLED line) -
  * after a refresh brought new games; nothing is forgotten then */
+static int game_project(HubGame *g, const char *dir, char *out, int outlen);
+
 static int scan_games_dir(const char *dir, int save, int only_new)
 {
   int i, j, found = 0;
@@ -1480,7 +1482,20 @@ static int scan_games_dir(const char *dir, int save, int only_new)
         best_size = g->files[j].size;
       }
     }
+    if (!here) {
+      /* a game started through a project icon (WHDLoad): the icon is enough */
+      char prog[300];
+      here = game_project(g, dir, prog, sizeof(prog));
+    }
     if (here) {
+      if (!best[0]) {
+        /* no $VER in its programs (WHDLoad games): the version WARP HUB wrote at the
+         * install stays; "0" only for a game it did not install */
+        HubInstalled *in = hub_prefs_installed(&prefs, g->key);
+        HubInstalled *was = hub_prefs_gone(&prefs, g->key);
+        if (in != NULL && Stricmp((CONST_STRPTR)in->dir, (CONST_STRPTR)dir) == 0) strcpy(best, in->version);
+        else if (was != NULL && Stricmp((CONST_STRPTR)was->dir, (CONST_STRPTR)dir) == 0) strcpy(best, was->version);
+      }
       hub_prefs_set_installed(&prefs, g->key, best[0] ? best : "0", dir);
       found++;
     } else if (!only_new) {
@@ -1557,10 +1572,58 @@ static void rescan_games(int at_start)
  * Types and the stack of its icon (workbench.library 44, OpenWorkbenchObject) */
 struct Library *WorkbenchBase = NULL;
 
+/* <Root>/X.info of the catalog without a file X and not the icon of a drawer
+ * (no path <Root>/X/...): a project icon that starts the game through its
+ * Default Tool (WHDLoad: SLAVE= in its Tool Types). 1 when path is one. */
+static int project_icon(HubGame *g, const char *path)
+{
+  char target[300];
+  const char *slash = strchr(path, '/');
+  int n = (int)strlen(path), j, tl;
+  if (slash == NULL || strchr(slash + 1, '/') != NULL || n <= 5 || strcmp(path + n - 5, ".info") != 0 ||
+      n - 5 >= (int)sizeof(target)) {
+    return 0;
+  }
+  memcpy(target, path, n - 5);
+  target[n - 5] = 0;
+  tl = n - 5;
+  for (j = 0; j < g->nfiles; j++) {
+    const char *p = g->files[j].path;
+    if (strcmp(p, target) == 0) return 0;                               /* its program is there */
+    if (strncmp(p, target, tl) == 0 && p[tl] == '/') return 0;          /* a drawer */
+  }
+  return 1;
+}
+
+/* the project icon of an installed game (see project_icon) into out, without
+ * ".info" (OpenWorkbenchObject opens it as a double click); 1 when there is one */
+static int game_project(HubGame *g, const char *dir, char *out, int outlen)
+{
+  int j;
+  for (j = 0; j < g->nfiles; j++) {
+    HubFile *f = &g->files[j];
+    char name[300];
+    BPTR lock;
+    if (f->flag == 'X' || !project_icon(g, f->path)) continue;
+    strncpy(name, dir, sizeof(name) - 1);
+    name[sizeof(name) - 1] = 0;
+    if (!AddPart((STRPTR)name, (CONST_STRPTR)hub_local_path(g, f->path), sizeof(name))) continue;
+    lock = Lock((CONST_STRPTR)name, ACCESS_READ);
+    if (lock == 0) continue;
+    UnLock(lock);
+    name[strlen(name) - 5] = 0;                 /* without ".info" */
+    strncpy(out, name, outlen - 1);
+    out[outlen - 1] = 0;
+    return 1;
+  }
+  return 0;
+}
+
 static int game_program(HubGame *g, const char *dir, char *out, int outlen)
 {
   int j, found = 0;
   ULONG best = 0;
+  if (game_project(g, dir, out, outlen)) return 1;     /* WHDLoad games: the project icon first */
   for (j = 0; j < g->nfiles; j++) {
     const char *path = g->files[j].path;
     char name[300];

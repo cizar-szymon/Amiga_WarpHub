@@ -1,11 +1,19 @@
 WARP HUB - releases
 ===================
 
-Reporting bugs: the release number is in the screen title ("WARP HUB 0.19")
+Reporting bugs: the release number is in the screen title ("WARP HUB 0.20")
 and in the Shell: Version SYS:WarpApps/WarpHub. Describe what
 happened and give the release number:
 https://github.com/cizar-szymon/Amiga_WarpHub/issues
 
+
+0.20 (28.11.2026, beta release)
+-------------------------------
+- WHDLoad games: the icon of the game (a project with the tool WHDLoad) is
+  recognised as the game - "Run" opens it as a double click, and the
+  player's Tool Types stay at an update. A game without a version number in
+  its program keeps the version written at the install.
+- Game files may have brackets ( ), the apostrophe ' and the comma , in their names.
 
 0.19 (28.11.2026, beta release)
 -------------------------------

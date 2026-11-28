@@ -1263,3 +1263,46 @@ Update (`TESTINSTALL`): check 40 ms (9 files from the list), download 19 files (
 "Installed 0.1" in green and no hint line. The message "your code does not cover the game" was not
 tried on an Amiga (a test code needs the RP4, which was in the other network).
 
+## 0.20: WHDLoad games (28.11.2026, user's request)
+A WHDLoad game in a release has `<Root>/<Game>.info` as a PROJECT icon (Default Tool WHDLoad,
+`SLAVE=` in its Tool Types) and no file `<Root>/<Game>`; its programs have no `$VER`.
+- `make_catalog.flag_of`: `<Root>/X.info` without the file X and not the icon of a drawer (no path
+  `<Root>/X/...`) is K, as a program icon - the Tool Types of the player stay at an update. In the
+  catalogs of 28.11.2026 no existing entry changes (checked: no such icon in the public or private
+  catalog). Test `test_flag_of_project_icon`.
+- WARP HUB (`project_icon`, `game_project` in `warphub.c`): such an icon counts as the program of the
+  game with priority - the scan of the drawers finds the game by it, "Run" opens it with
+  `OpenWorkbenchObject` (the name without `.info`, as a double click).
+- A game found without a `$VER` in any program keeps the version of its INSTALLED line (or GONE) for
+  the same drawer instead of "0" ("0" only for a game WARP HUB did not install).
+Build OK, tests 40 OK. Amiga 2: below.
+
+### ( ) and ' in names (0.20, user's decision 28.11.2026)
+Game data has names like `(8)arena.pud.gz`, `I'm a ... .aiff`, `Beyond Dark Portal (Alliance)`.
+- Allowed now: letters, digits, `_ - . + & ( ) ' ,` (the comma: user's decision the same day), single spaces (`hub_path_ok`, `make_catalog.NAME`).
+  Still not: `..`, `:`, `/` at the start, `"`, `#`, `?`, `*`. Nothing splits a path at a comma
+  (commas only in TAGS, FAVORITES, the Date of HTTP).
+- A path with `&`, `(`, `)`, `'` or `,` is written as `FILE2` (`make_catalog.NEW_CHARS`, `file_word`):
+  0.17 and older skip the unknown line, 0.18 / 0.19 skip that one file (their `hub_path_ok`
+  refuses it, the FILE2 line is skipped, not the catalog).
+- URLs: `hub_url_path` sends them as `%28 %29 %27 %2C`; raw.githubusercontent gives the file (checked:
+  a campaign list with `(Alliance)` 200, 1931 B as in the catalog); `private_server` unquotes
+  (test). No name ever goes to a pattern (no MatchPattern / ParsePattern / Shell commands in
+  WARP HUB; Lock / Open / CreateDir / DeleteFile / Rename take names literally); the list of the
+  installed files and GONE keep the name as the last field of a line.
+- Seen 28.11.2026: the catalog job on GitHub failed ("bad path") after a game with such names was
+  added, so the public catalog was not built at all until this make_catalog is pushed.
+Tests 40 OK (names with ( ) ' taken and written as FILE2; `"` `#?` `*` refused; the server gives
+`%288%29I%27m.pud`).
+
+**Amiga 2 (28/29.11.2026, WARP HUB 0.20, `WorkSD:WH20-test`, test settings without INSTALLED/GONE):**
+- A game with `( ) ' ,` in names from the private source: 1378 files, 52.5 MB in 288 s; six of the
+  odd names (`(6)canyon-way.smp/.sms`, `Act_III_-_Quel'Thalas.png`, `I'm a Medieval Man.aiff`,
+  `gold,wood,oil,mana.png`, `ore,stone,coal.png`) fetched back and compared with the full package:
+  all the same (size and SHA-256).
+- A WHDLoad game (project icon, no `$VER`): installed, after a new start (scan of the drawers)
+  "Installed 1.0" (not "0"); "Run" (Return) opened the icon through WHDLoad - the user saw the game
+  running and left it with F10; while it ran AmiAgent did not answer (WHDLoad takes the machine).
+  The icon replaced by another one (as a player's change), then an update with FULLCHECK: 6 files
+  read, 0 downloaded, the changed icon kept; the version still 1.0.
+

@@ -78,7 +78,7 @@ HubFile *hub_game_file(HubGame *g, const char *path);
 /* "pl" / "de" / anything else -> HUB_PL / HUB_DE / HUB_EN */
 int hub_lang(const char *name);
 
-/* Letters, digits, _.+-& and single spaces inside a name; no "..". */
+/* Letters, digits, _.+-&()', and single spaces inside a name; no "..". */
 int hub_path_ok(const char *p);
 
 #endif

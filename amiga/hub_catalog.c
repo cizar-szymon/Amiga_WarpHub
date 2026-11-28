@@ -25,7 +25,7 @@ static int name_char(char c)
 {
   return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
          (c >= '0' && c <= '9') || c == '_' || c == '.' || c == '+' || c == '-' ||
-         c == '&';                     /* Syndicate Wars: maps/map030.b&b */
+         c == '&' || c == '(' || c == ')' || c == '\'' || c == ',';   /* 0.18: &, 0.20: ( ) ' , */
 }
 
 int hub_path_ok(const char *p)

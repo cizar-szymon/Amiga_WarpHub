@@ -45,9 +45,9 @@ space, the last field of a line may contain spaces):
     README <path>                 an empty drawer for data the player adds
     FILE <size> <sha256> <N|K> <path>
     FILE2 <size> <sha256> <N|K> <path>
-                                  the same for a path with '&' (0.18): WARP HUB
-                                  0.17 and older refuse the whole catalog on such
-                                  a FILE line, but skip unknown lines
+                                  the same for a path with & ( ) ' , (0.18 / 0.20):
+                                  WARP HUB 0.17 and older refuse the whole catalog
+                                  on such a FILE line, but skip unknown lines
     END
     ...
 
@@ -78,9 +78,9 @@ API = 'https://api.github.com'
 RAW = 'https://raw.githubusercontent.com'
 BASE = 'releases/amiga'
 FORMAT = 1
-# letters, digits, _.+-& and single spaces inside a name (Diablo has
+# letters, digits, _.+-&()', and single spaces inside a name (Diablo has
 # "Floating Numbers - XP"); the path is the last field of a FILE line
-NAME = r'[A-Za-z0-9_.+&-]+(?: [A-Za-z0-9_.+&-]+)*'   # '&': Syndicate Wars maps/map030.b&b
+NAME = r"[A-Za-z0-9_.+&()',-]+(?: [A-Za-z0-9_.+&()',-]+)*"   # & ( ) ' ,: names of game data
 PATH_OK = re.compile(r'^%s(?:/%s)*$' % (NAME, NAME))
 MAX_NAME = 30          # FFS: the longest name of a file or drawer (an icon: with ".info")
 
@@ -177,6 +177,11 @@ def flag_of(path, root, files):
     if path.endswith('.info') and path.count('/') == 1:
         target = path[:-5]
         if target in files:                          # a program icon (Tool Types)
+            return 'K'
+        if not any(f.startswith(target + '/') for f in files):
+            # an icon without its file and not of a drawer: a project icon that
+            # starts the game through its Default Tool (WHDLoad: SLAVE= in the
+            # Tool Types) - the player's settings, as a program icon
             return 'K'
     return 'N'
 
@@ -384,9 +389,14 @@ def one_line(text):
     return ' '.join(str(text).split())
 
 
+# characters WARP HUB takes only from 0.18 ('&') and 0.20 ('(', ')', "'", ',')
+NEW_CHARS = "&()',"
+
+
 def file_word(path):
-    """FILE, or FILE2 for a path the parser of WARP HUB 0.17 and older refuses."""
-    return 'FILE2' if '&' in path else 'FILE'
+    """FILE, or FILE2 for a path with a character older WARP HUB do not take:
+    0.17 and older skip the unknown FILE2 line, 0.18 / 0.19 skip that one file."""
+    return 'FILE2' if any(c in path for c in NEW_CHARS) else 'FILE'
 
 
 def write_catalog(games):

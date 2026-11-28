@@ -54,6 +54,10 @@ class PrivateServerTest(unittest.TestCase):
         os.makedirs(os.path.join(cls.root, 'other'))
         with open(os.path.join(cls.root, 'other', 'secret.txt'), 'w') as f:
             f.write('NAME en Secret')
+        with open(os.path.join(www, 'files', 'beta', 'Beta', 'gold,wood.png'), 'w') as f:
+            f.write('comma')
+        with open(os.path.join(www, 'files', 'beta', 'Beta', "(8)I'm.pud"), 'w') as f:
+            f.write('odd')                          # ( ) ' in a name
         with open(os.path.join(www, 'files', 'beta', 'Beta', 'map030.b&b'), 'w') as f:
             f.write('map')                          # '&' in a name (Syndicate Wars)
         os.makedirs(os.path.join(www, 'images'))
@@ -183,6 +187,9 @@ class PrivateServerTest(unittest.TestCase):
     def test_ampersand_in_a_name(self):
         # WARP HUB sends '&' as %26 (hub_url_path)
         self.assertEqual(self.get('/files/beta/Beta/map030.b%26b', 'main-password-1'), (200, 'map'))
+        # ( ) ' as WARP HUB sends them (hub_url_path): %28 %29 %27
+        self.assertEqual(self.get('/files/beta/Beta/%288%29I%27m.pud', 'main-password-1'), (200, 'odd'))
+        self.assertEqual(self.get('/files/beta/Beta/gold%2Cwood.png', 'main-password-1'), (200, 'comma'))
 
     def test_code_for_one_game(self):
         status, text = self.get('/catalog.txt', self.code_alpha)

@@ -141,6 +141,17 @@ class TestCatalog(unittest.TestCase):
             files = dict(GAME_FILES, **{bad: b'x'})
             with self.assertRaisesRegex(ValueError, 'bad path'):
                 self.build(repo_with(files))
+        for odd in ("Game/maps/(8)arena.pud.gz", "Game/music/I'm a Man.aiff",
+                    "Game/campaigns/Beyond Portal (Alliance)/level01.sms",
+                    "Game/ui/gold,wood,oil,mana.png"):
+            files = dict(GAME_FILES, **{odd: b'x'})
+            g, _ = self.build(repo_with(files))
+            self.assertIn(odd, {p for p, s, h, f in g['files']})
+            lines = M.write_catalog([g]).splitlines()
+            self.assertTrue(any(l.startswith('FILE2 ') and l.endswith(' ' + odd) for l in lines), odd)
+        self.assertFalse(M.path_ok('Game/a"b'))
+        self.assertFalse(M.path_ok('Game/a#?b'))
+        self.assertFalse(M.path_ok('Game/a*b'))
         files = dict(GAME_FILES, **{'Game/maps/map030.b&b': b'x'})
         g, _ = self.build(repo_with(files))
         self.assertIn('Game/maps/map030.b&b', {p for p, s, h, f in g['files']})
@@ -173,6 +184,18 @@ class TestCatalog(unittest.TestCase):
             len(GAME_FILES['Game/Game']),
             hashlib.sha256(GAME_FILES['Game/Game']).hexdigest()), lines)
         self.assertEqual(lines[-1], 'END')
+
+    def test_flag_of_project_icon(self):
+        # a WHDLoad game: the icon of the game is a project (Default Tool WHDLoad,
+        # SLAVE= in its Tool Types), there is no program file of that name
+        files = {'Game.info', 'Game/Game.info', 'Game/Game.slave', 'Game/ReadMe', 'Game/ReadMe.info',
+                 'Game/doc.info', 'Game/doc/Install.txt', 'Game/data/game'}
+        self.assertEqual(M.flag_of('Game/Game.info', 'Game', files), 'K')      # project icon
+        self.assertEqual(M.flag_of('Game/ReadMe.info', 'Game', files), 'K')    # icon of a file
+        self.assertEqual(M.flag_of('Game/doc.info', 'Game', files), 'N')       # icon of a drawer
+        self.assertEqual(M.flag_of('Game.info', 'Game', files), 'K')           # drawer of the game
+        self.assertEqual(M.flag_of('Game/Game.slave', 'Game', files), 'N')
+        self.assertEqual(M.flag_of('Game/doc/Install.txt', 'Game', files), 'N')
 
     def test_tags_with_old_card_groups(self):
         g, _ = self.build(repo_with(GAME_FILES))
