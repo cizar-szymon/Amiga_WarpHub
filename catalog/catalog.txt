@@ -20,16 +20,16 @@ REQ de AmiSSL 5 (WarpSSL)
 REQ de TCP/IP, Internet
 REPO cizar-szymon/Amiga_WarpHub
 BRANCH main
-VERSION 0.19
+VERSION 0.20
 FLAT
-ZIP WarpHub-0.19.zip 108936
-SIZE 136408
+ZIP WarpHub-0.20.zip 109652
+SIZE 137000
 IMAGE 2485 e4c6fcc78037abd22d90858afbae99e98f8ac59fe96be8cd324f5c6d7de4cf86 images/warphub.png
 NOTES en WarpHub/doc/WarpHub_release_en.txt
 NOTES pl WarpHub/doc/WarpHub_release.txt
 NOTES de WarpHub/doc/WarpHub_release_de.txt
 FILE 6862 ea64fde17ae4daeac0823985da76ba69e9dd13132b8a7c1eb13c57cd533b5b74 X WarpHub.info
-FILE 133088 54046b478e9dbbaefd0b30cb53da5e0afb3f8aee485fb17a9ed3a8b866195285 N WarpHub/WarpHub
+FILE 133680 282694e3299bfe04204c297bf1bf228d821315a0d833da86d659615e59ec16b7 N WarpHub/WarpHub
 FILE 3320 ec8027ba82761c6c5ee4058c742bea0f7b7a44f393d1a2beb5ca325df12211f8 K WarpHub/WarpHub.info
 FILE 2514 40a9f307f7de340bd324734098f4edb73e61c0dd1f1fc355554de827049f812b X WarpHub/doc.info
 FILE 4484 754632c3ac4260c1db63e94f817f975cbe44392c9dbfdf3a1d3625d66d8db47f X WarpHub/doc/WarpHub.txt
@@ -38,11 +38,11 @@ FILE 4885 e9499b37f7f481fcbeb7ad1ae48aff7a57addc957f0cbe9156ac161ea69148ea X War
 FILE 3218 659bf5badbbfbd9f045a97fdeaddc68fa6d6e4b39c935d70b9f69388e1f6dcdb X WarpHub/doc/WarpHub_de.txt.info
 FILE 4571 2feb03a2637975b546c76894cfe242ce0a8f7785949a121044ab2ac80c0f795b X WarpHub/doc/WarpHub_en.txt
 FILE 3354 f5d26b5dd3e1a7f7ac3872afe846b7298ed9203498da702caec9468fa7bb3832 X WarpHub/doc/WarpHub_en.txt.info
-FILE 7850 e76ea0d29757eff84f6a781f58ddbad932c1358143303e204a18b9ba42996ea3 X WarpHub/doc/WarpHub_release.txt
+FILE 8232 cf20267f46e64a2bf18a67e79cd694220a3adbe08a4100d0534c9149b7839907 X WarpHub/doc/WarpHub_release.txt
 FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e X WarpHub/doc/WarpHub_release.txt.info
-FILE 8495 d939e766d78f85bde2ee917d4c05079c45cfcbbd19557b51d34d9960941a2f55 X WarpHub/doc/WarpHub_release_de.txt
+FILE 8912 5f14b0f8dd373f55e6998fe15f7133c9bb2d1c684832628cd37d95fc6b165a4c X WarpHub/doc/WarpHub_release_de.txt
 FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e X WarpHub/doc/WarpHub_release_de.txt.info
-FILE 8162 5163d88cdcfd41ecd119574790d375a679c1dcda6d04acc5d102e6f9d6b143cd X WarpHub/doc/WarpHub_release_en.txt
+FILE 8588 ab8d4602498037a07476a2d446f9f6a363bf942e3b077c2c41f10c8c72cac909 X WarpHub/doc/WarpHub_release_en.txt
 FILE 3354 b476e8587b9ec2cb2764412450168cc1473eb08f4c3bc1dffd7001589c51deb7 X WarpHub/doc/WarpHub_release_en.txt.info
 END
 GAME warpnetmonitor
@@ -567,6 +567,174 @@ FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e N Red
 FILE 1584 621d95660384ccb40ff280a79c1c5819ba05cb981f370086352367a9e5cdd5eb N RedAlert/doc/RedAlert_release_en.txt
 FILE 3354 b476e8587b9ec2cb2764412450168cc1473eb08f4c3bc1dffd7001589c51deb7 N RedAlert/doc/RedAlert_release_en.txt.info
 FILE 195 c72bef16f495a22bbcfca5d33d862c4defa663e988f0fa91dd697830d6f1df77 N RedAlert/user/ReadMe.txt
+END
+GAME amiwargus
+NAME en AmiWargus
+DESC en Warcraft II: Tides of Darkness on the Stratagus engine with the Wargus scripts. 640x480, 800x600 or 960x540 on RTG, 8-bit picture, campaigns and skirmishes, English or Polish menus.
+DESC pl Warcraft II: Tides of Darkness na silniku Stratagus ze skryptami Wargus. 640x480, 800x600 albo 960x540 na RTG, obraz 8-bitowy, kampanie i potyczki, menu po angielsku albo po polsku.
+DESC de Warcraft II: Tides of Darkness mit der Stratagus-Engine und den Wargus-Skripten. 640x480, 800x600 oder 960x540 auf RTG, 8-Bit-Bild, Kampagnen und Gefechte, Menues auf Englisch oder Polnisch.
+TAGS warp,warp1260,warp1240,warp1260x,warp7060
+REQ en WARP HUB 0.20 or newer
+REQ en 68040 / 68060
+REQ en 100 MHz recommended
+REQ en 64 MB Fast RAM
+REQ en AmigaOS 3.1+, Picasso96, RTG 8-bit
+REQ en game data from your own Warcraft II CD (DOS)
+REQ pl WARP HUB 0.20 lub nowszy
+REQ pl 68040 / 68060
+REQ pl 100 MHz (zalecane)
+REQ pl 64 MB Fast RAM
+REQ pl AmigaOS 3.1+, Picasso96, RTG 8-bit
+REQ pl dane gry z wlasnej plyty Warcraft II (DOS)
+REQ de WARP HUB 0.20 oder neuer
+REQ de 68040 / 68060
+REQ de 100 MHz empfohlen
+REQ de 64 MB Fast RAM
+REQ de AmigaOS 3.1+, Picasso96, RTG 8-Bit
+REQ de Spieldaten von der eigenen Warcraft-II-CD (DOS)
+REPO cizar-szymon/Amiga_Game_AmiWargus
+BRANCH main
+VERSION 0.70
+ZIP AmiWargus-0.70.zip 2750831
+SIZE 7947593
+IMAGE 25894 61d0e16978eaf10706c4ffb0eea56f5958a45e871e6c3b4829238b618ed4ad11 images/amiwargus.png
+NOTES en AmiWargus/doc/AmiWargus_release_en.txt
+NOTES pl AmiWargus/doc/AmiWargus_release.txt
+README AmiWargus/data/ReadMe.txt
+FILE 6862 ea64fde17ae4daeac0823985da76ba69e9dd13132b8a7c1eb13c57cd533b5b74 K AmiWargus.info
+FILE 5828984 17b170cd7d237f9d594bcd97e2f2fe16334ab66da9014e81584cb96efa070857 N AmiWargus/AmiWargus
+FILE 5574 347df7a9c5c1cf9575c1b146d0c3688b910644200f8e33272d90bef694b823ee K AmiWargus/AmiWargus.info
+FILE 1506 7a89c60f502341e963cdc028b101bf7252fe697da60540d62d88ae1a24d2f34e N AmiWargus/data/ReadMe.txt
+FILE 26699 907ce11ebb9a6c749c655328bba20e43d3f101af91288fb4486e57c5973d4ba9 N AmiWargus/data/scripts/ai.lua
+FILE 35536 7129258bc6fae5a64998d5158bb81fa35b485ba0058f112f6786320c7702b993 N AmiWargus/data/scripts/ai/ai_jadeite_2010.lua
+FILE 8875 961e114c5aad6d1f631173071ef6c6556e66010c7c2756733c7533e6d58de417 N AmiWargus/data/scripts/ai/ai_nephrite_2012.lua
+FILE 18915 c41f5905e0eff74cb34c3b57ea96011745051595ff9dfe7428950d7a7c58ce75 N AmiWargus/data/scripts/ai/ai_nephrite_2013.lua
+FILE 50600 f90cfd281033ba4508d13ba395fe914f45afa2cced7e8bea13c4ac1d46d7fb34 N AmiWargus/data/scripts/ai/ai_redribbon_2012.lua
+FILE 25815 d6b9e1c79b5e9aa751fea6a480b6ffe7500c841c935c2b83113285da1712ab9d N AmiWargus/data/scripts/ai/ai_redribbon_2014.lua
+FILE 129087 1c71e56df1380f60c64d4450974d2453ef0f75ed510af350859310b6f900e779 N AmiWargus/data/scripts/ai/ai_redribbon_2015.lua
+FILE 2508 e9af7395aa96879f4cb8ef38353a980c3665facb083460fd3033adae5d83f538 N AmiWargus/data/scripts/ai/ai_zoisite_2013.lua
+FILE 8049 6a0ca9a5fa0bb63118d075e83b9461d0fe7176315dd13e1647a030542ef5027f N AmiWargus/data/scripts/ai/air_attack.lua
+FILE 16843 11009a79da9cf6e3944da436b925b2e65fdef444e9a30aa5def5e7cd27ca74e2 N AmiWargus/data/scripts/ai/land_attack.lua
+FILE 2433 627a659abb2640bcadb0e975d06b82385a46289e7613bf3f63845d79d26290a7 N AmiWargus/data/scripts/ai/names.lua
+FILE 1983 6f4a58e83b652dce12a84f759672f9f2c550c99b43b1044ff341e2b6cb215f10 N AmiWargus/data/scripts/ai/passive.lua
+FILE 8730 6328644e0240d1eec3368508706d02d1c8f1377f74646b65cf418ae874cb5a01 N AmiWargus/data/scripts/ai/sea_attack.lua
+FILE 5588 b94e899d98f14759bbad50f15c0615b4d0f6c2479fa1c244cd7bf2e68affc616 N AmiWargus/data/scripts/anim.lua
+FILE 2862 6bc6a23a976bd95987d39d406dbd3da6b29d29693e66215c2cffc59ff9b0a921 N AmiWargus/data/scripts/buttons.lua
+FILE 6767 dbcae5d643281154f17ea82c1afe24797bc726b4e23d465ff09e78027ff01933 N AmiWargus/data/scripts/cheats.lua
+FILE 2841 96823ac4640962e03ae7ddc05f150a80ea6cbdd35c9ced90ed2cb4cc5fb0d2b9 N AmiWargus/data/scripts/commands.lua
+FILE 4059 b347097b80ad639b511b80981a918aad34d4161e496f841ef00a597348662f74 N AmiWargus/data/scripts/constructions.lua
+FILE 43881 73a039e80c4732e1069bf0a887ae2cba3d814aeac68b194715619e5dc6473009 N AmiWargus/data/scripts/database.lua
+FILE 2041 c83975ba1e1e01158668506d10b09bc276ae8d7d8deb2bb63c403c0ebc82406b N AmiWargus/data/scripts/directcontrol.lua
+FILE 7283 f4a1cfeb7c405a13ef35efb3c8a3a7e35087c118ecc2559592c84b51d2a4e195 N AmiWargus/data/scripts/editor.lua
+FILE 1529 b4238b1676a1f45315a2bd2c2fc025a9ad9d42b151942fc5f4e17767a274ac52 N AmiWargus/data/scripts/editor/brushes.lua
+FILE 1991 e7233f0b046ccd34354c54faf659655ae555717e3e10828143e0300c05d4e4e7 N AmiWargus/data/scripts/editor/brushes/default.lua
+FILE 12906 eab284e9d356f18f6a32a6329052f3c9be1e99d5017a35844f5748e806952f03 N AmiWargus/data/scripts/editor/brushes/ramp-generator.lua
+FILE 2275 6c9c092a408d9608a7ff50ad7b570e850fabf6daac06fac1c97df0f71cdb8ff3 N AmiWargus/data/scripts/editor/brushes/ramp.lua
+FILE 1702 5d91d78c7ca54f52a4d26a04ed6b7ffe25f45addc5f7b2c72649d1d3bb800f7c N AmiWargus/data/scripts/editor/brushes/round.lua
+FILE 7565 a373b450ceba8ad68938aa208fe900d67cc19afcb041e0a32992325ecc2b7308 N AmiWargus/data/scripts/extract.lua
+FILE 6339 352306b9dab1d87b32881bd3ef2888aeaafa441295c13978a508abe44a344771 N AmiWargus/data/scripts/fonts.lua
+FILE 1933 e813937ab0a1b7d6f1a7bfba1164e064c429537e6f8bb0c246ec541923bd5151 N AmiWargus/data/scripts/fov.lua
+FILE 57772 6a849d463910f7cfb4b4b4a1f3abce609c3cf0344a2bc2c3eea44388c17a9228 N AmiWargus/data/scripts/guichan.lua
+FILE 23833 0c50ea9b6a512189dd3837e57f19f8ee5f2afcc41401859e86693db63da8ddc5 N AmiWargus/data/scripts/human/anim.lua
+FILE 34519 f0895a258f481ff6a31141a274e45b050b5fa9de1d07b6c69cfa7edb627c5997 N AmiWargus/data/scripts/human/buttons.lua
+FILE 3300 0239cce714356df4cf202344c978154ba296e17a91c5e5de2362d1d6c41a0016 N AmiWargus/data/scripts/human/campaign1.lua
+FILE 3263 5bf2b42d47e430f1afb461d42276e40a2f471c85592a9e6cfc3ef16bc3fa8651 N AmiWargus/data/scripts/human/campaign2.lua
+FILE 4286 610f086effff3601ba31fa45c839b370910da6d1e09c67c44a4f12836a1556ef N AmiWargus/data/scripts/human/constructions.lua
+FILE 1602 306432992932ae13d1729d02cd007b5d6b1a0087cc1dde37574bc2b610d64c08 N AmiWargus/data/scripts/human/ui.lua
+FILE 9898 b701e9c2685bdabfcc72e50eded673634f01525e91ab6e25b40c8ce109944cf8 N AmiWargus/data/scripts/human/ui_pandora.lua
+FILE 9708 aa711473683bbb982698f8db50b49c09919a4a5b120cb5a2330b3040178d2a62 N AmiWargus/data/scripts/human/ui_tales.lua
+FILE 59679 506e14ce7416eb90169e41e72619c7b5398553faf0888ecfca0b9f17e8b4a853 N AmiWargus/data/scripts/human/units.lua
+FILE 14017 4d9006f3c823121cd9b12344f193aa1238a5e9dc3f5c1fad5d1311a7b1694397 N AmiWargus/data/scripts/human/upgrade.lua
+FILE 7721 557919945aeae8043ba18b50a357b7528a39483bcc5cc4fb9ebb7573331972d0 N AmiWargus/data/scripts/icons.lua
+FILE 1130 54ea19bdd6ec1dde908cdfdc63bb339e061c2937d9b6c524d4f461c09026e80d N AmiWargus/data/scripts/lib/classes.lua
+FILE 19002 825efc77b1dd9b51372e48ea16e7b7b66461d42ae9dde5b374cc656551904dcc N AmiWargus/data/scripts/lib/layouts.lua
+FILE2 1931 d0eed5911dbe468809bec3d3124a8a3689e5f8aa45555664f6e203bdad61bb42 N AmiWargus/data/scripts/lists/campaigns/Beyond Dark Portal (Alliance)
+FILE2 1925 a93ccfa430feb6019444afde2a8a3b736312883dd2f7fca6cb9b147042ce94c0 N AmiWargus/data/scripts/lists/campaigns/Beyond Dark Portal (Horde)
+FILE2 1862 0a80c717c97d9688f98a30a744a9f20767899fd17092ed9e8756313f44777e4d N AmiWargus/data/scripts/lists/campaigns/Tides of Darkness (Alliance)
+FILE2 1856 f7d0424c33dd346f81c46142c22bb594e8f77103304f83b50e1b011559139bd8 N AmiWargus/data/scripts/lists/campaigns/Tides of Darkness (Horde)
+FILE 100440 4de45fde14bb142ecfc6ca5d2d259e979e13b5b9e126b82281a7e1925e10856c N AmiWargus/data/scripts/lists/maps/For the Motherland
+FILE 8817 2e5d817bc2e16b5b73f6acd65d4eb5650e33183d39c44988b325729f646c1c38 N AmiWargus/data/scripts/lists/maps/Front Lines
+FILE 2821 58f3e8ce367d14c6178c523e0c6e0d6a3757bb6662a6c5fd816f607a8d3f1cf9 N AmiWargus/data/scripts/lists/maps/Random Skirmish
+FILE 6005 3784c2398f340244509a6046892ccd05fbbf8ce0423378902c87b54e7a9ec80f N AmiWargus/data/scripts/lists/maps/Skirmish Classic
+FILE 1556 f86a0be0f1964362ea38dd03c0f0bbee71ad4af9ff9feef34a0d271b0726fc6a N AmiWargus/data/scripts/lists/maps/Skirmish Modern
+FILE 1740 d83cba54d3eaeb3f3fb6502cd8cda1fd5da60ff72b05d11050963ba447a84d6a N AmiWargus/data/scripts/lists/mods/Wargus
+FILE 12014 63b384f6a3c80cb2c7479f50f26aea7ad1b838c81ea46931cd65a0d0543cb653 N AmiWargus/data/scripts/lists/mods/Wargus-Coop-4
+FILE 12455 4bd2e75b982a688ec7ab8899b2628b15664f2613f00260afc114b5d09a08b850 N AmiWargus/data/scripts/menus/campaign.lua
+FILE 7755 18d66c98fc0e4450f3d9c1299f78282e1404ec7d3e8fb7702d63f1eca54ba07d N AmiWargus/data/scripts/menus/compactmode.lua
+FILE 5144 f16251bbe2d899e4723f2c38d1088d0aa03396e133e696f549f282e519af40de N AmiWargus/data/scripts/menus/credits.lua
+FILE 3959 8f5e9149c072fd041111ecd8ce9c1507b4b4f3a9dad6622efaf08768b5652437 N AmiWargus/data/scripts/menus/diplomacy.lua
+FILE 26525 b2c80a44c8f56afb737d79ac3543467aa779af1783e281c11f8e288909555484 N AmiWargus/data/scripts/menus/editor.lua
+FILE 2744 fa0c3f4dc0cafe751225805034b92c841462088d4524f27c828a8c3f2034c1d2 N AmiWargus/data/scripts/menus/endscenario.lua
+FILE 1524 1614dc4ca8b911c63e5b38a455da8cab6a2d0cbec4f1c52f6d7d031e025d66ef N AmiWargus/data/scripts/menus/game.lua
+FILE 5423 11541720f8b7c4d39a4f8fafeb7a0b4ad9ec714fcc8fa77677f29164fc58f3bf N AmiWargus/data/scripts/menus/help.lua
+FILE 2496 5029823d205d7718d90f841eef48f62df27ab3d35bbc4b67a2ff5dcd6ece1775 N AmiWargus/data/scripts/menus/load.lua
+FILE 42403 21e8a13c4833aa3779b752adc1bf5cc723a5b743e8fff7587949787e518247ed N AmiWargus/data/scripts/menus/network.lua
+FILE 558 4475b783c67692134fb9b157c7b88eb2ce1293aa430a6f89772dbc2acbf8db9b N AmiWargus/data/scripts/menus/objectives.lua
+FILE 32389 39d20155bd733a75b090dee6d1ba64a171187b8f4dd3b6a04b1b1005978a2016 N AmiWargus/data/scripts/menus/options.lua
+FILE 2287 a014005ae875d47b08963196ea800209733a5178b451e8bbea22ca82f4e0cbbd N AmiWargus/data/scripts/menus/replay.lua
+FILE 14130 06e4bfd67aa288d9b09f64ecb88bb6830733ffc6e477c090a83bfbea29d5385e N AmiWargus/data/scripts/menus/results.lua
+FILE 2801 12c7528397ec7bc71e46e8a4af1e779342fb2caf511a38201c47be75feec4e0c N AmiWargus/data/scripts/menus/save.lua
+FILE 10874 01f01cbc33643fe13c1fd5534d5f95938b73cde5b3b691d50e28d9f1fbf0566e N AmiWargus/data/scripts/missiles.lua
+FILE 5584 377f214862e4dee72e837dff6ab2a4520e8ed6bda4281071a6d69f8d26cd7c6f N AmiWargus/data/scripts/multiplayer.lua
+FILE 25368 9fcc990723e337bc0676cd9498f7c1b0b518b146c073872abcbc4fe5df211e9c N AmiWargus/data/scripts/orc/anim.lua
+FILE 35558 5b7c81f10d0f20cc92f0c96a6020ce3ddbe3392ecd5004b42db39063070770b9 N AmiWargus/data/scripts/orc/buttons.lua
+FILE 3239 603bb69e8275ab5892a28fc08eb946c5a72fa0cf8f630ef9701883523ae35a12 N AmiWargus/data/scripts/orc/campaign1.lua
+FILE 3269 9d1b339cb523a97030bc5496f8e61e20eba49fd8bc4870fbbf92df41107b9803 N AmiWargus/data/scripts/orc/campaign2.lua
+FILE 4042 59d30f3d687ba0eeafbc9de556c721fe55551feada83d88157dd8e236caaf04c N AmiWargus/data/scripts/orc/constructions.lua
+FILE 1598 a73377b1ad3b0cf1ab5393eb64da767e9c342c3ec11de10972970e9ee731b09d N AmiWargus/data/scripts/orc/ui.lua
+FILE 9894 dd269643cb3d8d3143f143b3f80b8eaf995e513467bbffd3753c8d007b591c04 N AmiWargus/data/scripts/orc/ui_pandora.lua
+FILE 62882 f596957232da9070df70daf6a5e3620f434118a3b58a3296e6a5a6cc498ca51b N AmiWargus/data/scripts/orc/units.lua
+FILE 14774 6cd46c00a067c7f2186ae50123ab33948078fb8e490ec293cb14d91869d6de0b N AmiWargus/data/scripts/orc/upgrade.lua
+FILE 2679 f9ec595c1208605fc32570c236b8d89b2cc8e432ba2045d7639c5925c6922234 N AmiWargus/data/scripts/scripts.lua
+FILE 6449 19a12a6ee92d86a1ade73ffa75afbfb6bc37abfdc5860c5f5127d83008223cbd N AmiWargus/data/scripts/singleplayer.lua
+FILE 39666 3f5b2d7890067292fc25201c03dc701a3b29c09f816f58003df5bc0bf2eae475 N AmiWargus/data/scripts/sound.lua
+FILE 22328 61b2a201d3f9add315e179395febd8c8ef69609d577a8e23f80abdfc85fe054b N AmiWargus/data/scripts/spells.lua
+FILE 21234 c7c4a80e61968565842b8b0cfc34da2e9b418f367fbe604923a31b0567224bc8 N AmiWargus/data/scripts/stratagus.lua
+FILE 1490 b0db197568301f358cf14c02906150fbab3942c32354011820dacf238aecdc17 N AmiWargus/data/scripts/tilesets/summer.lua
+FILE 1489 8f6158b4dbe94ec77e7290b69f940d2a47c0f6e4bdc426aba0b26c82151b515d N AmiWargus/data/scripts/tilesets/swamp.lua
+FILE 3336 825f8911fb04336c6bb764bfab70e70a37ffa95de2b48df71c2b8dd158dfafa8 N AmiWargus/data/scripts/tilesets/tilesetsList.lua
+FILE 47181 4c86d7c95794dbc90a957e29501865c9eb4779a95e8354e7dc7e58a6b90b44fa N AmiWargus/data/scripts/tilesets/wargus/extended.lua
+FILE 26463 6f37a96071008c55f7fa596de28c9bca4879ec8cb8958fca968d9d9546148828 N AmiWargus/data/scripts/tilesets/wargus/layout.lua
+FILE 25412 d11b14151d483624b0df33786021dcb4c25220e22a431a7396f533f7459f1661 N AmiWargus/data/scripts/tilesets/wargus/summer.lua
+FILE 16013 572f894128c571f4ab64a9536b5c8da166e7a43b7a2e67a4f30e055e60b446b0 N AmiWargus/data/scripts/tilesets/wargus/swamp.lua
+FILE 25744 8dd1e8844b628875026063884e78b7b63770143185658af99d6c9b04fb2130e2 N AmiWargus/data/scripts/tilesets/wargus/wasteland.lua
+FILE 25524 7d7c6dd1405fe0a4671b9f48b4c6a551b333a14852c71d81e9166bc1ee5a4443 N AmiWargus/data/scripts/tilesets/wargus/winter.lua
+FILE 1493 1dc7dd00999f75a066db5d9487b03cae03866c8ff9347795f13a734dbf2e7663 N AmiWargus/data/scripts/tilesets/wasteland.lua
+FILE 1490 abaa3fed2f47f5f4d9bf805cff6d0ee9ec21736e0d526620b741257a38f3e111 N AmiWargus/data/scripts/tilesets/winter.lua
+FILE 66547 61f4a30f0ae1c39e4ee578c70b0c72a0844142fd20c3d113288d806bb42bde61 N AmiWargus/data/scripts/translate/cz_CZ.po
+FILE 67756 02b3d8552e1fa4bca50c4f385f26771fcc10b8f3af1a5f8c65a2cda84fdd9447 N AmiWargus/data/scripts/translate/de_DE.po
+FILE 67866 f2b40552e3bd7e1e491386ba389824c1ef4412e089910d5915ede0977a025def N AmiWargus/data/scripts/translate/es_ES.po
+FILE 68838 152833013dcc455d325d98002ed04e31e9a1b71cd477b0c37bd2207c8402381d N AmiWargus/data/scripts/translate/fr_FR.po
+FILE 1960 59586ef8fcc5a12526f311da4774d536065231ff7170e36d6b5ab576733be531 N AmiWargus/data/scripts/translate/generate_tables.py
+FILE 67915 4d98ddababdb82ee4cf7250abbcc8a99af5662e2772457e65de42a070912e827 N AmiWargus/data/scripts/translate/it_IT.po
+FILE 39671 217917dfed76da072e38d88fab3efafb64370811a96190b6ce8091348240215c N AmiWargus/data/scripts/translate/pl_PL.po
+FILE 75338 06b41528f7424ac41cac4f897c538b161d937df7a2fdf80a72d12f050896f034 N AmiWargus/data/scripts/translate/ru_RU.po
+FILE 9336 e4108d6afd64ace9ae176678cd1f2a66eb79942b147fd5ff93f09584bd13cb26 N AmiWargus/data/scripts/translate/stratagus-cz.po
+FILE 10328 c0905a1c28a8a5c08e4fbe5d838e4144817029989ca6abd42ed451989c6ccfbf N AmiWargus/data/scripts/translate/stratagus-de.po
+FILE 9782 280569d8ee76fcfd0498806a36385cb45a6e6ca2fb3a16612fabf9b22c326609 N AmiWargus/data/scripts/translate/stratagus-es.po
+FILE 9756 e9bcf646080c86b35f53094aa263c1352b226aee8dfe71fe114ac6ab31cece7c N AmiWargus/data/scripts/translate/stratagus-fr.po
+FILE 9761 04d13d40f2c83674cf7249bb4cb726881b5bfb12d03c0f022da165466a7154cf N AmiWargus/data/scripts/translate/stratagus-it.po
+FILE 6357 b1ca49ccd694e5e3aa75296c04b0bca192e3d2c5c9be27bb1240c1db36ede3fb N AmiWargus/data/scripts/translate/stratagus-pl.po
+FILE 10794 a7617d4e247688f91fc0aa3deb1b981af7458dcb7e162fd00f2a3e9cc0b18797 N AmiWargus/data/scripts/translate/stratagus-ru.po
+FILE 598 2db897b6f8a3fa26d4b100b1690a7dc8cba80b589fe81536baae10485aaf9804 N AmiWargus/data/scripts/translate/translate.lua
+FILE 32314 7d24f8838862cc40e1912764cd1e989f93c875a2e89110d6a7f16214c4ecbbfc N AmiWargus/data/scripts/ui.lua
+FILE 23721 1c966137db1ccd934b426b74851d5819a1935bb1dbabb9a44a5e2b9343ed00b3 N AmiWargus/data/scripts/units.lua
+FILE 2209 f87479282ed4c2eaad1fca1658ed413a21797a8c91d4e3fbd240e422db17e16f N AmiWargus/data/scripts/upgrade.lua
+FILE 11648 5ea1c6e83d5f7c61158a7395bd08bd2860f596d403662508a71518c74228962d N AmiWargus/data/scripts/wc2-config.lua
+FILE 16094 492dd151fc341683909871b07bd6f251059048a5636f0dc2c1711083dd555e96 N AmiWargus/data/scripts/wc2.lua
+FILE 5055 b88bc817585edc1f7852760a8064466821b050aac0c9d3707f57c4607d313dc1 N AmiWargus/data/scripts/widgets.lua
+FILE 2514 40a9f307f7de340bd324734098f4edb73e61c0dd1f1fc355554de827049f812b N AmiWargus/doc.info
+FILE 2811 1ccaf0d400afa4c3a070b0a4cd616648aae9c7f176b231a46fd1ca1ea31688a5 N AmiWargus/doc/AmiWargus.txt
+FILE 3308 f6ca3a09267f0c9baa2abf16f3de2d17a5f179720c777543c34a3558b69f26eb N AmiWargus/doc/AmiWargus.txt.info
+FILE 2934 38e2f431e1681d04a0f4df81374ab3b61820f00efff8604384801cd8f8b7636b N AmiWargus/doc/AmiWargus_en.txt
+FILE 3354 f5d26b5dd3e1a7f7ac3872afe846b7298ed9203498da702caec9468fa7bb3832 N AmiWargus/doc/AmiWargus_en.txt.info
+FILE 643 727d5c819eae3305d461bcf3ec02dbe8aa5b1cd1ef20db8d52f823bfb1d53b35 N AmiWargus/doc/AmiWargus_release.txt
+FILE 3308 4e5ce3aefd43a7b637e4c766933213824b1aadcb7d47870341f91be4d0ae527e N AmiWargus/doc/AmiWargus_release.txt.info
+FILE 664 ed46f4bcbc3d780c94c4d2c9901181f48b1c18377bc4d0531db10afda47e223c N AmiWargus/doc/AmiWargus_release_en.txt
+FILE 3354 b476e8587b9ec2cb2764412450168cc1473eb08f4c3bc1dffd7001589c51deb7 N AmiWargus/doc/AmiWargus_release_en.txt.info
+FILE 18046 db296f2f7f35bca3a174efb0eb392b3b17bd94b341851429a3dff411b1c2fc73 N AmiWargus/doc/COPYING
+FILE 871 0468b59e7c478811773f0219a59426ccce966dd6076e967cdb81f14c620e4536 N AmiWargus/doc/Install.txt
+FILE 3218 659bf5badbbfbd9f045a97fdeaddc68fa6d6e4b39c935d70b9f69388e1f6dcdb N AmiWargus/doc/Install.txt.info
 END
 GAME syndwars
 NAME en Syndicate Wars
